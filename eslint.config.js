@@ -7,14 +7,16 @@ const prettier = require("eslint-config-prettier");
 
 // Layer rules of the library. Each folder may import only what its block allows.
 // A later block for the same files would replace these options, so the folders never overlap.
+const entryPoints = ["core", "fhir", "angular/data", "angular/ui"];
 const entryPointsOnly = [
   {
-    regex: "^fhir-vitals/[^/]+/",
-    message:
-      "Nur über einen Einstiegspunkt importieren: fhir-vitals, fhir-vitals/core, fhir-vitals/fhir oder fhir-vitals/ui.",
+    regex: `^fhir-vitals(/(?!(${entryPoints.join("|")})$)|$)`,
+    message: `Nur über einen Einstiegspunkt importieren: ${entryPoints
+      .map((name) => `fhir-vitals/${name}`)
+      .join(", ")}.`,
   },
   {
-    regex: "^(\\./)?(\\.\\./)+((projects/)?fhir-vitals/)?(src|core|fhir|ui)/",
+    regex: "^(\\.{1,2}/)+(.*/)?(core|fhir|data|ui)/src(/|$)",
     message:
       "Andere Schichten über ihren Paketnamen importieren, nie über einen relativen Pfad.",
   },
@@ -26,9 +28,10 @@ const frameworkFree = {
 };
 // Relative paths from the app into the library sources or into dist.
 const libraryByPath = "^\\.{1,2}/(.*/)?(fhir-vitals|dist)(/|$)";
-// The same for dynamic imports, written for an esquery selector, plus deep imports.
-const libraryByPathOrDeep =
-  "^(fhir-vitals\\/[^\\/]+\\/|\\.{1,2}\\/(.*\\/)?(fhir-vitals|dist)(\\/|$))";
+// The same for dynamic imports, written for an esquery selector, plus anything that is no entry point.
+const libraryByPathOrDeep = `^(fhir-vitals(\\/(?!(${entryPoints
+  .map((name) => name.replace("/", "\\/"))
+  .join("|")})$)|$)|\\.{1,2}\\/(.*\\/)?(fhir-vitals|dist)(\\/|$))`;
 const serverGlobals = ["fetch", "XMLHttpRequest", "WebSocket", "EventSource"];
 const noServerAccess =
   "Serverzugriff nur über die Adapter in fhir-vitals/fhir.";
@@ -87,27 +90,27 @@ module.exports = defineConfig(
   }),
   // fhir: adapters for the ports of core, also without frameworks.
   layer("fhir", frameworkFree, {
-    regex: "^fhir-vitals(/(fhir|ui))?$",
+    regex: "^fhir-vitals/(fhir|angular/.+)$",
     message: "Die Adapter kennen nur fhir-vitals/core.",
   }),
-  // src: the Angular data layer. It uses core and the adapters, but never the UI.
+  // angular/data: the Angular data layer. It uses core and the adapters, but never the UI.
   layer(
-    "src",
+    "angular/data",
     {
-      regex: "^fhir-vitals(/ui)?$",
+      regex: "^fhir-vitals/angular/(data|ui)$",
       message:
-        "Die Datenschicht kennt die UI nicht. Innerhalb von fhir-vitals relativ importieren.",
+        "Die Datenschicht kennt die UI nicht. Innerhalb der eigenen Schicht relativ importieren.",
     },
     {
       regex: "^fhirclient(/|$)",
       message: "Serverzugriff nur über die Adapter in fhir-vitals/fhir.",
     },
   ),
-  // ui: Angular components. They get data through inputs and never load it themselves.
+  // angular/ui: Angular components. They get data through inputs and never load it themselves.
   layer(
-    "ui",
+    "angular/ui",
     {
-      regex: "^fhir-vitals(/(fhir|ui))?$",
+      regex: "^fhir-vitals/(fhir|angular/(data|ui))$",
       message:
         "Die UI importiert nur fhir-vitals/core. Daten kommen über Inputs, verbunden wird in der App.",
     },
@@ -116,11 +119,11 @@ module.exports = defineConfig(
       message: "Die UI spricht nicht selbst mit Servern.",
     },
   ),
-  // core and ui never talk to servers, not even through browser globals.
+  // core and the UI never talk to servers, not even through browser globals.
   {
     files: [
       "projects/fhir-vitals/core/**/*.ts",
-      "projects/fhir-vitals/ui/**/*.ts",
+      "projects/fhir-vitals/angular/ui/**/*.ts",
     ],
     rules: {
       "no-restricted-globals": [
@@ -136,6 +139,28 @@ module.exports = defineConfig(
             message: noServerAccess,
           })),
         ),
+      ],
+    },
+  },
+  // The package root stays an empty placeholder, so "fhir-vitals" never becomes a second way in.
+  {
+    files: ["projects/fhir-vitals/src/**/*.ts"],
+    rules: {
+      "@typescript-eslint/no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              regex: ".*",
+              message:
+                "Der Paketname fhir-vitals bleibt ein leerer Platzhalter. Code gehört in einen Einstiegspunkt.",
+            },
+          ],
+        },
+      ],
+      "no-restricted-globals": [
+        "error",
+        ...serverGlobals.map((name) => ({ name, message: noServerAccess })),
       ],
     },
   },
@@ -183,6 +208,11 @@ module.exports = defineConfig(
         {
           selector: `TSImportType[argument.literal.value=/${libraryByPathOrDeep}/]`,
           message: "Die Bibliothek nur über ihren Paketnamen importieren.",
+        },
+        {
+          selector: "ImportExpression[source.type='TemplateLiteral']",
+          message:
+            "Dynamische Importe mit einer festen Zeichenkette in Anführungszeichen schreiben, damit ESLint sie prüfen kann.",
         },
       ],
     },

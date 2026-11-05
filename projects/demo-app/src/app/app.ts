@@ -1,7 +1,7 @@
 import { HttpClient } from "@angular/common/http";
 import { Component, inject, OnInit } from "@angular/core";
-import { VitalsFacade } from "fhir-vitals";
-import { PatientCard, ServerStatus } from "fhir-vitals/ui";
+import { VitalsFacade } from "fhir-vitals/angular/data";
+import { PatientCard, ServerStatus } from "fhir-vitals/angular/ui";
 import { firstValueFrom } from "rxjs";
 
 interface AppConfig {

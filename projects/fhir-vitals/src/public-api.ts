@@ -1,3 +1,3 @@
-// "fhir-vitals": the Angular data layer. It brings fhir-vitals/core into Angular and never knows the UI.
-export * from "./lib/fhir-assets";
-export * from "./lib/vitals-facade";
+// The package root only exists because ng-packagr needs one. Import an entry point instead:
+// fhir-vitals/core, fhir-vitals/fhir, fhir-vitals/angular/data or fhir-vitals/angular/ui.
+export {};

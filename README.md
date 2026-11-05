@@ -112,25 +112,25 @@ Der Decorator `@Service()` ist eine Markierung über der Klasse.
 Angular erzeugt einen so markierten Service selbst und gibt ihn an alle Klassen weiter, die ihn brauchen.
 ESLint prüft den Code auf Fehler und Regelverstöße, ohne ihn auszuführen.
 Prettier formatiert den Code einheitlich.
-Die Bibliothek besteht aus vier Einstiegspunkten, also Teilpaketen mit eigenem Importnamen wie `fhir-vitals/core`.
+Die Bibliothek besteht aus vier Einstiegspunkten, also Teilpaketen mit eigenem Importnamen wie `fhir-vitals/core` oder `fhir-vitals/angular/ui`.
 Jeder Einstiegspunkt bildet eine Schicht mit einer festen Aufgabe.
 Abschnitt 5 beschreibt, was in welche Schicht gehört.
 
 | Befehl | Wirkung | Wann nötig | Was danach zu sehen ist |
 |---|---|---|---|
 | `npm ci` | installiert alle Pakete genau nach `package-lock.json` und löscht vorher einen vorhandenen Ordner `node_modules` | einmal nach dem Klonen und nach jeder Änderung an `package-lock.json` | Nach einigen Sekunden bis etwa einer Minute erscheint `added … packages`. Die Zahl hängt vom Betriebssystem ab. Im Test waren es 597 unter macOS und 603 unter Linux. Davor stehen Warnungen `npm warn deprecated` zu `inflight`, `rimraf` und `glob`. Sie stammen aus dem Testrunner Karma. Danach folgt `14 moderate severity vulnerabilities`, siehe Abschnitt 9. |
-| `npm start` | baut die Bibliothek einmal und startet die Demo-App mit dem Entwicklungsserver | zum Ausprobieren | vier Zeilen `Built fhir-vitals…`, eine je Einstiegspunkt, danach `Local: http://localhost:4200/`. Im Browser erscheint die Seite „FHIR-Starter“. `Strg+C` beendet den Entwicklungsserver. |
+| `npm start` | baut die Bibliothek einmal und startet die Demo-App mit dem Entwicklungsserver | zum Ausprobieren | fünf Zeilen `Built fhir-vitals…`, eine für das Paket und eine je Einstiegspunkt, danach `Local: http://localhost:4200/`. Im Browser erscheint die Seite „FHIR-Starter“. `Strg+C` beendet den Entwicklungsserver. |
 | Terminal 1: `npm run watch:lib` | baut die Bibliothek mit allen Einstiegspunkten bei jeder gespeicherten Änderung neu | beim Arbeiten an der Bibliothek, zusammen mit Terminal 2 | `Compilation complete. Watching for file changes...`. Nach jeder Änderung folgt ein neuer Block mit `Build at: …`. Der Neubau dauerte im Test 0,1 bis 0,2 Sekunden. |
-| Terminal 2: `npm run start:app` | startet nur die Demo-App, ohne die Bibliothek zu bauen | zusammen mit Terminal 1 | `Local: http://localhost:4200/`. Nach einer Änderung in der Bibliothek erscheint `Page reload sent to client(s).`, und der Browser lädt die Seite selbst neu. Vom Speichern bis zum Neuladen verging im Test weniger als eine Sekunde, für Änderungen in `core` ebenso wie in `ui`. |
-| `npx ng generate service <name> --project fhir-vitals` | legt einen Angular-Service in der Angular-Datenschicht an | für Logik, die nur Angular braucht, etwa weitere Datenzugriffe mit HttpClient, dem HTTP-Dienst von Angular | Zwei Zeilen `CREATE projects/fhir-vitals/src/lib/<name>.ts` und `…/<name>.spec.ts`. Die Klasse trägt den Decorator `@Service()`. Logik, die auch andere UI-Frameworks brauchen, gehört dagegen als Datei ohne Decorator nach `core`, siehe Abschnitt 5. |
-| `npx ng generate component <name> --project fhir-vitals --path projects/fhir-vitals/ui/src/lib` | legt eine Komponente im Einstiegspunkt `fhir-vitals/ui` an | für neue Anzeigen, etwa eine Karte mit Messwerten | Vier Zeilen `CREATE projects/fhir-vitals/ui/src/lib/<name>/<name>.ts`, `.html`, `.css` und `.spec.ts`. Der Selektor beginnt mit `lib-`. Ohne `--path` landet die Komponente in der Angular-Datenschicht, wo sie nicht hingehört. |
-| neue Zeile in der Datei `src/public-api.ts` des Einstiegspunkts, zum Beispiel `export * from "./lib/vitals-card/vitals-card";` in `projects/fhir-vitals/ui/src/public-api.ts` | macht den neuen Baustein außerhalb der Bibliothek sichtbar | nach jedem neuen Service, jeder neuen Komponente und jeder neuen Datei in `core` oder `fhir` | Nach dem nächsten Build der Bibliothek klappt in der Demo-App `import { VitalsCard } from "fhir-vitals/ui";`. Ohne diese Zeile meldet der Build `Module '"fhir-vitals/ui"' has no exported member 'VitalsCard'`. |
-| `npx ng build fhir-vitals` | baut alle vier Einstiegspunkte der Bibliothek einmal nach `dist/fhir-vitals` | vor `npm run start:app`, wenn `watch:lib` nicht läuft | Nacheinander `Built fhir-vitals/core`, `Built fhir-vitals/fhir`, `Built fhir-vitals` und `Built fhir-vitals/ui`, dann `Built Angular Package`. Der Ordner `dist/fhir-vitals/fesm2022` enthält je Einstiegspunkt eine Datei `.mjs` und eine `.mjs.map`, etwa `fhir-vitals-core.mjs`. |
+| Terminal 2: `npm run start:app` | startet nur die Demo-App, ohne die Bibliothek zu bauen | zusammen mit Terminal 1 | `Local: http://localhost:4200/`. Nach einer Änderung in der Bibliothek erscheint `Page reload sent to client(s).`, und der Browser lädt die Seite selbst neu. Vom Speichern bis zum Neuladen verging im Test weniger als eine Sekunde, für Änderungen in `core` ebenso wie in `angular/ui`. |
+| `npx ng generate service <name> --project fhir-vitals` | legt einen Angular-Service in der Angular-Datenschicht `fhir-vitals/angular/data` an | für Logik, die nur Angular braucht, etwa weitere Datenzugriffe mit HttpClient, dem HTTP-Dienst von Angular | Zwei Zeilen `CREATE projects/fhir-vitals/angular/data/src/lib/<name>.ts` und `…/<name>.spec.ts`. Die Klasse trägt den Decorator `@Service()`. Logik, die auch andere UI-Frameworks brauchen, gehört dagegen als Datei ohne Decorator nach `core`, siehe Abschnitt 5. |
+| `npx ng generate component <name> --project fhir-vitals --path projects/fhir-vitals/angular/ui/src/lib` | legt eine Komponente im Einstiegspunkt `fhir-vitals/angular/ui` an | für neue Anzeigen, etwa eine Karte mit Messwerten | Vier Zeilen `CREATE projects/fhir-vitals/angular/ui/src/lib/<name>/<name>.ts`, `.html`, `.css` und `.spec.ts`. Der Selektor beginnt mit `lib-`. Ohne `--path` landet die Komponente in der Angular-Datenschicht, wo sie nicht hingehört. |
+| neue Zeile in der Datei `src/public-api.ts` des Einstiegspunkts, zum Beispiel `export * from "./lib/vitals-card/vitals-card";` in `projects/fhir-vitals/angular/ui/src/public-api.ts` | macht den neuen Baustein außerhalb der Bibliothek sichtbar | nach jedem neuen Service, jeder neuen Komponente und jeder neuen Datei in `core` oder `fhir` | Nach dem nächsten Build der Bibliothek klappt in der Demo-App `import { VitalsCard } from "fhir-vitals/angular/ui";`. Ohne diese Zeile meldet der Build `Module '"fhir-vitals/angular/ui"' has no exported member 'VitalsCard'`. |
+| `npx ng build fhir-vitals` | baut das Paket mit allen vier Einstiegspunkten einmal nach `dist/fhir-vitals` | vor `npm run start:app`, wenn `watch:lib` nicht läuft | Fünf Zeilen `Built …` für `fhir-vitals`, `fhir-vitals/core`, `fhir-vitals/fhir`, `fhir-vitals/angular/data` und `fhir-vitals/angular/ui`, dann `Built Angular Package`. Die Reihenfolge ergibt sich aus den Abhängigkeiten: `core` kommt immer vor den Schichten, die es nutzen, sonst kann sie wechseln. Der Ordner `dist/fhir-vitals/fesm2022` enthält je Einstiegspunkt eine Datei `.mjs` und eine `.mjs.map`, etwa `fhir-vitals-core.mjs` und `fhir-vitals-angular-ui.mjs`. |
 | `npx ng test fhir-vitals --watch=false` | testet alle Einstiegspunkte der Bibliothek, direkt aus den Quellen | nach Änderungen an der Bibliothek | `TOTAL: 28 SUCCESS`. Dafür muss die Bibliothek vorher nicht gebaut sein. |
-| `npm test` | baut die Bibliothek und testet dann Bibliothek und Demo-App nacheinander, ohne Watch-Modus | vor jedem Commit | Die vier Zeilen `Built fhir-vitals…`, dann zwei Blöcke: zuerst `TOTAL: 28 SUCCESS` für die Bibliothek, dann `TOTAL: 1 SUCCESS` für die Demo-App |
+| `npm test` | baut die Bibliothek und testet dann Bibliothek und Demo-App nacheinander, ohne Watch-Modus | vor jedem Commit | Die fünf Zeilen `Built fhir-vitals…`, dann zwei Blöcke: zuerst `TOTAL: 28 SUCCESS` für die Bibliothek, dann `TOTAL: 1 SUCCESS` für die Demo-App |
 | `npm run lint` | prüft den Code mit ESLint, auch die Regeln zwischen den Schichten aus Abschnitt 5 | vor jedem Commit | nur die beiden Kopfzeilen `> angular-fhir-vitals@0.0.0 lint` und `> eslint .`. Folgt keine weitere Ausgabe, hat ESLint nichts zu beanstanden. |
 | `npm run format` | formatiert TypeScript, HTML und CSS mit Prettier | vor jedem Commit | eine Zeile je Datei. `(unchanged)` heißt, dass die Datei schon passte. |
-| `npm run build` | baut erst die Bibliothek, dann die Demo-App für die Auslieferung | vor einer Auslieferung ohne Docker | vier Zeilen `Built fhir-vitals…`, dann `Application bundle generation complete` und `Output location: …/dist/demo-app` |
+| `npm run build` | baut erst die Bibliothek, dann die Demo-App für die Auslieferung | vor einer Auslieferung ohne Docker | fünf Zeilen `Built fhir-vitals…`, dann `Application bundle generation complete` und `Output location: …/dist/demo-app` |
 
 ### b) Demo-App mit Docker, ohne HAPI FHIR
 
@@ -216,12 +216,14 @@ angular-fhir-vitals/
 │   ├── fhir-vitals/                   Angular-Bibliothek: ein npm-Paket mit vier Einstiegspunkten
 │   │   ├── core/                      "fhir-vitals/core": Ports, Ablauf VitalsSync, Blutdruck-Formatierung
 │   │   ├── fhir/                      "fhir-vitals/fhir": Adapter mit fhirclient und mit fetch
-│   │   ├── src/                       "fhir-vitals": Angular-Datenschicht mit FhirAssets und VitalsFacade
-│   │   ├── ui/                        "fhir-vitals/ui": Komponenten PatientCard und ServerStatus
+│   │   ├── angular/                   alles, was Angular braucht, selbst kein Einstiegspunkt
+│   │   │   ├── data/                  "fhir-vitals/angular/data": Datenschicht mit FhirAssets und VitalsFacade
+│   │   │   └── ui/                    "fhir-vitals/angular/ui": Komponenten PatientCard und ServerStatus
+│   │   ├── src/public-api.ts          leerer Platzhalter für den Paketnamen "fhir-vitals"
 │   │   ├── …/src/public-api.ts        je Einstiegspunkt: was außerhalb sichtbar ist
 │   │   ├── …/src/lib/*.spec.ts        Unit-Tests, neben dem getesteten Code
 │   │   ├── ng-package.json            Einstellungen für ng-packagr, das die Bibliothek baut
-│   │   ├── core|fhir|ui/ng-package.json  macht den Ordner zu einem eigenen Einstiegspunkt
+│   │   ├── …/ng-package.json          macht einen Ordner zu einem eigenen Einstiegspunkt
 │   │   ├── tsconfig.spec.json         lässt die Tests direkt gegen die Quellen laufen
 │   │   └── package.json               Name, Version und peerDependencies, gemeinsam für alle Einstiegspunkte
 │   └── demo-app/                      Demo-App
@@ -249,12 +251,12 @@ angular-fhir-vitals/
 └── LICENSE                            Lizenztext Apache-2.0
 ```
 
-**Pfadzuordnung.** Die Demo-App importiert die Bibliothek über ihre Paketnamen, also etwa `import { VitalsFacade } from "fhir-vitals";` und `import { PatientCard, ServerStatus } from "fhir-vitals/ui";`.
+**Pfadzuordnung.** Die Demo-App importiert die Bibliothek über ihre Paketnamen, also etwa `import { VitalsFacade } from "fhir-vitals/angular/data";` und `import { PatientCard, ServerStatus } from "fhir-vitals/angular/ui";`.
 Genau so sähe der Import im Patientenportal aus, wenn es die Bibliothek als npm-Paket installiert.
-Möglich machen das zwei Einträge unter `compilerOptions.paths` in `tsconfig.json`.
-`"fhir-vitals": ["./dist/fhir-vitals"]` hat die Angular CLI beim Anlegen der Bibliothek erzeugt.
-`"fhir-vitals/*": ["./dist/fhir-vitals/*"]` kommt für die weiteren Einstiegspunkte hinzu.
-Beide leiten die Paketnamen auf die gebaute Bibliothek im Ordner `dist` um.
+Möglich macht das der Eintrag `"fhir-vitals/*": ["./dist/fhir-vitals/*"]` unter `compilerOptions.paths` in `tsconfig.json`, auch für verschachtelte Namen wie `fhir-vitals/angular/ui`.
+Er leitet die Paketnamen auf die gebaute Bibliothek im Ordner `dist` um.
+Den Eintrag `"fhir-vitals": ["./dist/fhir-vitals"]` daneben hat die Angular CLI beim Anlegen der Bibliothek erzeugt.
+Er zeigt nur noch auf den leeren Platzhalter.
 Deshalb muss die Bibliothek gebaut sein, bevor die Demo-App startet.
 `npm start` und `npm test` erledigen das automatisch.
 Die Tests der Bibliothek brauchen keinen Build, weil `projects/fhir-vitals/tsconfig.spec.json` die Paketnamen auf die Quellen umleitet.
@@ -267,6 +269,12 @@ In der `package.json` im Wurzelverzeichnis stehen diese Pakete unter `dependenci
 **Schichten der Bibliothek.**
 Die Bibliothek trennt Abläufe, Serverzugriff, Angular-Anbindung und Oberfläche in vier Einstiegspunkte.
 Jeder Einstiegspunkt bildet eine Schicht mit einer festen Aufgabe.
+Die beiden Schichten, die Angular brauchen, liegen gemeinsam im Ordner `angular/`.
+`core` und `fhir` daneben bleiben frei von UI-Frameworks.
+Der Ordner `angular/` ist selbst kein Einstiegspunkt, deshalb meldet `import … from "fhir-vitals/angular"` den Fehler `TS2307`.
+Auch `fhir-vitals` allein ist nur ein leerer Platzhalter.
+ng-packagr verlangt ihn für den Paketnamen und zeigt ihn beim Build als `Built fhir-vitals` an.
+Importieren lassen sich nur die vier Einstiegspunkte.
 Der Kern, also `fhir-vitals/core`, enthält die eigentliche Logik.
 Ein Port ist eine Schnittstelle, die beschreibt, was der Kern von außen braucht, etwa das Laden einer Ressource.
 Mit einem Netzwerk-Port hat dieser Begriff nichts zu tun.
@@ -279,13 +287,14 @@ Ein Input ist eine Eigenschaft einer Komponente, die die einbindende Seite setzt
 |---|---|---|---|
 | `fhir-vitals/core` | die Ports `ResourceLoader` und `FhirServerConnection`, der Ablauf `VitalsSync` mit Patient laden, Adresse lesen, verbinden, prüfen, speichern und zurücklesen, dazu `formatBloodPressure` und die LOINC-Codes | FHIR-Typen aus `fhir/r4` | Angular, RxJS, Vue, fhirclient, `fetch` und alle anderen Teile der Bibliothek |
 | `fhir-vitals/fhir` | die Adapter `FhirClientConnection` mit fhirclient und `FetchResourceLoader` mit fetch | `fhir-vitals/core`, fhirclient, FHIR-Typen aus `fhir/r4` | Angular, RxJS, Vue und die übrigen Teile |
-| `fhir-vitals` | die Angular-Datenschicht: `FhirAssets` als Adapter mit HttpClient, dem Dienst von Angular für HTTP-Anfragen, und `VitalsFacade`, die den Zustand von `VitalsSync` als Signal anbietet | `fhir-vitals/core`, `fhir-vitals/fhir`, Angular, RxJS, FHIR-Typen aus `fhir/r4` | `fhir-vitals/ui` und fhirclient direkt |
-| `fhir-vitals/ui` | die Komponenten `PatientCard` und `ServerStatus`. Sie bekommen Daten über Inputs und übersetzen die Statuscodes des Kerns in deutsche Texte. | `fhir-vitals/core`, Angular, FHIR-Typen aus `fhir/r4` | die Datenschicht, `fhir-vitals/fhir`, fhirclient, HttpClient und `fetch` |
+| `fhir-vitals/angular/data` | die Angular-Datenschicht: `FhirAssets` als Adapter mit HttpClient, dem Dienst von Angular für HTTP-Anfragen, und `VitalsFacade`, die den Zustand von `VitalsSync` als Signal anbietet | `fhir-vitals/core`, `fhir-vitals/fhir`, Angular, RxJS, FHIR-Typen aus `fhir/r4` | `fhir-vitals/angular/ui` und fhirclient direkt |
+| `fhir-vitals/angular/ui` | die Komponenten `PatientCard` und `ServerStatus`. Sie bekommen Daten über Inputs und übersetzen die Statuscodes des Kerns in deutsche Texte. | `fhir-vitals/core`, Angular, FHIR-Typen aus `fhir/r4` | die Datenschicht, `fhir-vitals/fhir`, fhirclient, HttpClient und `fetch` |
 
 Die Demo-App ist die einzige Stelle, die Datenschicht und Oberfläche kennt.
 Sie verbindet beide.
 Die Schichten importieren einander nur über den Paketnamen, etwa `fhir-vitals/core`.
-Ein relativer Pfad in eine andere Schicht scheitert beim Build mit dem Fehler `TS6059`.
+Ein relativer Pfad in eine andere Schicht scheitert beim Build, meist mit dem Fehler `TS6059`.
+Zeigt er von `core` aus nach oben, etwa nach `angular/data`, meldet ng-packagr stattdessen `Entry point fhir-vitals/core has a circular dependency on itself.`
 `npm run lint` prüft die Spalte „darf nicht importieren“.
 Ein verbotener Import erscheint dann als Fehler mit Begründung, im Kern zum Beispiel `'@angular/core' import is restricted from being used by a pattern. Dieser Teil bleibt frei von UI-Frameworks, damit auch Vue oder andere ihn nutzen können.`
 
@@ -302,7 +311,7 @@ Das gebaute JavaScript dieser Vue-App enthielt keinen Code aus Angular.
 Die Vue-App gehört nicht zum Repository.
 Das Build-Werkzeug Vite baute sie und griff dabei über einen Alias direkt auf die Quellen von `core` und `fhir` zu.
 Als verteiltes npm-Paket eignet sich `fhir-vitals` für Vue noch nicht, weil es Angular als peerDependency führt und npm diese mitinstalliert.
-Dafür kommen `core` und `fhir` später in eigene Pakete.
+Dafür kommen `core` und `fhir` später in eigene Pakete, und der Ordner `angular/` wird zu einem Paket für Angular.
 Weil alle Schichten einander schon heute nur über Paketnamen importieren, ändern sich dabei im Code vor allem die Importnamen.
 
 ## 6 Wie die Teile zusammenspielen
@@ -320,8 +329,8 @@ flowchart LR
     Assets[("Assets: config.json, patient.json, blutdruck.json")]
   end
   subgraph Lib["Bibliothek fhir-vitals"]
-    UI["fhir-vitals/ui: PatientCard, ServerStatus"]
-    NG["fhir-vitals: VitalsFacade, FhirAssets"]
+    UI["fhir-vitals/angular/ui: PatientCard, ServerStatus"]
+    NG["fhir-vitals/angular/data: VitalsFacade, FhirAssets"]
     FHIR["fhir-vitals/fhir: FhirClientConnection"]
     CORE["fhir-vitals/core: VitalsSync, Ports"]
   end
@@ -408,7 +417,7 @@ Diese Angaben stammen aus dem Quelltext der Erweiterung, die Erweiterung selbst 
 
 1. Der Browser lädt `index.html` und das JavaScript der Demo-App vom Entwicklungsserver oder von nginx.
 2. `main.ts` startet Angular mit den Einstellungen aus `app.config.ts`. Dort schaltet `provideZoneChangeDetection()` die Änderungserkennung mit zone.js ein. Die Änderungserkennung prüft nach Ereignissen wie Klicks oder Serverantworten, ob sich die Seite ändern muss. zone.js meldet Angular diese Ereignisse. `provideHttpClient(withFetch())` richtet HTTP-Anfragen mit der Fetch-API des Browsers ein.
-3. Die Komponente `App` holt sich die `VitalsFacade` aus der Angular-Datenschicht. Die Facade erzeugt den Ablauf `VitalsSync` aus `fhir-vitals/core` und gibt ihm zwei Adapter mit: `FhirAssets` zum Laden der Assets und `connectWithFhirClient` aus `fhir-vitals/fhir` für den Server.
+3. Die Komponente `App` holt sich die `VitalsFacade` aus der Angular-Datenschicht `fhir-vitals/angular/data`. Die Facade erzeugt den Ablauf `VitalsSync` aus `fhir-vitals/core` und gibt ihm zwei Adapter mit: `FhirAssets` zum Laden der Assets und `connectWithFhirClient` aus `fhir-vitals/fhir` für den Server.
 4. `App` ruft `start()` der Facade auf und übergibt eine Funktion, die `config.json` liest. `VitalsSync` liest die Datei beim Start und nicht beim Build, damit sie sich ohne Neubau des Images ändern lässt.
 5. `VitalsSync` lädt `assets/fhir/patient.json`. Die Komponente `PatientCard` zeigt Name, Geschlecht, Geburtsdatum und Kennung. Fehlt ein Feld, steht dort „–“.
 6. `VitalsSync` liest danach über die übergebene Funktion die Adresse des Servers. Ist `fhirBaseUrl` leer oder `null`, meldet er den Status `not-configured`, und die Komponente `ServerStatus` zeigt „nicht konfiguriert“. Der Ablauf endet dann hier.
@@ -440,7 +449,7 @@ Sobald JSON zurückkommt, auf der Seite „Erneut verbinden“ klicken.
 Die Zeile `Started Application in … seconds` markiert das Ende.
 
 **Bibliothek nicht gebaut.**
-`npm run start:app` oder `npx ng build demo-app` melden `Could not resolve "fhir-vitals"`.
+`npm run start:app` oder `npx ng build demo-app` melden `Could not resolve "fhir-vitals/angular/data"` und `Could not resolve "fhir-vitals/angular/ui"`.
 Der Ordner `dist/fhir-vitals` fehlt dann.
 `npx ng build fhir-vitals` oder `npm run watch:lib` ausführen, oder gleich `npm start` nutzen.
 
@@ -463,10 +472,10 @@ Den Code in die passende Schicht verschieben.
 Eine Komponente bekommt Daten dann über ein Input, und die Demo-App holt sie über die Facade.
 Danach zeigt `npm run lint` nur noch die beiden Kopfzeilen.
 
-**Neue Komponente liegt in `src/lib` statt in `ui`.**
-`npx ng generate component` ohne `--path` legt die Komponente in der Angular-Datenschicht an.
-Die neuen Dateien löschen und den Befehl mit `--path projects/fhir-vitals/ui/src/lib` wiederholen.
-Danach erscheinen vier Zeilen `CREATE projects/fhir-vitals/ui/src/lib/<name>/…`.
+**Neue Komponente liegt in `angular/data` statt in `angular/ui`.**
+`npx ng generate component` ohne `--path` legt die Komponente in der Angular-Datenschicht unter `angular/data/src/lib` an.
+Die neuen Dateien löschen und den Befehl mit `--path projects/fhir-vitals/angular/ui/src/lib` wiederholen.
+Danach erscheinen vier Zeilen `CREATE projects/fhir-vitals/angular/ui/src/lib/<name>/…`.
 
 **Tests finden keinen Browser.**
 Karma meldet `No binary for ChromeHeadless browser on your platform. Please, set "CHROME_BIN" env variable.`
@@ -505,9 +514,9 @@ Sie zeigt die Architektur aus Folie 73 im Workshop-Deck an einem einzigen Beispi
 
 Weitere Schritte im Workshop:
 
-- weitere Vitalparameter aus der [Vital-Signs-Übersicht](https://hl7.org/fhir/R4/observation-vitalsigns.html) ergänzen. Dazu kommen Codes und Formatierung nach `core`, eigene Beispieldateien unter `public/assets/fhir/` und eine Komponente nach `ui`.
+- weitere Vitalparameter aus der [Vital-Signs-Übersicht](https://hl7.org/fhir/R4/observation-vitalsigns.html) ergänzen. Dazu kommen Codes und Formatierung nach `core`, eigene Beispieldateien unter `public/assets/fhir/` und eine Komponente nach `angular/ui`.
 - für neue Ressourcen IDs mit mindestens einem Buchstaben wählen, etwa `puls-01`. HAPI lehnt in der Voreinstellung ein PUT mit rein numerischer ID ab.
-- neue Komponenten mit `--path projects/fhir-vitals/ui/src/lib` anlegen und in `ui/src/public-api.ts` exportieren
+- neue Komponenten mit `--path projects/fhir-vitals/angular/ui/src/lib` anlegen und in `angular/ui/src/public-api.ts` exportieren
 - eine zweite Oberfläche mit Vue oder einem anderen Framework auf `fhir-vitals/core` und `fhir-vitals/fhir` aufbauen, siehe Abschnitt 5
 - `core` und `fhir` in eigene npm-Pakete auslagern, sobald eine andere Oberfläche sie als Paket installieren soll
 - für Daten, die einen Neustart überleben, HAPI mit PostgreSQL betreiben. Die passende `compose.yaml` steht im Workshop-Material auf Folie 80.
@@ -564,7 +573,7 @@ Regeln für die Nutzung:
 | Service | eine Klasse mit Logik ohne eigene Oberfläche, etwa für Datenzugriffe |
 | Decorator | eine Markierung über einer Klasse wie `@Service()` oder `@Component()`. Angular erkennt daran, wie es die Klasse behandeln soll. |
 | Dependency Injection | Angular erzeugt benötigte Objekte selbst und reicht sie weiter. Mit `inject(VitalsFacade)` holt sich eine Klasse den Service, statt ihn selbst zu bauen. |
-| Einstiegspunkt | ein Teilpaket der Bibliothek mit eigenem Importnamen, etwa `fhir-vitals/core`, und eigener Datei `public-api.ts` |
+| Einstiegspunkt | ein Teilpaket der Bibliothek mit eigenem Importnamen, etwa `fhir-vitals/core`, und eigener Datei `public-api.ts`. Der leere Platzhalter `fhir-vitals` zählt nicht dazu. |
 | Port (Architektur) | eine Schnittstelle, die beschreibt, was ein Ablauf von außen braucht, etwa das Speichern einer Ressource |
 | Adapter | eine Umsetzung eines Ports mit einer bestimmten Technik, etwa `FhirClientConnection` mit fhirclient |
 | Facade | ein einfacher Zugang für die Oberfläche, der die Einzelheiten dahinter verbirgt, hier `VitalsFacade` |

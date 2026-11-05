@@ -12,9 +12,10 @@
     "paths": {
       "fhir-vitals/core": ["./core/src/public-api.ts"],
       "fhir-vitals/fhir": ["./fhir/src/public-api.ts"],
-      "fhir-vitals/ui": ["./ui/src/public-api.ts"]
+      "fhir-vitals/angular/data": ["./angular/data/src/public-api.ts"],
+      "fhir-vitals/angular/ui": ["./angular/ui/src/public-api.ts"]
     }
   },
-  "include": ["src/**/*.ts", "core/**/*.ts", "fhir/**/*.ts", "ui/**/*.ts"],
+  "include": ["src/**/*.ts", "core/**/*.ts", "fhir/**/*.ts", "angular/**/*.ts"],
   "exclude": ["**/*.spec.ts"]
 }

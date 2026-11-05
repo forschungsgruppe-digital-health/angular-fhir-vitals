@@ -17,7 +17,7 @@
     "fhir-vitals": {
       "projectType": "library",
       "root": "projects/fhir-vitals",
-      "sourceRoot": "projects/fhir-vitals/src",
+      "sourceRoot": "projects/fhir-vitals/angular/data/src",
       "prefix": "lib",
       "architect": {
         "build": {
@@ -39,9 +39,9 @@
             "browsers": "ChromeHeadless",
             "include": [
               "**/*.spec.ts",
-              "../core/**/*.spec.ts",
-              "../fhir/**/*.spec.ts",
-              "../ui/**/*.spec.ts"
+              "../../../core/**/*.spec.ts",
+              "../../../fhir/**/*.spec.ts",
+              "../../ui/**/*.spec.ts"
             ]
           }
         }
