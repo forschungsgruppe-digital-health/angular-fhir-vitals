@@ -29,7 +29,8 @@ Docker Compose startet mehrere Container gemeinsam nach der Beschreibung in `com
 | [Git](https://git-scm.com) | aktuelle Version | lädt das Repository herunter |
 | [Docker Desktop](https://docs.docker.com/desktop/) oder [Docker Engine](https://docs.docker.com/engine/install/) mit Compose | geprüft mit Docker 29.9.2 und Compose 5.6.1 | startet Demo-App und FHIR-Server in Containern |
 | Google Chrome oder Chromium | aktuelle Version | führt die Unit-Tests aus, ohne ein Fenster zu öffnen |
-| [Visual Studio Code](https://code.visualstudio.com) (optional) | aktuelle Version | Editor. Beim Öffnen des Ordners schlägt er die Erweiterung Angular Language Service vor. |
+| Java, JRE oder JDK (optional) | 17 oder neuer, aufrufbar als `java` | nur für die Prüfung mit der Erweiterung FHIR tools, siehe Abschnitt 7. `java -version` zeigt die installierte Version, zum Beispiel `openjdk version "25.0.2"`. |
+| [Visual Studio Code](https://code.visualstudio.com) (optional) | aktuelle Version | Editor. Beim Öffnen des Ordners schlägt er die Erweiterungen Angular Language Service und FHIR tools vor. Er prüft außerdem die FHIR-Beispieldateien beim Tippen, siehe Abschnitt 7. |
 
 Die installierte Node.js-Version zeigt `node -v`, zum Beispiel `v22.22.3`.
 
@@ -103,6 +104,7 @@ Die Spalte „Was danach zu sehen ist“ gibt die tatsächliche Ausgabe wieder.
 ### a) Bibliothek entwickeln
 
 Die Datei `package-lock.json` hält die genauen Versionen aller Pakete fest.
+Ein Commit speichert einen Stand des Codes in der Versionsverwaltung Git.
 Eine Komponente ist ein Baustein der Oberfläche aus TypeScript-Klasse, HTML-Template und CSS.
 Ihr Selektor ist der Name des HTML-Elements, mit dem eine Seite sie einbindet, etwa `<lib-vitals-card>`.
 Ein Service ist eine Klasse mit Logik ohne eigene Oberfläche, etwa für Datenzugriffe.
@@ -160,6 +162,44 @@ Hinweis für Windows: In Windows PowerShell 5.1 ist `curl` ein Alias für `Invok
 Dort `curl.exe` statt `curl` schreiben.
 PowerShell 7 definiert diesen Alias nicht mehr.
 
+### d) Demo-App auf GitHub Pages
+
+GitHub Pages veröffentlicht statische Webseiten direkt aus einem Repository.
+Statische Webseiten bestehen aus fertigen Dateien wie HTML, JavaScript und JSON, die der Server unverändert ausliefert.
+GitHub Actions führt Workflows aus, also automatische Abläufe, die eine YAML-Datei im Repository beschreibt.
+YAML ist ein Textformat für Einstellungen, das die Gliederung durch Einrückung ausdrückt.
+Ein Workflow besteht aus Jobs, also Folgen von Schritten, die GitHub jeweils auf einem eigenen Rechner ausführt.
+Jede Ausführung eines Workflows heißt Lauf.
+Ein Push lädt neue Commits vom eigenen Rechner zu GitHub hoch.
+`main` ist der Hauptzweig des Repositorys, englisch Branch.
+
+Der Workflow `.github/workflows/pages.yml` hat zwei Jobs.
+Der Job `build` baut bei jedem Push auf `main` die Bibliothek und die Demo-App.
+Der Job `deploy` veröffentlicht danach die Demo-App unter https://forschungsgruppe-digital-health.github.io/angular-fhir-vitals/.
+Pages liefert die App unter dem Unterpfad `/angular-fhir-vitals/` aus.
+Deshalb baut der Workflow sie mit der Option `--base-href`, die Angular diesen Unterpfad mitteilt.
+
+Auf Pages ist der FHIR-Server abgeschaltet.
+Der Workflow ersetzt dafür `config.json` im fertigen Build durch `{ "fhirBaseUrl": null }`.
+So schickt eine öffentliche Seite keine Anfragen an `localhost` auf dem Rechner der Besucher.
+Chrome würde für solche Anfragen ab Version 142 um eine Erlaubnis bitten.
+Die Datei `config.json` im Repository bleibt unverändert.
+
+Vor dem ersten Push auf `main` einmalig in den Einstellungen des Repositorys unter Settings, Pages, „Build and deployment“ bei „Source“ den Eintrag „GitHub Actions“ auswählen.
+Danach schlägt GitHub Vorlagen für Workflows vor.
+Keine davon auswählen, denn `pages.yml` gibt es schon.
+Steht bei „Source“ noch „Deploy from a branch“, läuft im Tab Actions bei jedem Push zusätzlich der Workflow „pages build and deployment“.
+Die Pages-Adresse zeigt dann dieses README als Webseite statt der Demo-App.
+Ist Pages ganz ausgeschaltet, scheitert der Job `build` im Schritt `actions/configure-pages` mit der Meldung `Get Pages site failed`, und der Job `deploy` läuft nicht.
+In beiden Fällen die Einstellung nachholen und den Workflow „Deploy demo app to GitHub Pages“ neu starten.
+Für einen gescheiterten Lauf geht das im Lauf selbst: im Menü „Re-run jobs“ den Eintrag „Re-run failed jobs“ wählen und im folgenden Dialog „Re-run jobs“ klicken.
+Sonst den Workflow wie in der Tabelle unten von Hand starten.
+
+| Befehl | Wirkung | Wann nötig | Was danach zu sehen ist |
+|---|---|---|---|
+| `git push` auf `main` | startet den Workflow „Deploy demo app to GitHub Pages“ | nach jeder Änderung, die online erscheinen soll | Im Tab Actions des Repositorys erscheint ein Lauf mit den Jobs `build` und `deploy`. Nach dem Lauf zeigt die Pages-Adresse Herrn K. und den Status „nicht konfiguriert“. |
+| im Tab Actions links den Workflow „Deploy demo app to GitHub Pages“ wählen, „Run workflow“ klicken, den Branch `main` lassen und im aufgeklappten Feld erneut „Run workflow“ klicken | startet denselben Workflow von Hand | um ohne neuen Commit neu zu veröffentlichen | ein neuer Lauf mit denselben Jobs |
+
 ## 5 Projektaufbau
 
 Das Repository ist ein Angular-Workspace, also ein Ordner mit mehreren Angular-Projekten und gemeinsamer Konfiguration.
@@ -168,6 +208,7 @@ In der Demo-App liegen sie im Ordner `public`.
 
 ```text
 angular-fhir-vitals/
+├── .github/workflows/pages.yml        Workflow: veröffentlicht die Demo-App auf GitHub Pages
 ├── projects/
 │   ├── fhir-vitals/                   Angular-Bibliothek
 │   │   ├── src/lib/fhir-assets.ts     Service: lädt FHIR-Ressourcen aus den Assets
@@ -196,7 +237,8 @@ angular-fhir-vitals/
 ├── .prettierrc                        Einstellungen für Prettier
 ├── .editorconfig                      Einrückung, Zeilenenden und Anführungszeichen für Editoren
 ├── .nvmrc                             Node.js-Hauptversion für nvm
-├── .vscode/extensions.json            empfohlene Erweiterung für Visual Studio Code
+├── .vscode/extensions.json            empfohlene Erweiterungen für Visual Studio Code
+├── .vscode/settings.json              ordnet den FHIR-Beispieldateien das JSON-Schema von FHIR R4 zu
 └── LICENSE                            Lizenztext Apache-2.0
 ```
 
@@ -276,6 +318,32 @@ Die FHIR-Operation `$validate` prüft eine Ressource gegen den Standard und gege
 Auf dem lokalen HAPI FHIR 8.12.0 ergab sie am 05.11.2026 für beide Dateien keine Fehler.
 Es gab nur Warnungen: LOINC ist auf dem lokalen Server unbekannt, und beiden Ressourcen fehlt eine Narrative, also ein lesbarer Text im Feld `text`.
 Das gilt auch bei der Prüfung der Observation gegen das Blutdruckprofil.
+
+**Prüfen in Visual Studio Code.**
+Ein JSON-Schema beschreibt, welche Felder und Werte eine JSON-Datei haben darf.
+HL7 veröffentlicht ein solches Schema für alle Ressourcen von FHIR R4.
+Die Datei `.vscode/settings.json` ordnet es allen JSON-Dateien unter `projects/*/public/assets/fhir/` zu.
+Visual Studio Code prüft diese Dateien damit schon beim Tippen und schlägt Feldnamen und erlaubte Werte vor.
+Ein Verstoß erscheint als Warnung, also mit gelber Wellenlinie und in der Ansicht „Probleme“ (englisch „Problems“).
+Steht in `patient.json` bei `gender` zum Beispiel der Wert `mann`, lautet die Meldung `Value is not accepted. Valid values: "male", "female", "other", "unknown".`
+Für die beiden Beispieldateien gibt es keine Meldung.
+VS Code lädt das Schema beim ersten Öffnen einer solchen Datei von hl7.org.
+Dafür muss der Ordner als vertrauenswürdig gelten.
+VS Code öffnet einen neuen Ordner zunächst im eingeschränkten Modus, englisch Restricted Mode, und zeigt oben einen Hinweis mit dem Link „Manage“.
+In diesem Modus prüft VS Code die FHIR-Dateien nicht gegen das Schema, und die Erweiterung FHIR tools bleibt abgeschaltet.
+„Manage“ klicken und im folgenden Fenster „Trust“ wählen.
+Danach verschwindet der Hinweis, und die Prüfung beginnt.
+Das Schema prüft nur den Aufbau einer Ressource.
+Profile wie das Blutdruckprofil und die LOINC-Codes prüft es nicht.
+
+Das übernimmt die empfohlene Erweiterung FHIR tools.
+Ein Validator ist ein Programm, das eine Ressource gegen den Standard, ihre Profile und die Codesysteme prüft.
+FHIR tools nutzt den offiziellen Validator von HL7 und braucht dafür Java 17 oder neuer.
+Zum Prüfen eine Datei wie `patient.json` im Editor öffnen, in den Text rechtsklicken und „FHIR validate resource“ wählen.
+Im Explorer links fehlt dieser Eintrag.
+Beim ersten Mal meldet VS Code `The first time the jar validator must be downloaded. It may take a while!` und lädt den Validator, eine Datei von etwa 200 MB.
+Danach öffnet sich das Terminal „Resource validation“ und zeigt die Ausgabe des Validators.
+Diese Angaben stammen aus dem Quelltext der Erweiterung, die Erweiterung selbst lief für dieses README nicht.
 
 ## 8 Was beim Start passiert
 
@@ -430,6 +498,8 @@ Regeln für die Nutzung:
 | UCUM | ein Codesystem für Maßeinheiten wie `mm[Hg]` |
 | REST | ein Stil für Schnittstellen über HTTP. Ein FHIR-Client liest Ressourcen mit GET und schreibt sie mit PUT unter `[Basis]/[Typ]/[id]`. |
 | JSON | ein Textformat für strukturierte Daten aus Objekten, Listen und Werten |
+| JSON-Schema | eine Beschreibung, welche Felder und Werte eine JSON-Datei haben darf. Editoren wie VS Code prüfen Dateien damit beim Tippen. |
+| YAML | ein Textformat für Einstellungen, das die Gliederung durch Einrückung ausdrückt, etwa in `compose.yaml` und `pages.yml` |
 | Workspace | ein Ordner mit mehreren Angular-Projekten und gemeinsamer Konfiguration in `angular.json` |
 | peerDependency | ein Paket, das eine Bibliothek voraussetzt, das aber die einbindende Anwendung installiert |
 | Container | ein laufender, abgeschotteter Prozess mit eigenem Dateisystem, gestartet aus einem Image |
@@ -438,6 +508,15 @@ Regeln für die Nutzung:
 | Bind-Mount | eine Datei oder ein Ordner des eigenen Rechners, den Docker in einen Container einbindet. `compose.yaml` bindet so `config.json` ein. |
 | Profil in Compose | eine Gruppe von Diensten, die nur mit `--profile <name>` startet und stoppt. Der Dienst `fhir` gehört zum Profil `fhir`. |
 | Port | eine Nummer, unter der ein Programm auf einem Rechner erreichbar ist, etwa 4200 für die Demo-App und 8080 für HAPI |
+| GitHub Actions | ein Dienst von GitHub, der Workflows ausführt, etwa bei jedem Push |
+| Workflow | ein automatischer Ablauf aus Jobs und Schritten, beschrieben in einer YAML-Datei unter `.github/workflows/`. Jede Ausführung heißt Lauf. |
+| Job | eine Folge von Schritten in einem Workflow, die GitHub auf einem eigenen Rechner ausführt |
+| Commit | ein gespeicherter Stand des Codes in der Versionsverwaltung Git |
+| Push | lädt neue Commits vom eigenen Rechner zu GitHub hoch |
+| Branch | ein Entwicklungszweig in Git. `main` ist der Hauptzweig dieses Repositorys. |
+| Restricted Mode | der eingeschränkte Modus von VS Code für Ordner, denen noch nicht vertraut wird. Erweiterungen und das Laden von Schemas sind dann abgeschaltet. |
+| Validator | ein Programm, das eine FHIR-Ressource gegen den Standard, ihre Profile und die Codesysteme prüft |
+| GitHub Pages | ein Dienst von GitHub, der statische Webseiten aus einem Repository veröffentlicht |
 | CORS | eine Regel im Browser. Eine Seite darf Antworten von einem anderen Ursprung, etwa einem anderen Port, nur lesen, wenn der Server das erlaubt. Vor Anfragen wie PUT fragt der Browser den Server vorher um Erlaubnis. |
 
 ## 13 Links
@@ -497,6 +576,22 @@ Stand aller Links: 05.11.2026.
 - nginx: https://nginx.org/en/docs/
 - CORS: https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CORS
 - curl unter Windows: https://learn.microsoft.com/en-us/windows/curl/
+
+**GitHub Actions und Pages**
+
+- GitHub Actions: https://docs.github.com/en/actions/get-started/understand-github-actions
+- GitHub Pages: https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages
+- Quelle „GitHub Actions“ einstellen: https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site
+- Zugriffe auf das lokale Netzwerk in Chrome: https://developer.chrome.com/blog/local-network-access
+- Workflow von Hand starten: https://docs.github.com/en/actions/how-tos/manage-workflow-runs/manually-run-a-workflow
+- Läufe neu starten: https://docs.github.com/en/actions/how-tos/manage-workflow-runs/re-run-workflows-and-jobs
+
+**Visual Studio Code und FHIR**
+
+- JSON in VS Code und `json.schemas`: https://code.visualstudio.com/docs/languages/json
+- Workspace Trust: https://code.visualstudio.com/docs/editing/workspaces/workspace-trust
+- JSON-Schema von FHIR R4 (Download-Seite): https://hl7.org/fhir/R4/downloads.html
+- Erweiterung FHIR tools: https://marketplace.visualstudio.com/items?itemName=Yannick-Lagger.vscode-fhir-tools und https://github.com/laggery/vscode-fhir-tools
 
 **Sprachmodelle im Studium**
 

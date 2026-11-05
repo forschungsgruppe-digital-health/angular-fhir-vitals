@@ -1,4 +1,8 @@
 {
   // For more information, visit: https://go.microsoft.com/fwlink/?linkid=827846
-  "recommendations": ["angular.ng-template"]
+  "recommendations": [
+    "angular.ng-template",
+    // Validates FHIR resources with the official HL7 validator (needs Java 17+ on PATH).
+    "Yannick-Lagger.vscode-fhir-tools"
+  ]
 }

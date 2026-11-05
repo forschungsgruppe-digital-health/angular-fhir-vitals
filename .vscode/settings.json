@@ -1,0 +1,9 @@
+{
+  // Checks the FHIR example resources against the official HL7 FHIR R4 JSON schema while typing.
+  "json.schemas": [
+    {
+      "fileMatch": ["projects/*/public/assets/fhir/**/*.json"],
+      "url": "https://hl7.org/fhir/R4/fhir.schema.json"
+    }
+  ]
+}
