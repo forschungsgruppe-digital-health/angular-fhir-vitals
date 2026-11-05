@@ -1,0 +1,17 @@
+services:
+  demo-app:
+    build: .
+    ports:
+      # Bound to 127.0.0.1 so only this computer can reach the app.
+      - "127.0.0.1:4200:80"
+    volumes:
+      # Replaces the built-in config.json, a change needs no rebuild.
+      - ./projects/demo-app/public/config.json:/usr/share/nginx/html/config.json:ro
+
+  fhir:
+    image: hapiproject/hapi:v8.12.0-2
+    # Starts only with "docker compose --profile fhir ...".
+    profiles: ["fhir"]
+    ports:
+      # HAPI has no login, so it must not be reachable from the network.
+      - "127.0.0.1:8080:8080"

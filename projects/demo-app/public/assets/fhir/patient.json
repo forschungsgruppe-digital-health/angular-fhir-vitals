@@ -1,0 +1,8 @@
+{
+  "resourceType": "Patient",
+  "id": "beispiel-01",
+  "identifier": [{ "system": "https://example.org/fhir/pid", "value": "4711" }],
+  "name": [{ "text": "Herr K." }],
+  "gender": "male",
+  "birthDate": "1959"
+}

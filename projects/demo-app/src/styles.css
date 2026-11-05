@@ -1,0 +1,5 @@
+/* Readable defaults only, the demo deliberately has no layout. */
+body {
+  font-family: system-ui, sans-serif;
+  margin: 2rem;
+}

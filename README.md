@@ -1,0 +1,540 @@
+# FHIR-Starter: Angular-Bibliothek für Vitalparameter
+
+Startpunkt für den Workshop WW2 (#WW26-MiHUB) der Forschungsgruppe Digital Health an der TU Dresden.
+
+## 1 Worum es geht
+
+Dieses Repository enthält `fhir-vitals`, eine Bibliothek mit wiederverwendbarem Code für das Web-Framework Angular, und die Demo-App `demo-app`, die diese Bibliothek nutzt.
+Die Demo-App zeigt einen synthetischen Patienten und speichert auf Wunsch eine Blutdruckmessung auf einem FHIR-Server, also einem Server für Gesundheitsdaten nach dem Standard HL7 FHIR R4.
+Im Workshop entsteht daraus Schritt für Schritt eine Bibliothek für Vitalparameter, die sich später in ein Patientenportal einbinden lässt.
+
+## 2 Voraussetzungen
+
+Angular ist ein Framework für Webanwendungen, die im Browser laufen.
+Angular-Code ist in TypeScript geschrieben, einer Erweiterung von JavaScript um Typen.
+Die Angular CLI (Command Line Interface) ist das Kommandozeilenwerkzeug `ng`.
+Sie legt Projekte und Bausteine an, baut sie und startet Tests.
+Ein Build übersetzt den TypeScript-Code in JavaScript-Dateien für den Browser und legt sie im Ordner `dist` ab.
+Unit-Tests prüfen einzelne Klassen automatisch, ohne die ganze App zu starten.
+
+Docker startet Programme in Containern.
+Ein Container ist ein abgeschotteter Prozess mit eigenem Dateisystem.
+Er entsteht aus einem Image, einer Vorlage mit Betriebssystemteilen, Programmen und Dateien.
+Docker Compose startet mehrere Container gemeinsam nach der Beschreibung in `compose.yaml`.
+
+| Werkzeug | Version | Wozu |
+|---|---|---|
+| [Node.js](https://nodejs.org) | 22 ab 22.22.3, 24 ab 24.15.0 oder 26. Geprüft mit 22.22.3, das Docker-Image nutzt 22.23.4. | führt die Angular CLI, den Build und die Tests aus. Die Datei `.nvmrc` nennt die Hauptversion 22 für den Versionsmanager [nvm](https://github.com/nvm-sh/nvm). |
+| npm | kommt mit Node.js, geprüft mit 10.9.8 | installiert die Pakete, also fremde Programmbibliotheken aus der npm-Registry |
+| [Git](https://git-scm.com) | aktuelle Version | lädt das Repository herunter |
+| [Docker Desktop](https://docs.docker.com/desktop/) oder [Docker Engine](https://docs.docker.com/engine/install/) mit Compose | geprüft mit Docker 29.9.2 und Compose 5.6.1 | startet Demo-App und FHIR-Server in Containern |
+| Google Chrome oder Chromium | aktuelle Version | führt die Unit-Tests aus, ohne ein Fenster zu öffnen |
+| [Visual Studio Code](https://code.visualstudio.com) (optional) | aktuelle Version | Editor. Beim Öffnen des Ordners schlägt er die Erweiterung Angular Language Service vor. |
+
+Die installierte Node.js-Version zeigt `node -v`, zum Beispiel `v22.22.3`.
+
+## 3 Schnellstart
+
+Zuerst das Repository klonen und in den Ordner wechseln:
+
+```bash
+git clone https://github.com/forschungsgruppe-digital-health/angular-fhir-vitals.git
+cd angular-fhir-vitals
+```
+
+Git meldet `Cloning into 'angular-fhir-vitals'...`.
+Danach gibt es den Ordner `angular-fhir-vitals` mit unter anderem `package.json` und `README.md`.
+
+### Variante A: ohne Docker
+
+`npm start` startet den Entwicklungsserver von Angular.
+Er liefert die Demo-App auf Port 4200 aus und lädt die Seite nach jeder Änderung neu.
+
+```bash
+npm ci
+npm start
+```
+
+Die Ausgabe von `npm ci` beschreibt Abschnitt 4.
+Nach `npm start` erscheint `Local: http://localhost:4200/`.
+Danach http://localhost:4200 im Browser öffnen.
+Die Seite zeigt den Patienten „Herr K.“ und den Status „nicht erreichbar“, weil kein FHIR-Server läuft.
+`Strg+C` im Terminal beendet den Entwicklungsserver.
+
+### Variante B: mit Docker, nur die Demo-App
+
+Im Container liefert der Webserver nginx die gebauten Dateien der Demo-App aus.
+nginx lauscht im Container auf Port 80.
+Docker leitet Port 4200 des eigenen Rechners dorthin weiter.
+
+```bash
+docker compose up --build
+```
+
+Docker baut das Image und startet den Container.
+Danach zeigt http://localhost:4200 dasselbe wie in Variante A.
+`Strg+C` im Terminal stoppt den Container.
+
+### Variante C: mit Docker und dem FHIR-Server HAPI FHIR
+
+In `compose.yaml` gehört der Dienst `fhir` zum Compose-Profil `fhir`.
+Compose startet und stoppt ihn nur, wenn der Befehl `--profile fhir` enthält.
+
+```bash
+docker compose --profile fhir up --build
+```
+
+Dieser Befehl startet zusätzlich den FHIR-Server [HAPI FHIR](https://hapifhir.io) auf http://localhost:8080.
+HAPI braucht nach dem Start etwa 40 Sekunden.
+Bis dahin zeigt die Seite „nicht erreichbar“.
+Danach auf der Seite „Erneut verbinden“ klicken.
+Die Seite meldet „verbunden, Patient und Blutdruck gespeichert“ und zeigt „Blutdruck vom Server: 104/66 mm[Hg]“.
+
+Zum Beenden in einem zweiten Terminal `docker compose --profile fhir down` ausführen.
+Docker meldet dann für beide Container `Removed`.
+Ohne `--profile fhir` läuft HAPI weiter, siehe Abschnitt 9.
+
+## 4 Befehle
+
+Alle Befehle im Wurzelverzeichnis des Repositorys ausführen.
+Jeder Befehl in diesen Tabellen ist am 05.11.2026 mit den Versionen aus Abschnitt 14 gelaufen.
+Die Spalte „Was danach zu sehen ist“ gibt die tatsächliche Ausgabe wieder.
+
+### a) Bibliothek entwickeln
+
+Die Datei `package-lock.json` hält die genauen Versionen aller Pakete fest.
+Eine Komponente ist ein Baustein der Oberfläche aus TypeScript-Klasse, HTML-Template und CSS.
+Ihr Selektor ist der Name des HTML-Elements, mit dem eine Seite sie einbindet, etwa `<lib-vitals-card>`.
+Ein Service ist eine Klasse mit Logik ohne eigene Oberfläche, etwa für Datenzugriffe.
+Der Decorator `@Service()` ist eine Markierung über der Klasse.
+Angular erzeugt einen so markierten Service selbst und gibt ihn an alle Klassen weiter, die ihn brauchen.
+ESLint prüft den Code auf Fehler und Regelverstöße, ohne ihn auszuführen.
+Prettier formatiert den Code einheitlich.
+
+| Befehl | Wirkung | Wann nötig | Was danach zu sehen ist |
+|---|---|---|---|
+| `npm ci` | installiert alle Pakete genau nach `package-lock.json` und löscht vorher einen vorhandenen Ordner `node_modules` | einmal nach dem Klonen und nach jeder Änderung an `package-lock.json` | Nach einigen Sekunden bis etwa einer Minute erscheint `added 597 packages`. Davor stehen Warnungen `npm warn deprecated` zu `inflight`, `rimraf` und `glob`. Sie stammen aus dem Testrunner Karma. Danach folgt `14 moderate severity vulnerabilities`, siehe Abschnitt 9. |
+| `npm start` | baut die Bibliothek einmal und startet die Demo-App mit dem Entwicklungsserver | zum Ausprobieren | `Built fhir-vitals`, danach `Local: http://localhost:4200/`. Im Browser erscheint die Seite „FHIR-Starter“. `Strg+C` beendet den Entwicklungsserver. |
+| Terminal 1: `npm run watch:lib` | baut die Bibliothek bei jeder gespeicherten Änderung neu | beim Arbeiten an der Bibliothek, zusammen mit Terminal 2 | `Compilation complete. Watching for file changes...`. Nach jeder Änderung folgt ein neuer Block mit `Build at: …`. Der Neubau dauerte im Test etwa 0,2 Sekunden. |
+| Terminal 2: `npm run start:app` | startet nur die Demo-App, ohne die Bibliothek zu bauen | zusammen mit Terminal 1 | `Local: http://localhost:4200/`. Nach einer Änderung in der Bibliothek erscheint `Page reload sent to client(s).`, und der Browser lädt die Seite selbst neu. Vom Speichern bis zum Neuladen verging im Test weniger als eine Sekunde. |
+| `npx ng generate service <name> --project fhir-vitals` | legt einen Service in der Bibliothek an | für neue Logik, etwa das Lesen weiterer Messwerte | Zwei Zeilen `CREATE projects/fhir-vitals/src/lib/<name>.ts` und `…/<name>.spec.ts`. Die Klasse trägt den Decorator `@Service()`. |
+| `npx ng generate component <name> --project fhir-vitals` | legt eine Komponente in der Bibliothek an | für neue Anzeigen, etwa eine Karte mit Messwerten | Vier Zeilen `CREATE projects/fhir-vitals/src/lib/<name>/<name>.ts`, `.html`, `.css` und `.spec.ts`. Der Selektor beginnt mit `lib-`. |
+| neue Zeile in `projects/fhir-vitals/src/public-api.ts`, zum Beispiel `export * from "./lib/vitals-card/vitals-card";` | macht den neuen Baustein für die Demo-App sichtbar | nach jedem neuen Service und jeder neuen Komponente | Nach dem nächsten Build der Bibliothek klappt in der Demo-App `import { VitalsCard } from "fhir-vitals";`. Ohne diese Zeile meldet der Build `Module '"fhir-vitals"' has no exported member 'VitalsCard'`. |
+| `npx ng build fhir-vitals` | baut die Bibliothek einmal nach `dist/fhir-vitals` | vor `npm run start:app`, wenn `watch:lib` nicht läuft | `Built fhir-vitals` und `Build at: …`. Der Ordner `dist/fhir-vitals` enthält `package.json`, `fesm2022` und `types`. |
+| `npx ng test fhir-vitals --watch=false` | testet nur die Bibliothek | nach Änderungen an der Bibliothek | `TOTAL: 7 SUCCESS` |
+| `npm test` | baut die Bibliothek und testet dann Bibliothek und Demo-App nacheinander, ohne Watch-Modus | vor jedem Commit | `Built fhir-vitals`, dann zwei Blöcke: zuerst `TOTAL: 7 SUCCESS` für die Bibliothek, dann `TOTAL: 1 SUCCESS` für die Demo-App |
+| `npm run lint` | prüft den Code mit ESLint | vor jedem Commit | nur die beiden Kopfzeilen `> angular-fhir-vitals@0.0.0 lint` und `> eslint .`. Folgt keine weitere Ausgabe, hat ESLint nichts zu beanstanden. |
+| `npm run format` | formatiert TypeScript, HTML und CSS mit Prettier | vor jedem Commit | eine Zeile je Datei. `(unchanged)` heißt, dass die Datei schon passte. |
+| `npm run build` | baut erst die Bibliothek, dann die Demo-App für die Auslieferung | vor einer Auslieferung ohne Docker | `Built fhir-vitals`, dann `Application bundle generation complete` und `Output location: …/dist/demo-app` |
+
+### b) Demo-App mit Docker, ohne HAPI FHIR
+
+`compose.yaml` bindet die Datei `projects/demo-app/public/config.json` als Bind-Mount in den Container ein.
+Der Container liest damit direkt die Datei auf dem eigenen Rechner.
+
+| Befehl | Wirkung | Wann nötig | Was danach zu sehen ist |
+|---|---|---|---|
+| `docker compose up --build` | baut das Image und startet die Demo-App auf http://localhost:4200 | beim ersten Start und nach jeder Code-Änderung | Erst die Build-Schritte, dann Zeilen mit `demo-app-1 \|` und `nginx/1.31.8`. Die Seite zeigt Herrn K. und den Status „nicht erreichbar“. `Strg+C` stoppt den Container. |
+| `docker compose up --build -d` | startet wie oben, aber im Hintergrund | wenn das Terminal frei bleiben soll | `Container angular-fhir-vitals-demo-app-1 Started` |
+| `docker compose logs -f demo-app` | zeigt das Protokoll von nginx und folgt neuen Zeilen | zur Fehlersuche | je Seitenaufruf Zeilen wie `"GET /config.json HTTP/1.1" 200`. `Strg+C` beendet nur die Anzeige. |
+| `docker compose ps` | zeigt laufende Container und ihre Ports | zur Kontrolle | eine Zeile `angular-fhir-vitals-demo-app-1 … Up … 127.0.0.1:4200->80/tcp` |
+| `docker compose down` | stoppt und entfernt die Demo-App | zum Aufräumen | `Container angular-fhir-vitals-demo-app-1 Removed` und `Network angular-fhir-vitals_default Removed` |
+| `projects/demo-app/public/config.json` im Editor ändern und speichern, dann die Seite neu laden | ändert die Adresse des FHIR-Servers ohne Neubau | um einen anderen Server zu nutzen oder ihn abzuschalten | Mit `{ "fhirBaseUrl": null }` oder `""` zeigt der Status „nicht konfiguriert“. Nach Code-Änderungen dagegen erneut mit `--build` starten. |
+
+### c) Demo-App mit Docker und HAPI FHIR
+
+Eine FHIR-Ressource ist ein Datensatz mit festem Aufbau, etwa `Patient` oder `Observation` für eine Messung.
+Ein Bundle ist eine Ressource, die mehrere Ressourcen bündelt, etwa ein Suchergebnis.
+Sein Feld `total` nennt die Zahl der Treffer.
+
+| Befehl | Wirkung | Wann nötig | Was danach zu sehen ist |
+|---|---|---|---|
+| `docker compose --profile fhir up --build` | startet Demo-App und HAPI FHIR | für die Arbeit mit einem FHIR-Server | Zeilen mit `demo-app-1 \|` und `fhir-1 \|`. Nach etwa 40 Sekunden meldet HAPI `Started Application in … seconds`. |
+| `docker compose --profile fhir logs -f fhir` | zeigt das Protokoll von HAPI und folgt neuen Zeilen | zur Fehlersuche, etwa wenn HAPI nicht startet | Zeilen mit `fhir-1 \|`. Bei jeder Anfrage erscheint eine Zeile `fhirtest.access`. `Strg+C` beendet nur die Anzeige. |
+| `curl http://localhost:8080/fhir/metadata` | fragt die Selbstbeschreibung des Servers ab | um zu prüfen, ob HAPI bereit ist | Sobald HAPI bereit ist, JSON mit `"resourceType": "CapabilityStatement"`. Vorher meldet curl einen Verbindungsfehler. Danach auf der Seite „Erneut verbinden“ klicken. |
+| http://localhost:8080 im Browser öffnen | öffnet die Weboberfläche von HAPI | um Ressourcen auf dem Server anzusehen | die Testoberfläche mit dem Titel „HAPI FHIR“ |
+| `curl "http://localhost:8080/fhir/Observation?subject=Patient/beispiel-01"` | sucht alle Messungen des Beispielpatienten | um das Speichern zu prüfen | ein `Bundle` mit `"total": 1` und der Observation `blutdruck-01` |
+| `docker compose --profile fhir down` | stoppt und entfernt beide Container. Ohne `--profile fhir` stoppt `docker compose down` nur die Demo-App, und der HAPI-Container läuft weiter. | zum Aufräumen | `Removed` für `fhir-1`, `demo-app-1` und das Netzwerk. Danach läuft kein Container des Projekts mehr. |
+
+Hinweis für Windows: In Windows PowerShell 5.1 ist `curl` ein Alias für `Invoke-WebRequest` und versteht andere Parameter.
+Dort `curl.exe` statt `curl` schreiben.
+PowerShell 7 definiert diesen Alias nicht mehr.
+
+## 5 Projektaufbau
+
+Das Repository ist ein Angular-Workspace, also ein Ordner mit mehreren Angular-Projekten und gemeinsamer Konfiguration.
+Assets sind statische Dateien wie JSON oder Bilder, die die App unverändert mit ausliefert.
+In der Demo-App liegen sie im Ordner `public`.
+
+```text
+angular-fhir-vitals/
+├── projects/
+│   ├── fhir-vitals/                   Angular-Bibliothek
+│   │   ├── src/lib/fhir-assets.ts     Service: lädt FHIR-Ressourcen aus den Assets
+│   │   ├── src/lib/fhir-server.ts     Service: optionale Verbindung zu einem FHIR-Server
+│   │   ├── src/lib/*.spec.ts          Unit-Tests der beiden Services
+│   │   ├── src/public-api.ts          legt fest, was außerhalb der Bibliothek sichtbar ist
+│   │   ├── ng-package.json            Einstellungen für ng-packagr, das die Bibliothek baut
+│   │   └── package.json               Name, Version und peerDependencies der Bibliothek
+│   └── demo-app/                      Demo-App
+│       ├── public/config.json         Adresse des FHIR-Servers, wird beim Start gelesen
+│       ├── public/assets/fhir/        Beispieldaten patient.json und blutdruck.json
+│       ├── src/index.html             HTML-Grundgerüst mit dem Element <app-root>
+│       ├── src/main.ts                Startpunkt von Angular
+│       ├── src/styles.css             die wenigen globalen Styles
+│       └── src/app/                   die einzige Seite: app.ts, app.html, app.config.ts, app.spec.ts
+├── dist/                              Build-Ergebnisse, nicht im Repository
+├── angular.json                       Projekte und Einstellungen für Build, Server und Tests
+├── tsconfig.json                      TypeScript-Einstellungen und die Pfadzuordnung für "fhir-vitals"
+├── package.json                       npm-Skripte und Abhängigkeiten des Workspace
+├── package-lock.json                  genaue Paketversionen für npm ci
+├── Dockerfile                         Image in zwei Stufen: Build mit Node.js, Auslieferung mit nginx
+├── .dockerignore                      Dateien, die nicht ins Docker-Image kopiert werden
+├── compose.yaml                       Dienste demo-app und fhir
+├── .gitignore                         Dateien, die nicht ins Repository gehören, etwa node_modules, dist und .env
+├── eslint.config.js                   Regeln für ESLint
+├── .prettierrc                        Einstellungen für Prettier
+├── .editorconfig                      Einrückung, Zeilenenden und Anführungszeichen für Editoren
+├── .nvmrc                             Node.js-Hauptversion für nvm
+├── .vscode/extensions.json            empfohlene Erweiterung für Visual Studio Code
+└── LICENSE                            Lizenztext Apache-2.0
+```
+
+**Pfadzuordnung.** Die Demo-App importiert die Bibliothek über ihren Paketnamen, also `import { FhirAssets, FhirServer } from "fhir-vitals";`.
+Genau so sähe der Import im Patientenportal aus, wenn es die Bibliothek als npm-Paket installiert.
+Möglich macht das ein Eintrag unter `compilerOptions.paths` in `tsconfig.json`, den die Angular CLI beim Anlegen der Bibliothek erzeugt hat: `"fhir-vitals": ["./dist/fhir-vitals"]`.
+Er leitet den Paketnamen auf die gebaute Bibliothek im Ordner `dist` um.
+Deshalb muss die Bibliothek gebaut sein, bevor die Demo-App startet.
+`npm start` und `npm test` erledigen das automatisch.
+
+**peerDependencies.** peerDependencies sind Pakete, die eine Bibliothek voraussetzt, die aber die einbindende Anwendung selbst installiert.
+So nutzen Bibliothek und Anwendung dieselbe Version.
+Die Bibliothek führt `@angular/core`, `@angular/common`, `fhirclient` und `@types/fhir` als peerDependencies.
+In der `package.json` im Wurzelverzeichnis stehen diese Pakete unter `dependencies`.
+
+## 6 Wie die Teile zusammenspielen
+
+Die Demo-App läuft vollständig im Browser.
+Alle Anfragen an die Assets und an HAPI schickt deshalb der Browser.
+
+```mermaid
+flowchart LR
+  Browser["Browser"]
+  subgraph App["Demo-App, ausgeliefert von ng serve oder nginx auf Port 4200"]
+    Page["Komponente App"]
+    Assets[("Assets: config.json, patient.json, blutdruck.json")]
+  end
+  subgraph Lib["Bibliothek fhir-vitals"]
+    FA["Service FhirAssets"]
+    FS["Service FhirServer mit fhirclient"]
+  end
+  HAPI[("HAPI FHIR auf Port 8080, Basis /fhir")]
+  Browser --> Page
+  Page -- "config.json lesen" --> Assets
+  Page --> FA
+  FA -- "GET assets/fhir/*.json" --> Assets
+  Page --> FS
+  FS -- "GET metadata, PUT, GET" --> HAPI
+```
+
+Ein Ursprung ist die Kombination aus Protokoll, Rechnername und Port, etwa `http://localhost:4200`.
+Seite und HAPI haben verschiedene Ursprünge, weil sie auf verschiedenen Ports laufen.
+Der Browser lässt die Seite die Antworten von HAPI nur lesen, wenn HAPI das per CORS (Cross-Origin Resource Sharing) erlaubt.
+Vor einem PUT fragt der Browser HAPI vorher um Erlaubnis.
+HAPI erlaubt in der Voreinstellung des Images alle Ursprünge, auch `http://localhost:4200`.
+
+## 7 Die Beispieldaten und ihre Codes
+
+Beide Dateien liegen unter `projects/demo-app/public/assets/fhir/` und sind im Browser als `assets/fhir/…` erreichbar.
+Sie sind synthetisch und passen zum Beispiel „Herr K.“ aus dem Workshop.
+Den Typ einer FHIR-Ressource nennt ihr Feld `resourceType`.
+
+**`patient.json`** ist eine Ressource vom Typ [Patient](https://hl7.org/fhir/R4/patient.html) mit der festen ID `beispiel-01`.
+Sie enthält eine Kennung `4711`, den Namen „Herr K.“, das Geschlecht `male` und das Geburtsjahr `1959`.
+
+**`blutdruck.json`** ist eine Ressource vom Typ [Observation](https://hl7.org/fhir/R4/observation.html), also eine Messung oder Beobachtung, mit der festen ID `blutdruck-01`.
+Sie folgt dem [Blutdruckprofil](https://hl7.org/fhir/R4/bp.html) aus FHIR R4.
+Ein Profil legt fest, welche Felder und Codes eine Ressource für einen bestimmten Zweck haben muss.
+
+| Feld | Wert | Bedeutung |
+|---|---|---|
+| `meta.profile` | `http://hl7.org/fhir/StructureDefinition/bp` | Die Ressource erklärt, dass sie dem Blutdruckprofil folgt. |
+| `category` | `vital-signs` | Die Messung gehört zu den [Vitalparametern](https://hl7.org/fhir/R4/observation-vitalsigns.html). |
+| `code` | LOINC `85354-9` | das Blutdruck-Panel, englisch „Blood pressure panel with all children optional“ |
+| `component[0].code` | LOINC `8480-6` | der systolische Wert, englisch „Systolic blood pressure“ |
+| `component[1].code` | LOINC `8462-4` | der diastolische Wert, englisch „Diastolic blood pressure“ |
+| `component[0].valueQuantity.code`, `component[1].valueQuantity.code` | UCUM `mm[Hg]` | die Einheit Millimeter Quecksilbersäule |
+| `subject`, `performer` | `Patient/beispiel-01` | Die Messung gehört zu Herrn K., und er hat sie selbst gemessen. |
+| `effectiveDateTime` | `2026-06-01T07:35:00+02:00` | Zeitpunkt der Messung |
+
+[LOINC](https://loinc.org) ist ein internationales Codesystem für Messungen und Laborwerte.
+[UCUM](https://ucum.org) ist ein Codesystem für Maßeinheiten.
+Ein Terminologieserver kennt Codesysteme wie LOINC und prüft Codes und Anzeigenamen.
+Die Anzeigenamen der drei LOINC-Codes stimmen mit den Angaben des Terminologieservers tx.fhir.org überein.
+
+Die FHIR-Operation `$validate` prüft eine Ressource gegen den Standard und gegen ihre Profile.
+Auf dem lokalen HAPI FHIR 8.12.0 ergab sie am 05.11.2026 für beide Dateien keine Fehler.
+Es gab nur Warnungen: LOINC ist auf dem lokalen Server unbekannt, und beiden Ressourcen fehlt eine Narrative, also ein lesbarer Text im Feld `text`.
+Das gilt auch bei der Prüfung der Observation gegen das Blutdruckprofil.
+
+## 8 Was beim Start passiert
+
+1. Der Browser lädt `index.html` und das JavaScript der Demo-App vom Entwicklungsserver oder von nginx.
+2. `main.ts` startet Angular mit den Einstellungen aus `app.config.ts`. Dort schaltet `provideZoneChangeDetection()` die Änderungserkennung mit zone.js ein. Die Änderungserkennung prüft nach Ereignissen wie Klicks oder Serverantworten, ob sich die Seite ändern muss. zone.js meldet Angular diese Ereignisse. `provideHttpClient(withFetch())` richtet HTTP-Anfragen mit der Fetch-API des Browsers ein.
+3. Der Service `FhirAssets` lädt `assets/fhir/patient.json`. Die Seite zeigt Name, Geschlecht, Geburtsdatum und Kennung. Fehlt ein Feld, steht dort „–“.
+4. Die Komponente `App` liest `config.json`. Sie liest die Datei beim Start und nicht beim Build, damit sich die Datei ohne Neubau des Images ändern lässt.
+5. Ist `fhirBaseUrl` leer oder `null`, zeigt der Status „nicht konfiguriert“ und der Ablauf endet hier.
+6. Der Service `FhirServer` erzeugt mit `connect()` einen `FhirClient` aus dem Paket `fhirclient`. `isReachable()` fragt `metadata` ab. Antwortet der Server nicht, zeigt der Status „nicht erreichbar“. Die Seite bleibt trotzdem vollständig bedienbar.
+7. Die App lädt `assets/fhir/blutdruck.json` und ruft `seed()` auf. `seed()` schreibt erst den Patienten und dann die Observation per PUT unter ihrer festen ID. Die Reihenfolge ist nötig, weil HAPI prüft, ob der Verweis `subject` auf einen vorhandenen Patienten zeigt.
+8. Der Status zeigt „verbunden, Patient und Blutdruck gespeichert“. Danach liest die App die Observation mit `read("Observation/blutdruck-01")` vom Server zurück und zeigt „Blutdruck vom Server: 104/66 mm[Hg]“. Geht dabei etwas schief, zeigt der Status die Fehlermeldung.
+9. „Erneut verbinden“ wiederholt die Schritte 5 bis 8. Während ein Durchlauf läuft, ist der Knopf gesperrt. Ein PUT mit gleichem Inhalt legt weder eine neue Ressource noch eine neue Version an. Nach mehreren Starts gibt es deshalb weiterhin genau eine Observation mit `versionId` 1.
+
+## 9 Typische Probleme
+
+**Port belegt.**
+Docker meldet `Bind for 127.0.0.1:8080 failed: port is already allocated`.
+Der Entwicklungsserver meldet `Port 4200 is already in use. Use '--port' to specify a different port.`
+Ein anderes Programm oder ein anderer Container nutzt dann den Port.
+`docker ps` zeigt laufende Container und ihre Ports.
+Unter macOS und Linux zeigt `lsof -i :8080` das Programm hinter dem Port.
+Unter Windows zeigt `netstat -ano | findstr :8080` in der letzten Spalte die Prozessnummer.
+`tasklist /fi "PID eq <nummer>"` nennt dazu das Programm.
+Das andere Programm beenden oder den Container mit `docker stop <name>` anhalten.
+`docker stop` gibt danach den Namen des Containers aus.
+
+**HAPI noch nicht bereit.**
+HAPI braucht nach dem Start etwa 40 Sekunden.
+Bis dahin zeigt die Seite „nicht erreichbar“.
+`curl http://localhost:8080/fhir/metadata` prüft den Stand.
+Sobald JSON zurückkommt, auf der Seite „Erneut verbinden“ klicken.
+`docker compose --profile fhir logs -f fhir` zeigt, ob HAPI noch startet.
+Die Zeile `Started Application in … seconds` markiert das Ende.
+
+**Bibliothek nicht gebaut.**
+`npm run start:app` oder `npx ng build demo-app` melden `Could not resolve "fhir-vitals"`.
+Der Ordner `dist/fhir-vitals` fehlt dann.
+`npx ng build fhir-vitals` oder `npm run watch:lib` ausführen, oder gleich `npm start` nutzen.
+
+**Falsche Node.js-Version.**
+Die Angular CLI bricht ab mit `Node.js version … detected. The Angular CLI requires a minimum Node.js version of …`.
+`node -v` zeigt die installierte Version.
+Node.js 22 ab 22.22.3, 24 ab 24.15.0 oder 26 installieren.
+Mit nvm unter macOS oder Linux genügen `nvm install` und `nvm use` im Projektordner, weil `.nvmrc` die Version vorgibt.
+Danach zeigt `node -v` eine Version 22.
+
+**HAPI läuft nach `docker compose down` weiter.**
+`docker compose down` ohne `--profile fhir` stoppt nur die Demo-App.
+Der HAPI-Container läuft weiter, und Docker meldet beim Netzwerk `Resource is still in use`.
+Erst `docker compose --profile fhir down` stoppt beide.
+
+**Tests finden keinen Browser.**
+Karma meldet `No binary for ChromeHeadless browser on your platform. Please, set "CHROME_BIN" env variable.`
+Google Chrome oder Chromium installieren.
+Liegt der Browser an einem ungewöhnlichen Ort, die Umgebungsvariable `CHROME_BIN` auf die ausführbare Datei setzen.
+
+**`config.json` im Container liefert 404.**
+Manche Editoren speichern eine Datei, indem sie sie durch eine neue Datei ersetzen.
+Der Bind-Mount hängt dann noch an der alten, gelöschten Datei.
+nginx findet `config.json` im Container nicht mehr und antwortet mit 404.
+`docker compose restart demo-app` bindet die neue Datei ein.
+Docker meldet danach `Container angular-fhir-vitals-demo-app-1 Started`, und die Seite liest `config.json` wieder.
+
+**Warnungen bei `npm ci`.**
+Die Warnungen `npm warn deprecated` zu `inflight`, `rimraf` und `glob` stammen aus Karma 6.4.4.
+Das Karma-Projekt entwickelt Karma nicht mehr weiter.
+Das Patientenportal nutzt Karma trotzdem als Testrunner, deshalb auch dieser Starter.
+Die Meldung `14 moderate severity vulnerabilities` betrifft das Paket `minimatch` in der ESLint-Kette.
+Beides betrifft nur Entwicklungswerkzeuge und nicht den Code, der im Browser läuft.
+`npm audit fix --force` nicht ausführen, weil es Pakete auf unpassende Versionen ändert.
+
+**Daten auf HAPI sind nach einem Neustart weg.**
+HAPI läuft hier ohne eigene Datenbank und hält die Daten im Arbeitsspeicher.
+Nach jedem Neustart des Containers ist der Server leer.
+Die Demo-App schreibt die Beispieldaten beim nächsten Start oder nach „Erneut verbinden“ neu.
+
+## 10 Weiterarbeiten in WW2
+
+Die Bibliothek ist absichtlich klein.
+Im Workshop entsteht daraus eine Architektur aus drei Teilen, siehe Folie 73 im Workshop-Deck:
+
+- **Facade:** ein einfacher Einstiegspunkt, über den Komponenten Vitalparameter lesen und speichern, ohne FHIR zu kennen.
+- **Port:** eine Schnittstelle in der Architektur, die beschreibt, was die Anwendung von einer Datenquelle braucht, etwa „Blutdruck speichern“. Mit einem Netzwerk-Port hat dieser Begriff nichts zu tun.
+- **FHIR-Adapter:** eine Umsetzung des Ports, die mit FHIR-Ressourcen arbeitet. Heute erledigt das `FhirServer` mit `fhirclient`. Ein anderer Adapter kann später den FHIR-Zugang des Patientenportals nutzen.
+
+Weitere Schritte:
+
+- eigene Ressourcen ergänzen, etwa weitere Vitalparameter aus der [Vital-Signs-Übersicht](https://hl7.org/fhir/R4/observation-vitalsigns.html), mit eigenen Beispieldateien unter `public/assets/fhir/`
+- für neue Ressourcen IDs mit mindestens einem Buchstaben wählen, etwa `puls-01`. HAPI lehnt in der Voreinstellung ein PUT mit rein numerischer ID ab.
+- Komponenten für die Anzeige in der Bibliothek anlegen und in `public-api.ts` exportieren
+- für Daten, die einen Neustart überleben, HAPI mit PostgreSQL betreiben. Die passende `compose.yaml` steht im Workshop-Material auf Folie 80.
+- später die Anmeldung über [SMART App Launch](https://hl7.org/fhir/smart-app-launch/) ergänzen. Das Paket `fhirclient` unterstützt diesen Ablauf mit OAuth 2.0, einem Standard für die Freigabe von Zugriffen.
+
+## 11 Sprachmodelle im Studium
+
+Für das Studium stehen Sprachmodelle über Dienste der Hochschulen zur Verfügung.
+Ein Sprachmodell erzeugt Text oder Code aus einer Eingabe, dem sogenannten Prompt.
+Stand der Angaben: 05.11.2026.
+
+**Chat AI in der Academic Cloud (GWDG).**
+Chat AI ist ein Chat-Dienst der GWDG mit selbst betriebenen und externen Sprachmodellen.
+Die Weboberfläche liegt unter https://chat-ai.academiccloud.de.
+Die Anmeldung erfolgt mit einem Academic-Cloud-Konto, auch über den föderierten Login der eigenen Hochschule, sofern sie teilnimmt.
+Laut GWDG speichert der Dienst bei den selbst betriebenen Modellen keine Chatverläufe auf dem Server.
+Der Verlauf bleibt im eigenen Browser.
+Anfragen an die OpenAI-Modelle leitet die GWDG laut Datenschutzhinweis an Microsoft (Azure) weiter.
+Die externen Modelle stehen außerdem nur bestimmten Einrichtungen offen.
+Für Arbeiten im Workshop deshalb die selbst betriebenen Modelle nutzen.
+Quellen: [Dienstbeschreibung](https://academiccloud.de/services/chatai/), [Dokumentation](https://docs.hpc.gwdg.de/services/ai-services/chat-ai/index.html), [Datenschutz](https://datenschutz.gwdg.de/services/chatai).
+
+**TUD:AI, die LLM-Dienste von ScaDS.AI Dresden/Leipzig.**
+ScaDS.AI Dresden/Leipzig und das ZIH der TU Dresden betreiben die Dienste unter dem Namen TUD:AI.
+Der Chat liegt unter https://chat.llm.scads.ai.
+Die Programmierschnittstelle, kurz API, ist kompatibel zur OpenAI-API und hat die Basisadresse `https://llm.scads.ai/v1`.
+Die [Dokumentation](https://llm.scads.ai/docs/) beschreibt Chat und API.
+Der Dienst steht allen offen, die der TU Dresden oder ScaDS.AI Dresden/Leipzig angehören.
+Für den Chat ist ein ZIH-Konto der TU Dresden nötig.
+Für den Workshop gibt die Betreuung an der TU Dresden Zugang über ein Funktionslogin.
+Bei Bedarf bei der Betreuung melden.
+Laut Nutzungsrichtlinie gehören keine Daten in den Dienst, deren Schutzbedarf über „normal“ hinausgeht.
+Laut Datenschutzerklärung speichert die API weder Anfragen noch Antworten, wohl aber Metadaten zu jeder Anfrage.
+Die Chat-Oberfläche speichert Chats, bis die Nutzenden sie löschen.
+Quellen: [Nutzungsrichtlinie](https://llm.scads.ai/docs/legal/usage-policy/german/), [Datenschutz API](https://llm.scads.ai/docs/legal/privacy-policy/api/german/), [Datenschutz Chat](https://llm.scads.ai/docs/legal/privacy-policy/chat-ui/german/).
+
+Zugangsdaten und API-Keys nie ins Repository schreiben.
+Sie gehören in eine lokale Datei `.env`, die `.gitignore` bereits ausschließt.
+
+Regeln für die Nutzung:
+
+- keine echten oder personenbezogenen Daten in Eingaben
+- erzeugten Code lesen, verstehen und testen, bevor er ins Projekt kommt
+- die Regeln der eigenen Hochschule und des Moduls zur Nutzung von KI beachten
+
+## 12 Glossar
+
+| Begriff | Erklärung |
+|---|---|
+| Angular | ein Framework für Webanwendungen, die im Browser laufen |
+| Asset | eine statische Datei, die die App unverändert ausliefert, etwa JSON oder Bilder aus dem Ordner `public` |
+| Bibliothek | ein Angular-Projekt mit wiederverwendbaren Services und Komponenten, das andere Anwendungen als Paket einbinden |
+| Komponente | ein Baustein der Oberfläche aus TypeScript-Klasse, HTML-Template und CSS |
+| Service | eine Klasse mit Logik ohne eigene Oberfläche, etwa für Datenzugriffe |
+| Decorator | eine Markierung über einer Klasse wie `@Service()` oder `@Component()`. Angular erkennt daran, wie es die Klasse behandeln soll. |
+| Dependency Injection | Angular erzeugt benötigte Objekte selbst und reicht sie weiter. Mit `inject(FhirServer)` holt sich eine Klasse den Service, statt ihn selbst zu bauen. |
+| Signal | ein Wert, dessen Änderungen Angular verfolgt. Die Seite aktualisiert sich, sobald ein Signal wie `status` einen neuen Wert bekommt. |
+| Promise | ein Platzhalter für ein Ergebnis, das erst später feststeht, etwa die Antwort eines Servers. `await` wartet auf dieses Ergebnis. |
+| zone.js | eine Bibliothek, die Angular Ereignisse wie Klicks oder Serverantworten meldet, damit Angular die Seite aktualisiert. Das Patientenportal nutzt sie, deshalb auch die Demo-App. |
+| Entwicklungsserver | der Server, den `npm start` oder `npm run start:app` mit `ng serve` startet. Er liefert die App aus und lädt sie nach Änderungen neu. |
+| FHIR-Ressource | ein Datensatz nach HL7 FHIR mit festem Aufbau, etwa `Patient` oder `Observation` |
+| Profil | eine Vorgabe, welche Felder und Codes eine FHIR-Ressource für einen Zweck haben muss, etwa das Blutdruckprofil |
+| LOINC | ein internationales Codesystem für Messungen und Laborwerte |
+| UCUM | ein Codesystem für Maßeinheiten wie `mm[Hg]` |
+| REST | ein Stil für Schnittstellen über HTTP. Ein FHIR-Client liest Ressourcen mit GET und schreibt sie mit PUT unter `[Basis]/[Typ]/[id]`. |
+| JSON | ein Textformat für strukturierte Daten aus Objekten, Listen und Werten |
+| Workspace | ein Ordner mit mehreren Angular-Projekten und gemeinsamer Konfiguration in `angular.json` |
+| peerDependency | ein Paket, das eine Bibliothek voraussetzt, das aber die einbindende Anwendung installiert |
+| Container | ein laufender, abgeschotteter Prozess mit eigenem Dateisystem, gestartet aus einem Image |
+| Image | eine Vorlage für Container mit Betriebssystemteilen, Programmen und Dateien |
+| Volume | ein Speicherbereich, den Docker selbst verwaltet und in Container einbindet. Compose führt Volumes und Bind-Mounts unter dem Schlüssel `volumes`. |
+| Bind-Mount | eine Datei oder ein Ordner des eigenen Rechners, den Docker in einen Container einbindet. `compose.yaml` bindet so `config.json` ein. |
+| Profil in Compose | eine Gruppe von Diensten, die nur mit `--profile <name>` startet und stoppt. Der Dienst `fhir` gehört zum Profil `fhir`. |
+| Port | eine Nummer, unter der ein Programm auf einem Rechner erreichbar ist, etwa 4200 für die Demo-App und 8080 für HAPI |
+| CORS | eine Regel im Browser. Eine Seite darf Antworten von einem anderen Ursprung, etwa einem anderen Port, nur lesen, wenn der Server das erlaubt. Vor Anfragen wie PUT fragt der Browser den Server vorher um Erlaubnis. |
+
+## 13 Links
+
+Stand aller Links: 05.11.2026.
+
+**Angular und Werkzeuge**
+
+- Angular: https://angular.dev
+- Angular CLI: https://angular.dev/tools/cli
+- Bibliotheken anlegen: https://angular.dev/tools/libraries/creating-libraries
+- Signals: https://angular.dev/guide/signals
+- Dependency Injection: https://angular.dev/guide/di
+- `@Service()`: https://angular.dev/api/core/Service
+- HttpClient: https://angular.dev/guide/http
+- Testen mit Karma und Jasmine: https://angular.dev/guide/testing/karma
+- TypeScript: https://www.typescriptlang.org/docs/
+- RxJS: https://rxjs.dev
+- ng-packagr: https://github.com/ng-packagr/ng-packagr
+- Karma: https://karma-runner.github.io
+- Jasmine: https://jasmine.github.io
+- ESLint: https://eslint.org
+- angular-eslint: https://github.com/angular-eslint/angular-eslint
+- typescript-eslint: https://typescript-eslint.io
+- Prettier: https://prettier.io
+- Node.js: https://nodejs.org
+- npm: https://docs.npmjs.com
+- `npm ci`: https://docs.npmjs.com/cli/commands/npm-ci
+- nvm: https://github.com/nvm-sh/nvm
+- Git: https://git-scm.com
+- Visual Studio Code: https://code.visualstudio.com
+
+**FHIR und Terminologie**
+
+- HL7 FHIR R4: https://hl7.org/fhir/R4/
+- FHIR R4 RESTful API: https://hl7.org/fhir/R4/http.html
+- Ressource Patient: https://hl7.org/fhir/R4/patient.html
+- Ressource Observation: https://hl7.org/fhir/R4/observation.html
+- Vital Signs: https://hl7.org/fhir/R4/observation-vitalsigns.html
+- Profil Blutdruck: https://hl7.org/fhir/R4/bp.html
+- Profile in FHIR: https://hl7.org/fhir/R4/profiling.html
+- @types/fhir: https://www.npmjs.com/package/@types/fhir
+- fhirclient: https://docs.smarthealthit.org/client-js/ und https://github.com/smart-on-fhir/client-js
+- SMART App Launch: https://hl7.org/fhir/smart-app-launch/
+- HAPI FHIR: https://hapifhir.io
+- HAPI FHIR JPA Server Starter: https://github.com/hapifhir/hapi-fhir-jpaserver-starter
+- Docker-Image von HAPI FHIR: https://hub.docker.com/r/hapiproject/hapi
+- LOINC: https://loinc.org, Codes https://loinc.org/85354-9, https://loinc.org/8480-6 und https://loinc.org/8462-4
+- UCUM: https://ucum.org
+
+**Docker, nginx und Browser**
+
+- Docker: https://docs.docker.com/get-started/
+- Docker Compose: https://docs.docker.com/compose/
+- Profile in Compose: https://docs.docker.com/compose/how-tos/profiles/
+- Bind-Mounts: https://docs.docker.com/engine/storage/bind-mounts/
+- nginx: https://nginx.org/en/docs/
+- CORS: https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CORS
+- curl unter Windows: https://learn.microsoft.com/en-us/windows/curl/
+
+**Sprachmodelle im Studium**
+
+- Chat AI: https://chat-ai.academiccloud.de, https://academiccloud.de/services/chatai/, https://docs.hpc.gwdg.de/services/ai-services/chat-ai/index.html, https://datenschutz.gwdg.de/services/chatai
+- TUD:AI: https://chat.llm.scads.ai, https://llm.scads.ai/docs/, https://llm.scads.ai/docs/legal/usage-policy/german/, https://llm.scads.ai/docs/legal/privacy-policy/api/german/, https://llm.scads.ai/docs/legal/privacy-policy/chat-ui/german/
+
+## 14 Versionen
+
+Die Versionen richten sich nach dem Frontend des Patientenportals der Forschungsgruppe.
+Gemeint ist das Repository `cross-hub-patientportal`, Ordner `apps/frontend`, Standardzweig mit Stand 27.08.2026.
+Die Spalte „Portal“ nennt die installierten Paketversionen aus dessen `package-lock.json`.
+Node.js, nginx und HAPI FHIR stammen aus `.nvmrc` und den Dockerfiles des Portals.
+Die Versionen des Starters stammen von der npm-Registry, von nodejs.org und von Docker Hub, Stand 05.11.2026.
+
+| Paket | Portal | Starter | Begründung |
+|---|---|---|---|
+| Angular (`core`, `common`, `compiler`, `forms`, `platform-browser`) | 22.0.5 | 22.2.4 (`~22.2.4`) | Abweichung. Sicherheitskorrekturen gibt es nur in 22.2. Der letzte Patch von 22.0 ist 22.0.8. Für diese Version meldete `npm audit` am 05.11.2026 insgesamt 41 Schwachstellen. Zwei davon sind kritisch. Betroffen ist auch `@angular/core`. Die Tilde hält den Starter auf 22.2. |
+| Angular CLI | 22.0.5 | 22.2.6 (`~22.2.6`) | wie oben. Die Angular CLI 22.2.6 hat den Workspace mit `npx @angular/cli@22.2.6 new` angelegt. |
+| Build-System | `@angular-devkit/build-angular` 22.0.5 | `@angular/build` 22.2.6 | Standard der CLI für neue Projekte, ohne Webpack |
+| ng-packagr | 22.0.1 | 22.2.6 (`~22.2.6`) | passend zu Angular 22.2 |
+| TypeScript | 6.0.3 | 6.0.3 (`~6.0.3`) | gleich. Angular 22.2 verlangt mindestens 6.0 und weniger als 6.1. |
+| RxJS | 7.8.2 | 7.8.2 (`~7.8.0`) | gleich |
+| zone.js | 0.16.2 | 0.16.3 (`~0.16.2`) | Das Portal nutzt zone.js, deshalb auch die Demo-App. Der Bereich `~0.16.2` entspricht dem Portal. Installiert ist der neuere Patch 0.16.3. |
+| Testrunner | Karma 6.4.4, Jasmine 5.13.0 | Karma 6.4.4, Jasmine 5.13.0 | gleich |
+| ESLint | ESLint 9.39.4, angular-eslint 22.0.0, typescript-eslint 8 | ESLint 10.14.0, angular-eslint 22.0.0, typescript-eslint 8.72.1 | Abweichung. Das ESLint-Team pflegt ESLint 9 seit dem 06.08.2026 nicht mehr. Die Regeln entsprechen denen des Portals. |
+| Prettier | 3.9.4 ohne eigene Einstellungen | 3.9.10 mit Standardwerten | wie im Portal: doppelte Anführungszeichen, 80 Zeichen je Zeile. Der Bereich `^3.9.4` entspricht dem Portal. Installiert ist der neuere Patch 3.9.10. |
+| @types/fhir | 0.0.44 | 0.0.44 | gleich |
+| fhirclient | nicht genutzt | 3.0.1 | Das Portal nutzt einen eigenen FHIR-Zugang über `HttpClient`. Der Starter nutzt `fhirclient`, weil es ohne eigene Infrastruktur auskommt und später SMART App Launch kann. |
+| Node.js | 22 (`.nvmrc`) | 22 (`.nvmrc`), Docker `node:22.23.4-alpine` | gleiche Hauptversion. Angular 22.2 verlangt Node.js `^22.22.3`, `^24.15.0` oder `>=26.0.0`. 22.23.4 war am 05.11.2026 die neueste 22er-Version. |
+| npm | nicht festgelegt, Lock-Datei Version 3 | 10.9.8 (Feld `packageManager`), Lock-Datei Version 3 | gleiche Version der Lock-Datei |
+| nginx | `nginx:1.31-alpine` | `nginx:1.31.8-alpine` | dieselbe Linie mit fester Version |
+| HAPI FHIR | `hapiproject/hapi:v8.10.0-2` | `hapiproject/hapi:v8.12.0-2` | neueste Version am 05.11.2026 |
+
+## 15 Lizenz
+
+Der Code steht unter der Apache License 2.0, siehe `LICENSE`.
+Die genutzten Pakete haben eigene Lizenzen, etwa `fhirclient` (Apache-2.0) und `@types/fhir` (MIT).
+
+Alle Daten in diesem Repository sind synthetisch.
+Es enthält keine echten Patientendaten.
+In der Voreinstellung von `config.json` gehen schreibende FHIR-Anfragen nur an den lokalen HAPI FHIR.

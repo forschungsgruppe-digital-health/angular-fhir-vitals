@@ -1,0 +1,36 @@
+{
+  "resourceType": "Observation",
+  "id": "blutdruck-01",
+  "meta": { "profile": ["http://hl7.org/fhir/StructureDefinition/bp"] },
+  "status": "final",
+  "category": [{
+    "coding": [{
+      "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+      "code": "vital-signs",
+      "display": "Vital Signs"
+    }]
+  }],
+  "code": {
+    "coding": [{ "system": "http://loinc.org", "code": "85354-9", "display": "Blood pressure panel with all children optional" }],
+    "text": "Blutdruck"
+  },
+  "subject": { "reference": "Patient/beispiel-01" },
+  "effectiveDateTime": "2026-06-01T07:35:00+02:00",
+  "performer": [{ "reference": "Patient/beispiel-01" }],
+  "component": [
+    {
+      "code": {
+        "coding": [{ "system": "http://loinc.org", "code": "8480-6", "display": "Systolic blood pressure" }],
+        "text": "systolisch"
+      },
+      "valueQuantity": { "value": 104, "unit": "mmHg", "system": "http://unitsofmeasure.org", "code": "mm[Hg]" }
+    },
+    {
+      "code": {
+        "coding": [{ "system": "http://loinc.org", "code": "8462-4", "display": "Diastolic blood pressure" }],
+        "text": "diastolisch"
+      },
+      "valueQuantity": { "value": 66, "unit": "mmHg", "system": "http://unitsofmeasure.org", "code": "mm[Hg]" }
+    }
+  ]
+}
