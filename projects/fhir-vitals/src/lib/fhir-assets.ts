@@ -1,11 +1,12 @@
 import { HttpClient } from "@angular/common/http";
 import { inject, Service } from "@angular/core";
 import type { FhirResource } from "fhir/r4";
+import type { ResourceLoader } from "fhir-vitals/core";
 import { firstValueFrom } from "rxjs";
 
-// Loads example resources shipped with the app, so the page works without a FHIR server.
+// Angular adapter for the loader port: uses HttpClient, so interceptors and HttpTestingController apply.
 @Service()
-export class FhirAssets {
+export class FhirAssets implements ResourceLoader {
   private readonly http = inject(HttpClient);
 
   load<T extends FhirResource>(path: string): Promise<T> {

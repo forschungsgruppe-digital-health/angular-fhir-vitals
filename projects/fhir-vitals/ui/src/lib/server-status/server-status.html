@@ -1,0 +1,5 @@
+<p>Status: {{ text() }}</p>
+<p>Blutdruck vom Server: {{ state().bloodPressure ?? "–" }}</p>
+<button type="button" [disabled]="busy()" (click)="reconnect.emit()">
+  Erneut verbinden
+</button>

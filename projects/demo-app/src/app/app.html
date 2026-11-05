@@ -1,20 +1,7 @@
 <h1>FHIR-Starter</h1>
 
 <h2>Patient aus den Assets</h2>
-<dl>
-  <dt>Name</dt>
-  <dd>{{ patient()?.name?.[0]?.text ?? "–" }}</dd>
-  <dt>Geschlecht</dt>
-  <dd>{{ patient()?.gender ?? "–" }}</dd>
-  <dt>Geburtsdatum</dt>
-  <dd>{{ patient()?.birthDate ?? "–" }}</dd>
-  <dt>Kennung</dt>
-  <dd>{{ patient()?.identifier?.[0]?.value ?? "–" }}</dd>
-</dl>
+<lib-patient-card [patient]="vitals.state().patient" />
 
 <h2>FHIR-Server</h2>
-<p>Status: {{ status() }}</p>
-<p>Blutdruck vom Server: {{ bloodPressure() }}</p>
-<button type="button" [disabled]="connecting()" (click)="connect()">
-  Erneut verbinden
-</button>
+<lib-server-status [state]="vitals.state()" (reconnect)="vitals.reconnect()" />

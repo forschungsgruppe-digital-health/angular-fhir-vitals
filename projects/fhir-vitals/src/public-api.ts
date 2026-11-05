@@ -1,3 +1,3 @@
-// Only these services are visible to apps that import "fhir-vitals".
+// "fhir-vitals": the Angular data layer. It brings fhir-vitals/core into Angular and never knows the UI.
 export * from "./lib/fhir-assets";
-export * from "./lib/fhir-server";
+export * from "./lib/vitals-facade";

@@ -1,0 +1,10 @@
+<dl>
+  <dt>Name</dt>
+  <dd>{{ patient()?.name?.[0]?.text ?? "–" }}</dd>
+  <dt>Geschlecht</dt>
+  <dd>{{ patient()?.gender ?? "–" }}</dd>
+  <dt>Geburtsdatum</dt>
+  <dd>{{ patient()?.birthDate ?? "–" }}</dd>
+  <dt>Kennung</dt>
+  <dd>{{ patient()?.identifier?.[0]?.value ?? "–" }}</dd>
+</dl>

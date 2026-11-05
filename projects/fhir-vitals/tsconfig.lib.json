@@ -6,8 +6,15 @@
     "outDir": "../../out-tsc/lib",
     "declaration": true,
     "declarationMap": true,
-    "types": []
+    "types": [],
+    // The editor finds the other entry points in their sources, before the first build.
+    // ng-packagr puts its own mapping to the built entry points in front of these.
+    "paths": {
+      "fhir-vitals/core": ["./core/src/public-api.ts"],
+      "fhir-vitals/fhir": ["./fhir/src/public-api.ts"],
+      "fhir-vitals/ui": ["./ui/src/public-api.ts"]
+    }
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "core/**/*.ts", "fhir/**/*.ts", "ui/**/*.ts"],
   "exclude": ["**/*.spec.ts"]
 }

@@ -36,7 +36,13 @@
           "builder": "@angular/build:karma",
           "options": {
             "tsConfig": "projects/fhir-vitals/tsconfig.spec.json",
-            "browsers": "ChromeHeadless"
+            "browsers": "ChromeHeadless",
+            "include": [
+              "**/*.spec.ts",
+              "../core/**/*.spec.ts",
+              "../fhir/**/*.spec.ts",
+              "../ui/**/*.spec.ts"
+            ]
           }
         }
       }

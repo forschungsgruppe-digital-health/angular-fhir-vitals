@@ -2,13 +2,16 @@
 
 Angular-Bibliothek für Vitalparameter über HL7 FHIR R4.
 
-Ein Service ist eine Klasse mit Logik ohne eigene Oberfläche.
-Assets sind statische Dateien, die eine Anwendung unverändert mit ausliefert.
-Die Bibliothek enthält zwei Services:
+Sie besteht aus vier Einstiegspunkten, also Teilpaketen mit eigenem Importnamen:
 
-- `FhirAssets` lädt Beispielressourcen als JSON aus den Assets der Anwendung.
-- `FhirServer` verbindet sich mit einem FHIR-Server, wenn die Anwendung einen konfiguriert. Ohne Server läuft die Anwendung trotzdem. PUT speichert eine Ressource unter ihrer ID, GET liest sie.
+- `fhir-vitals/core` enthält den Ablauf `VitalsSync` und die Ports, ohne Angular und ohne Serverzugriff. Ein Port ist eine Schnittstelle, die beschreibt, was der Ablauf von außen braucht.
+- `fhir-vitals/fhir` enthält Adapter für diese Ports mit fhirclient und mit fetch, ebenfalls ohne Angular. Ein Adapter setzt einen Port mit einer bestimmten Technik um.
+- `fhir-vitals` ist die Angular-Datenschicht mit `FhirAssets` und `VitalsFacade`. Die Facade ist ein einfacher Zugang für Komponenten. Sie bietet den Zustand des Ablaufs als Signal an, also als Wert, dessen Änderungen Angular verfolgt.
+- `fhir-vitals/ui` enthält die Komponenten `PatientCard` und `ServerStatus`. Sie bekommen ihre Daten über Inputs, also über Eigenschaften, die die einbindende Seite setzt.
 
-Aufbau, Befehle und Hintergründe stehen im [README des Repositorys](https://github.com/forschungsgruppe-digital-health/angular-fhir-vitals#readme).
+Andere UI-Frameworks wie Vue können den Code von `fhir-vitals/core` und `fhir-vitals/fhir` nutzen.
+Als npm-Paket bringt `fhir-vitals` aber noch Angular als peerDependency mit.
+
+Aufbau, Regeln zwischen den Schichten, Befehle und Hintergründe stehen im [README des Repositorys](https://github.com/forschungsgruppe-digital-health/angular-fhir-vitals#readme).
 
 Lizenz: Apache-2.0. Alle Beispieldaten sind synthetisch.

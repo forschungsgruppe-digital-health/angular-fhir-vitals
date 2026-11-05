@@ -27,13 +27,18 @@ describe("App", () => {
 
   afterEach(() => http.verify());
 
+  // The flow sends its requests one after the other, so the test lets it run until the next one.
+  async function answer(url: string, body: object): Promise<void> {
+    await new Promise((resolve) => setTimeout(resolve));
+    http.expectOne(url).flush(body);
+  }
+
   it("shows the patient and works without a FHIR server", async () => {
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
 
-    http.expectOne("assets/fhir/patient.json").flush(patient);
-    await fixture.whenStable();
-    http.expectOne("config.json").flush({ fhirBaseUrl: null });
+    await answer("assets/fhir/patient.json", patient);
+    await answer("config.json", { fhirBaseUrl: null });
     await fixture.whenStable();
     fixture.detectChanges();
 

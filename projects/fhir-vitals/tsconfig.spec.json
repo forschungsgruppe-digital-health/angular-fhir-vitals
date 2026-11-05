@@ -4,7 +4,19 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "outDir": "../../out-tsc/spec",
-    "types": ["jasmine"]
+    "types": ["jasmine"],
+    // Specs test the sources of all entry points, so no build of dist is needed first.
+    "paths": {
+      "fhir-vitals/core": ["./core/src/public-api.ts"],
+      "fhir-vitals/fhir": ["./fhir/src/public-api.ts"],
+      "fhir-vitals/ui": ["./ui/src/public-api.ts"]
+    }
   },
-  "include": ["src/**/*.d.ts", "src/**/*.spec.ts"]
+  "include": [
+    "src/**/*.d.ts",
+    "src/**/*.spec.ts",
+    "core/**/*.spec.ts",
+    "fhir/**/*.spec.ts",
+    "ui/**/*.spec.ts"
+  ]
 }
