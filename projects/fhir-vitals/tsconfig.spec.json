@@ -10,8 +10,10 @@
       "fhir-vitals/core": ["./core/src/public-api.ts"],
       "fhir-vitals/fhir": ["./fhir/src/public-api.ts"],
       "fhir-vitals/angular/data": ["./angular/data/src/public-api.ts"],
-      "fhir-vitals/angular/ui": ["./angular/ui/src/public-api.ts"],
-      "fhir-vitals/angular/dashboard": ["./angular/dashboard/src/public-api.ts"]
+      "fhir-vitals/angular/ui/cards": ["./angular/ui/cards/src/public-api.ts"],
+      "fhir-vitals/angular/ui/dashboard": [
+        "./angular/ui/dashboard/src/public-api.ts"
+      ]
     }
   },
   "include": [

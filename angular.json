@@ -41,8 +41,7 @@
               "**/*.spec.ts",
               "../../../core/**/*.spec.ts",
               "../../../fhir/**/*.spec.ts",
-              "../../ui/**/*.spec.ts",
-              "../../dashboard/**/*.spec.ts"
+              "../../ui/**/*.spec.ts"
             ]
           }
         }

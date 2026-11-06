@@ -1,8 +1,8 @@
 import { HttpClient } from "@angular/common/http";
 import { Component, inject, OnInit } from "@angular/core";
 import { VitalsFacade } from "fhir-vitals/angular/data";
-import { VitalsDashboard } from "fhir-vitals/angular/dashboard";
-import { PatientCard, ServerStatus } from "fhir-vitals/angular/ui";
+import { PatientCard, ServerStatus } from "fhir-vitals/angular/ui/cards";
+import { VitalsDashboard } from "fhir-vitals/angular/ui/dashboard";
 import { firstValueFrom } from "rxjs";
 
 interface AppConfig {
@@ -10,8 +10,7 @@ interface AppConfig {
 }
 
 // The only page of the demo. It connects the data layer with the UI components and holds no logic itself.
-// VitalsDashboard appears only inside @defer, so Angular puts it with gridstack, Chart.js and
-// Angular Material into a chunk of its own that loads later.
+// VitalsDashboard appears only inside @defer, so the app loads it when it becomes visible.
 @Component({
   selector: "app-root",
   imports: [PatientCard, ServerStatus, VitalsDashboard],

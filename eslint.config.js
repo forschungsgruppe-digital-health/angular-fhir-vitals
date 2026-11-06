@@ -6,14 +6,18 @@ const angular = require("angular-eslint");
 const prettier = require("eslint-config-prettier");
 
 // Layer rules of the library. Each folder may import only what its block allows.
-// A later block for the same files would replace these options, so the folders never overlap.
+// A later block for the same files replaces these options. Only the angular/ui fallback overlaps on purpose,
+// and the feature blocks after it win for their folders.
+// First the layer, then the feature: all Angular UI lives under angular/ui, one entry point per feature.
 const entryPoints = [
   "core",
   "fhir",
   "angular/data",
-  "angular/ui",
-  "angular/dashboard",
+  "angular/ui/cards",
+  "angular/ui/dashboard",
 ];
+// The folder that holds src is the last part of each entry point name.
+const entryFolders = entryPoints.map((name) => name.split("/").pop());
 const entryPointsOnly = [
   {
     regex: `^fhir-vitals(/(?!(${entryPoints.join("|")})$)|$)`,
@@ -22,16 +26,16 @@ const entryPointsOnly = [
       .join(", ")}.`,
   },
   {
-    regex: "^(\\.{1,2}/)+(.*/)?(core|fhir|data|ui|dashboard)/src(/|$)",
+    regex: `^(\\.{1,2}/)+(.*/)?(${entryFolders.join("|")})/src(/|$)`,
     message:
-      "Andere Schichten über ihren Paketnamen importieren, nie über einen relativen Pfad.",
+      "Andere Einstiegspunkte über ihren Paketnamen importieren, nie über einen relativen Pfad.",
   },
 ];
-// gridstack, Chart.js and ng2-charts stay in their own entry point, so they never load with the rest.
+// gridstack, Chart.js and ng2-charts belong to the dashboard feature, so no other part depends on them.
 const dashboardPackages = {
   regex: "^(gridstack|chart\\.js|ng2-charts)(/|$)",
   message:
-    "Diese Pakete gehören nach fhir-vitals/angular/dashboard, damit die App sie erst lädt, wenn das Dashboard erscheint.",
+    "Diese Pakete gehören nach fhir-vitals/angular/ui/dashboard, damit nur das Dashboard von ihnen abhängt.",
 };
 const frameworkFree = {
   regex: "^(@angular/|rxjs(/|$)|zone\\.js(/|$)|vue$|@vue/)",
@@ -42,7 +46,7 @@ const frameworkFree = {
 const libraryByPath = "^\\.{1,2}/(.*/)?(fhir-vitals|dist)(/|$)";
 // The same for dynamic imports, written for an esquery selector, plus anything that is no entry point.
 const libraryByPathOrDeep = `^(fhir-vitals(\\/(?!(${entryPoints
-  .map((name) => name.replace("/", "\\/"))
+  .map((name) => name.replaceAll("/", "\\/"))
   .join("|")})$)|$)|\\.{1,2}\\/(.*\\/)?(fhir-vitals|dist)(\\/|$))`;
 const serverGlobals = ["fetch", "XMLHttpRequest", "WebSocket", "EventSource"];
 const noServerAccess =
@@ -56,6 +60,30 @@ const layer = (folder, ...patterns) => ({
     ],
   },
 });
+// Rules for all of angular/ui, in the fallback block and in every feature block.
+const uiPatterns = [
+  {
+    regex: "^fhir-vitals/(fhir|angular/data)$",
+    message:
+      "Die UI importiert nur fhir-vitals/core und andere UI-Einstiegspunkte. Daten kommen über Inputs, verbunden wird in der App.",
+  },
+  {
+    regex: "^(fhirclient|@angular/common/http)(/|$)",
+    message: "Die UI spricht nicht selbst mit Servern.",
+  },
+];
+// One block per feature under angular/ui. A feature may import other UI features by their package name,
+// but never in a cycle, because ng-packagr stops the build at a circular dependency between entry points.
+const uiFeature = (name, ...patterns) =>
+  layer(
+    `angular/ui/${name}`,
+    ...uiPatterns,
+    {
+      regex: `^fhir-vitals/angular/ui/${name}$`,
+      message: "Innerhalb des eigenen Einstiegspunkts relativ importieren.",
+    },
+    ...patterns,
+  );
 
 module.exports = defineConfig(
   {
@@ -119,9 +147,18 @@ module.exports = defineConfig(
   layer(
     "angular/data",
     {
-      regex: "^fhir-vitals/angular/(data|ui|dashboard)$",
+      regex: "^fhir-vitals/angular/data$",
+      message: "Innerhalb des eigenen Einstiegspunkts relativ importieren.",
+    },
+    {
+      regex: "^fhir-vitals/angular/ui/[^/]+$",
       message:
-        "Die Datenschicht kennt die UI nicht. Innerhalb der eigenen Schicht relativ importieren.",
+        "Die Datenschicht kennt die UI nicht. Daten gehen über Inputs an die UI, verbunden wird in der App.",
+    },
+    {
+      regex: "^@angular/material(/|$)",
+      message:
+        "Die Datenschicht kennt die UI nicht. Angular Material gehört in ein UI-Feature wie fhir-vitals/angular/ui/cards.",
     },
     {
       regex: "^fhirclient(/|$)",
@@ -129,40 +166,18 @@ module.exports = defineConfig(
     },
     dashboardPackages,
   ),
-  // angular/ui: Angular components. They get data through inputs and never load it themselves.
-  layer(
-    "angular/ui",
-    {
-      regex: "^fhir-vitals/(fhir|angular/(data|ui|dashboard))$",
-      message:
-        "Die UI importiert nur fhir-vitals/core. Daten kommen über Inputs, verbunden wird in der App.",
-    },
-    {
-      regex: "^(fhirclient|@angular/common/http)(/|$)",
-      message: "Die UI spricht nicht selbst mit Servern.",
-    },
-    dashboardPackages,
-  ),
-  // angular/dashboard: the minimal dashboard example with gridstack, Chart.js and Angular Material.
-  // Like the UI it gets its data through inputs.
-  layer(
-    "angular/dashboard",
-    {
-      regex: "^fhir-vitals/(fhir|angular/(data|ui|dashboard))$",
-      message:
-        "Das Dashboard importiert nur fhir-vitals/core. Daten kommen über Inputs. Innerhalb der eigenen Schicht relativ importieren.",
-    },
-    {
-      regex: "^(fhirclient|@angular/common/http)(/|$)",
-      message: "Das Dashboard spricht nicht selbst mit Servern.",
-    },
-  ),
-  // core, the UI and the dashboard never talk to servers, not even through browser globals.
+  // Fallback for any other folder under angular/ui, for example a new feature before it gets its own block.
+  layer("angular/ui", ...uiPatterns, dashboardPackages),
+  // angular/ui/cards: Angular components. They get data through inputs and never load it themselves.
+  uiFeature("cards", dashboardPackages),
+  // angular/ui/dashboard: the minimal dashboard example with gridstack, Chart.js and Angular Material.
+  // Like the cards it gets its data through inputs.
+  uiFeature("dashboard"),
+  // core and every UI feature never talk to servers, not even through browser globals.
   {
     files: [
       "projects/fhir-vitals/core/**/*.ts",
       "projects/fhir-vitals/angular/ui/**/*.ts",
-      "projects/fhir-vitals/angular/dashboard/**/*.ts",
     ],
     rules: {
       "no-restricted-globals": [

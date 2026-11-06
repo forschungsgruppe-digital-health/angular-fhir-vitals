@@ -106,6 +106,8 @@ Ohne `--profile fhir` läuft HAPI weiter, siehe Abschnitt 9.
 Alle Befehle im Wurzelverzeichnis des Repositorys ausführen.
 Jeder Befehl in diesen Tabellen ist am 05.11.2026 mit den Versionen aus Abschnitt 14 gelaufen.
 Nach dem Einbau des Dashboard-Beispiels liefen am 06.11.2026 unter macOS erneut: `npm ci`, `npm start`, `npx ng build fhir-vitals`, `npx ng test fhir-vitals --watch=false`, `npm test`, `npm run lint`, `npm run format` und `npm run build`, dazu in einer Kopie des Repositorys der neue Befehl für Komponenten im Dashboard.
+Nach dem Umzug der Komponenten nach `angular/ui/cards` und `angular/ui/dashboard` liefen am selben Tag erneut: `npx ng build fhir-vitals`, `npx ng test fhir-vitals --watch=false`, `npm test`, `npm run lint`, `npm run format` und `npm run build`.
+In einer Kopie des Repositorys liefen dazu `npm start`, beide Befehle für neue Komponenten, der Befehl für UI-Services und der Build mit und ohne die neue Zeile in `public-api.ts`.
 Die Spalte „Was danach zu sehen ist“ gibt die tatsächliche Ausgabe wieder.
 
 ### a) Bibliothek entwickeln
@@ -119,8 +121,8 @@ Der Decorator `@Service()` ist eine Markierung über der Klasse.
 Angular erzeugt einen so markierten Service selbst und gibt ihn an alle Klassen weiter, die ihn brauchen.
 ESLint prüft den Code auf Fehler und Regelverstöße, ohne ihn auszuführen.
 Prettier formatiert den Code einheitlich.
-Die Bibliothek besteht aus fünf Einstiegspunkten, also Teilpaketen mit eigenem Importnamen wie `fhir-vitals/core` oder `fhir-vitals/angular/ui`.
-Jeder Einstiegspunkt bildet eine Schicht mit einer festen Aufgabe.
+Die Bibliothek besteht aus fünf Einstiegspunkten, also Teilpaketen mit eigenem Importnamen wie `fhir-vitals/core` oder `fhir-vitals/angular/ui/cards`.
+Jeder Einstiegspunkt gehört zu einer Schicht mit einer festen Aufgabe.
 Abschnitt 5 beschreibt, was in welche Schicht gehört.
 Ein Chunk ist eine JavaScript-Datei, die der Build der Demo-App erzeugt.
 Initial Chunks lädt der Browser sofort beim Start.
@@ -136,16 +138,17 @@ Bundle meint dort die gebauten JavaScript-Dateien und nicht ein FHIR-Bundle aus 
 | `npm start` | baut die Bibliothek einmal und startet die Demo-App mit dem Entwicklungsserver | zum Ausprobieren | sechs Zeilen `Built fhir-vitals…`, eine für das Paket und eine je Einstiegspunkt, danach `Local: http://localhost:4200/`. Im Browser erscheint die Seite „FHIR-Starter“ mit der Kachel „Blutdruckverlauf“. Die Konsole des Browsers meldet dabei `NG0751`, siehe Abschnitt 9. `Strg+C` beendet den Entwicklungsserver. |
 | Terminal 1: `npm run watch:lib` | baut die Bibliothek mit allen Einstiegspunkten bei jeder gespeicherten Änderung neu | beim Arbeiten an der Bibliothek, zusammen mit Terminal 2 | `Compilation complete. Watching for file changes...`. Nach jeder Änderung folgt ein neuer Block mit `Build at: …`. Der Neubau dauerte im Test 0,1 bis 0,2 Sekunden. |
 | Terminal 2: `npm run start:app` | startet nur die Demo-App, ohne die Bibliothek zu bauen | zusammen mit Terminal 1 | `Local: http://localhost:4200/`. Nach einer Änderung in der Bibliothek erscheint `Page reload sent to client(s).`, und der Browser lädt die Seite selbst neu. Vom Speichern bis zum Neuladen verging im Test weniger als eine Sekunde, für Änderungen in `core` ebenso wie in `angular/ui`. |
-| `npx ng generate service <name> --project fhir-vitals` | legt einen Angular-Service in der Angular-Datenschicht `fhir-vitals/angular/data` an | für Logik, die nur Angular braucht, etwa weitere Datenzugriffe mit HttpClient, dem HTTP-Dienst von Angular | Zwei Zeilen `CREATE projects/fhir-vitals/angular/data/src/lib/<name>.ts` und `…/<name>.spec.ts`. Die Klasse trägt den Decorator `@Service()`. Logik, die auch andere UI-Frameworks brauchen, gehört dagegen als Datei ohne Decorator nach `core`, siehe Abschnitt 5. |
-| `npx ng generate component <name> --project fhir-vitals --path projects/fhir-vitals/angular/ui/src/lib` | legt eine Komponente im Einstiegspunkt `fhir-vitals/angular/ui` an | für neue Anzeigen, etwa eine Karte mit Messwerten | Vier Zeilen `CREATE projects/fhir-vitals/angular/ui/src/lib/<name>/<name>.ts`, `.html`, `.css` und `.spec.ts`. Der Selektor beginnt mit `lib-`. Ohne `--path` landet die Komponente in der Angular-Datenschicht, wo sie nicht hingehört. |
-| `npx ng generate component <name> --project fhir-vitals --path projects/fhir-vitals/angular/dashboard/src/lib` | legt eine Komponente im Einstiegspunkt `fhir-vitals/angular/dashboard` an | für weitere Kacheln im Dashboard, siehe Abschnitt 10 | Vier Zeilen `CREATE projects/fhir-vitals/angular/dashboard/src/lib/<name>/<name>.css`, `.spec.ts`, `.ts` und `.html`, jeweils mit der Größe in Bytes. Mit dem Namen `weight-chart` heißt die Klasse `WeightChart` und der Selektor `lib-weight-chart`. |
-| neue Zeile in der Datei `src/public-api.ts` des Einstiegspunkts, zum Beispiel `export * from "./lib/vitals-card/vitals-card";` in `projects/fhir-vitals/angular/ui/src/public-api.ts` | macht den neuen Baustein außerhalb der Bibliothek sichtbar | nach jedem neuen Service, jeder neuen Komponente und jeder neuen Datei in `core` oder `fhir` | Nach dem nächsten Build der Bibliothek klappt in der Demo-App `import { VitalsCard } from "fhir-vitals/angular/ui";`. Ohne diese Zeile meldet der Build `Module '"fhir-vitals/angular/ui"' has no exported member 'VitalsCard'`. |
-| `npx ng build fhir-vitals` | baut das Paket mit allen fünf Einstiegspunkten einmal nach `dist/fhir-vitals` | vor `npm run start:app`, wenn `watch:lib` nicht läuft | Sechs Zeilen `Built …` für `fhir-vitals`, `fhir-vitals/core`, `fhir-vitals/fhir`, `fhir-vitals/angular/data`, `fhir-vitals/angular/ui` und `fhir-vitals/angular/dashboard`, dann `Built Angular Package`. Die Reihenfolge ergibt sich aus den Abhängigkeiten: `core` kommt immer vor den Schichten, die es nutzen, sonst kann sie wechseln. Der Ordner `dist/fhir-vitals/fesm2022` enthält je Einstiegspunkt eine Datei `.mjs` und eine `.mjs.map`, etwa `fhir-vitals-core.mjs` und `fhir-vitals-angular-ui.mjs`. |
+| `npx ng generate service <name> --project fhir-vitals` | legt einen Angular-Service in der Angular-Datenschicht `fhir-vitals/angular/data` an | für Services, die Daten laden oder den Zustand der Daten halten, etwa weitere Datenzugriffe mit HttpClient, dem HTTP-Dienst von Angular | Zwei Zeilen `CREATE projects/fhir-vitals/angular/data/src/lib/<name>.ts` und `…/<name>.spec.ts`. Die Klasse trägt den Decorator `@Service()`. Logik, die auch andere UI-Frameworks brauchen, gehört dagegen als Datei ohne Decorator nach `core`, siehe Abschnitt 5. |
+| `npx ng generate service <name> --project fhir-vitals --path projects/fhir-vitals/angular/ui/cards/src/lib` | legt einen UI-Service, also einen Service nur für die Oberfläche, im Einstiegspunkt `fhir-vitals/angular/ui/cards` an | für Logik der Oberfläche, etwa zum Öffnen eines Dialogs, siehe Abschnitt 5 | Zwei Zeilen `CREATE projects/fhir-vitals/angular/ui/cards/src/lib/<name>.spec.ts` und `…/<name>.ts`, jeweils mit der Größe in Bytes. Mit dem Namen `dialog-opener` heißt die Klasse `DialogOpener` und trägt ebenfalls `@Service()`. |
+| `npx ng generate component <name> --project fhir-vitals --path projects/fhir-vitals/angular/ui/cards/src/lib` | legt eine Komponente im Einstiegspunkt `fhir-vitals/angular/ui/cards` an | für neue Anzeigen, etwa eine Karte mit Messwerten | Vier Zeilen `CREATE projects/fhir-vitals/angular/ui/cards/src/lib/<name>/<name>.css`, `.spec.ts`, `.ts` und `.html`, jeweils mit der Größe in Bytes. Mit dem Namen `vitals-card` heißt die Klasse `VitalsCard` und der Selektor `lib-vitals-card`. Ohne `--path` landet die Komponente in der Angular-Datenschicht, wo sie nicht hingehört. |
+| `npx ng generate component <name> --project fhir-vitals --path projects/fhir-vitals/angular/ui/dashboard/src/lib` | legt eine Komponente im Einstiegspunkt `fhir-vitals/angular/ui/dashboard` an | für weitere Kacheln im Dashboard, siehe Abschnitt 10 | Vier Zeilen `CREATE projects/fhir-vitals/angular/ui/dashboard/src/lib/<name>/<name>.css`, `.spec.ts`, `.ts` und `.html`, jeweils mit der Größe in Bytes. Mit dem Namen `weight-chart` heißt die Klasse `WeightChart` und der Selektor `lib-weight-chart`. |
+| neue Zeile in der Datei `src/public-api.ts` des Einstiegspunkts, zum Beispiel `export * from "./lib/vitals-card/vitals-card";` in `projects/fhir-vitals/angular/ui/cards/src/public-api.ts` | macht den neuen Baustein außerhalb der Bibliothek sichtbar | nach jedem neuen Service, jeder neuen Komponente und jeder neuen Datei in `core` oder `fhir` | Nach dem nächsten Build der Bibliothek klappt in der Demo-App `import { VitalsCard } from "fhir-vitals/angular/ui/cards";`. Ohne diese Zeile meldet der Build `TS2305: Module '"fhir-vitals/angular/ui/cards"' has no exported member 'VitalsCard'.` |
+| `npx ng build fhir-vitals` | baut das Paket mit allen fünf Einstiegspunkten einmal nach `dist/fhir-vitals` | vor `npm run start:app`, wenn `watch:lib` nicht läuft | Sechs Zeilen `Built …` für `fhir-vitals`, `fhir-vitals/core`, `fhir-vitals/fhir`, `fhir-vitals/angular/data`, `fhir-vitals/angular/ui/cards` und `fhir-vitals/angular/ui/dashboard`, dann `Built Angular Package`. Die Reihenfolge ergibt sich aus den Abhängigkeiten: `core` kommt immer vor den Schichten, die es nutzen, sonst kann sie wechseln. Der Ordner `dist/fhir-vitals/fesm2022` enthält je Einstiegspunkt eine Datei `.mjs` und eine `.mjs.map`, etwa `fhir-vitals-core.mjs` und `fhir-vitals-angular-ui-cards.mjs`. |
 | `npx ng test fhir-vitals --watch=false` | testet alle Einstiegspunkte der Bibliothek, direkt aus den Quellen | nach Änderungen an der Bibliothek | `TOTAL: 51 SUCCESS`. Dafür muss die Bibliothek vorher nicht gebaut sein. |
 | `npm test` | baut die Bibliothek und testet dann Bibliothek und Demo-App nacheinander, ohne Watch-Modus | vor jedem Commit | Die sechs Zeilen `Built fhir-vitals…`, dann zwei Blöcke: zuerst `TOTAL: 51 SUCCESS` für die Bibliothek, dann `TOTAL: 3 SUCCESS` für die Demo-App. Im zweiten Block stehen vier Warnungen `WARN [web-server]: 404: /base/media/roboto-latin-…`, siehe Abschnitt 9. |
 | `npm run lint` | prüft den Code mit ESLint, auch die Regeln zwischen den Schichten aus Abschnitt 5 | vor jedem Commit | nur die beiden Kopfzeilen `> angular-fhir-vitals@0.0.0 lint` und `> eslint .`. Folgt keine weitere Ausgabe, hat ESLint nichts zu beanstanden. |
 | `npm run format` | formatiert TypeScript, HTML und CSS mit Prettier | vor jedem Commit | eine Zeile je Datei. `(unchanged)` heißt, dass die Datei schon passte. |
-| `npm run build` | baut erst die Bibliothek, dann die Demo-App für die Auslieferung | vor einer Auslieferung ohne Docker | sechs Zeilen `Built fhir-vitals…`, dann eine Tabelle `Initial chunk files` mit der Zeile `Initial total` und `260.48 kB`, geschätzt `77.37 kB` bei der Übertragung. Darunter steht `Lazy chunk files` mit der Zeile `fhir-vitals-angular-dashboard` und `277.29 kB`, geschätzt `77.53 kB`. Eine Warnung zum Budget erscheint nicht. Am Ende folgen `Application bundle generation complete` und `Output location: …/dist/demo-app`. |
+| `npm run build` | baut erst die Bibliothek, dann die Demo-App für die Auslieferung | vor einer Auslieferung ohne Docker | sechs Zeilen `Built fhir-vitals…`, dann eine Tabelle `Initial chunk files` mit der Zeile `Initial total` und `260.48 kB`, geschätzt `77.36 kB` bei der Übertragung. Darunter steht `Lazy chunk files` mit der Zeile `fhir-vitals-angular-ui-dashboard` und `277.29 kB`, geschätzt `77.53 kB`. Eine Warnung zum Budget erscheint nicht. Am Ende folgen `Application bundle generation complete` und `Output location: …/dist/demo-app`. |
 
 ### b) Demo-App mit Docker, ohne HAPI FHIR
 
@@ -233,8 +236,9 @@ angular-fhir-vitals/
 │   │   ├── fhir/                      "fhir-vitals/fhir": Adapter mit fhirclient und mit fetch
 │   │   ├── angular/                   alles, was Angular braucht, selbst kein Einstiegspunkt
 │   │   │   ├── data/                  "fhir-vitals/angular/data": Datenschicht mit FhirAssets und VitalsFacade
-│   │   │   ├── ui/                    "fhir-vitals/angular/ui": Komponenten PatientCard und ServerStatus
-│   │   │   └── dashboard/             "fhir-vitals/angular/dashboard": minimales Dashboard-Beispiel, eine Kachel
+│   │   │   └── ui/                    die Angular-Oberfläche, selbst kein Einstiegspunkt
+│   │   │       ├── cards/             "fhir-vitals/angular/ui/cards": Komponenten PatientCard und ServerStatus
+│   │   │       └── dashboard/         "fhir-vitals/angular/ui/dashboard": minimales Dashboard-Beispiel, eine Kachel
 │   │   ├── src/public-api.ts          leerer Platzhalter für den Paketnamen "fhir-vitals"
 │   │   ├── …/src/public-api.ts        je Einstiegspunkt: was außerhalb sichtbar ist
 │   │   ├── …/src/lib/*.spec.ts        Unit-Tests, neben dem getesteten Code
@@ -267,9 +271,9 @@ angular-fhir-vitals/
 └── LICENSE                            Lizenztext Apache-2.0
 ```
 
-**Pfadzuordnung.** Die Demo-App importiert die Bibliothek über ihre Paketnamen, also etwa `import { VitalsFacade } from "fhir-vitals/angular/data";` und `import { PatientCard, ServerStatus } from "fhir-vitals/angular/ui";`.
+**Pfadzuordnung.** Die Demo-App importiert die Bibliothek über ihre Paketnamen, also etwa `import { VitalsFacade } from "fhir-vitals/angular/data";` und `import { PatientCard, ServerStatus } from "fhir-vitals/angular/ui/cards";`.
 Genau so sähe der Import im Patientenportal aus, wenn es die Bibliothek als npm-Paket installiert.
-Möglich macht das der Eintrag `"fhir-vitals/*": ["./dist/fhir-vitals/*"]` unter `compilerOptions.paths` in `tsconfig.json`, auch für verschachtelte Namen wie `fhir-vitals/angular/ui`.
+Möglich macht das der Eintrag `"fhir-vitals/*": ["./dist/fhir-vitals/*"]` unter `compilerOptions.paths` in `tsconfig.json`, auch für verschachtelte Namen wie `fhir-vitals/angular/ui/cards`.
 Er leitet die Paketnamen auf die gebaute Bibliothek im Ordner `dist` um.
 Den Eintrag `"fhir-vitals": ["./dist/fhir-vitals"]` daneben hat die Angular CLI beim Anlegen der Bibliothek erzeugt.
 Er zeigt nur noch auf den leeren Platzhalter.
@@ -297,11 +301,13 @@ Eine Angular-App installiert sie selbst, so wie die Demo-App.
 `fhirclient` und `@types/fhir` bleiben Pflicht, weil `fhir-vitals/fhir` fhirclient importiert und `core` die FHIR-Typen nutzt.
 
 **Schichten der Bibliothek.**
-Die Bibliothek trennt Abläufe, Serverzugriff, Angular-Anbindung, Oberfläche und das Dashboard-Beispiel in fünf Einstiegspunkte.
-Jeder Einstiegspunkt bildet eine Schicht mit einer festen Aufgabe.
-Die drei Schichten, die Angular brauchen, liegen gemeinsam im Ordner `angular/`.
+Die Bibliothek trennt Abläufe, Serverzugriff, Angular-Anbindung und Oberfläche in vier Schichten.
+Jede Schicht hat eine feste Aufgabe.
+Dahinter steht das Prinzip der Trennung der Zuständigkeiten, englisch Separation of Concerns.
+Nach diesem Prinzip hat jeder Teil des Codes genau eine Aufgabe und kennt nur das, was er dafür braucht.
+Die beiden Schichten, die Angular brauchen, liegen gemeinsam im Ordner `angular/`.
 `core` und `fhir` daneben bleiben frei von UI-Frameworks.
-Der Ordner `angular/` ist selbst kein Einstiegspunkt, deshalb meldet `import … from "fhir-vitals/angular"` den Fehler `TS2307`.
+Die Ordner `angular/` und `angular/ui/` sind selbst keine Einstiegspunkte, deshalb melden `import … from "fhir-vitals/angular"` und `import … from "fhir-vitals/angular/ui"` beim Build den Fehler `TS2307`.
 Auch `fhir-vitals` allein ist nur ein leerer Platzhalter.
 ng-packagr verlangt ihn für den Paketnamen und zeigt ihn beim Build als `Built fhir-vitals` an.
 Importieren lassen sich nur die fünf Einstiegspunkte.
@@ -313,24 +319,88 @@ Eine Facade ist ein einfacher Zugang für die Oberfläche, der die Einzelheiten 
 Ein Signal ist ein Wert, dessen Änderungen Angular verfolgt.
 Ein Input ist eine Eigenschaft einer Komponente, die die einbindende Seite setzt.
 
+**Zuerst die Schicht, dann das Feature.**
+Innerhalb einer Schicht kann sich der Code nach Features teilen.
+Ein Feature ist ein abgegrenzter Teil mit eigener Aufgabe, etwa die Karten für Patient und Server oder das Dashboard-Beispiel.
+Die Ordner bilden diese Reihenfolge ab: oben die Schicht, darunter das Feature.
+Alles für die Angular-Oberfläche liegt deshalb unter `angular/ui`, mit einem Einstiegspunkt je Feature.
+`fhir-vitals/angular/ui/cards` enthält `PatientCard` und `ServerStatus`, `fhir-vitals/angular/ui/dashboard` das Dashboard-Beispiel.
+Angular Material ist genauso aufgebaut, mit Einstiegspunkten wie `@angular/material/card` und `@angular/material/table`.
+Die Schichten `core`, `fhir` und `angular/data` sind je ein einziger Einstiegspunkt.
+
 | Einstiegspunkt | Inhalt | darf importieren | darf nicht importieren |
 |---|---|---|---|
 | `fhir-vitals/core` | die Ports `ResourceLoader` und `FhirServerConnection`, der Ablauf `VitalsSync` mit Patient und Messverlauf laden, Adresse lesen, verbinden, prüfen, speichern und zurücklesen, dazu `formatBloodPressure`, `bloodPressureHistory` und die LOINC-Codes | FHIR-Typen aus `fhir/r4` | Angular, RxJS, Vue, fhirclient, `fetch`, gridstack, Chart.js, ng2-charts und alle anderen Teile der Bibliothek |
 | `fhir-vitals/fhir` | die Adapter `FhirClientConnection` mit fhirclient und `FetchResourceLoader` mit fetch | `fhir-vitals/core`, fhirclient, FHIR-Typen aus `fhir/r4` | Angular, RxJS, Vue, gridstack, Chart.js, ng2-charts und die übrigen Teile |
-| `fhir-vitals/angular/data` | die Angular-Datenschicht: `FhirAssets` als Adapter mit HttpClient, dem Dienst von Angular für HTTP-Anfragen, und `VitalsFacade`, die den Zustand von `VitalsSync` als Signal anbietet | `fhir-vitals/core`, `fhir-vitals/fhir`, Angular, RxJS, FHIR-Typen aus `fhir/r4` | `fhir-vitals/angular/ui`, `fhir-vitals/angular/dashboard`, fhirclient direkt, gridstack, Chart.js und ng2-charts |
-| `fhir-vitals/angular/ui` | die Komponenten `PatientCard` und `ServerStatus`. Sie bekommen Daten über Inputs und übersetzen die Statuscodes des Kerns in deutsche Texte. | `fhir-vitals/core`, Angular, FHIR-Typen aus `fhir/r4` | die Datenschicht, das Dashboard, `fhir-vitals/fhir`, fhirclient, HttpClient, `fetch`, gridstack, Chart.js und ng2-charts |
-| `fhir-vitals/angular/dashboard` | das minimale Dashboard-Beispiel: `VitalsDashboard` mit einer festen Kachel und `BloodPressureChart` für das Diagramm. Die Messwerte kommen über das Input `history`. | `fhir-vitals/core`, Angular und die vorgeschlagenen Pakete Angular Material, gridstack, Chart.js und ng2-charts | die Datenschicht, die UI, `fhir-vitals/fhir`, fhirclient, HttpClient und `fetch` |
+| `fhir-vitals/angular/data` | die Angular-Datenschicht: `FhirAssets` als Adapter mit HttpClient, dem Dienst von Angular für HTTP-Anfragen, und `VitalsFacade`, die den Zustand von `VitalsSync` als Signal anbietet | `fhir-vitals/core`, `fhir-vitals/fhir`, Angular, RxJS, FHIR-Typen aus `fhir/r4` | jedes UI-Feature wie `fhir-vitals/angular/ui/cards`, Angular Material, fhirclient direkt, gridstack, Chart.js und ng2-charts |
+| `fhir-vitals/angular/ui/cards` | die Komponenten `PatientCard` und `ServerStatus`. Sie bekommen Daten über Inputs und übersetzen die Statuscodes des Kerns in deutsche Texte. | `fhir-vitals/core`, andere UI-Features über ihren Paketnamen, Angular mit Angular Material, FHIR-Typen aus `fhir/r4` | die Datenschicht, `fhir-vitals/fhir`, fhirclient, HttpClient, `fetch`, gridstack, Chart.js und ng2-charts |
+| `fhir-vitals/angular/ui/dashboard` | das minimale Dashboard-Beispiel: `VitalsDashboard` mit einer festen Kachel und `BloodPressureChart` für das Diagramm. Die Messwerte kommen über das Input `history`. | `fhir-vitals/core`, andere UI-Features über ihren Paketnamen, Angular und die vorgeschlagenen Pakete Angular Material, gridstack, Chart.js und ng2-charts | die Datenschicht, `fhir-vitals/fhir`, fhirclient, HttpClient und `fetch` |
 
-Die Demo-App ist die einzige Stelle, die Datenschicht, Oberfläche und Dashboard kennt.
+Die Demo-App ist die einzige Stelle, die Datenschicht und UI-Features kennt.
 Sie verbindet sie.
-Die Schichten importieren einander nur über den Paketnamen, etwa `fhir-vitals/core`.
+Schichten und Features importieren einander nur über den Paketnamen, etwa `fhir-vitals/core`.
 Ein relativer Pfad in eine andere Schicht scheitert beim Build, meist mit dem Fehler `TS6059`.
 Zeigt er von `core` aus nach oben, etwa nach `angular/data`, meldet ng-packagr stattdessen `Entry point fhir-vitals/core has a circular dependency on itself.`
 `npm run lint` prüft die Spalte „darf nicht importieren“.
 Ein verbotener Import erscheint dann als Fehler mit Begründung, im Kern zum Beispiel `'@angular/core' import is restricted from being used by a pattern. Dieser Teil bleibt frei von UI-Frameworks, damit auch Vue oder andere ihn nutzen können`.
-Die vorgeschlagenen Pakete gridstack, Chart.js und ng2-charts sind in `core`, `fhir`, `angular/data` und `angular/ui` verboten.
-So bleiben sie im Lazy Chunk des Dashboards.
-Ein Import von `chart.js` in `angular/ui` meldet `'chart.js' import is restricted from being used by a pattern. Diese Pakete gehören nach fhir-vitals/angular/dashboard, damit die App sie erst lädt, wenn das Dashboard erscheint`.
+Ein relativer Pfad von einem Feature in ein anderes, etwa `../../../../cards/src/public-api` aus dem Dashboard, meldet `Andere Einstiegspunkte über ihren Paketnamen importieren, nie über einen relativen Pfad`.
+Den eigenen Einstiegspunkt importiert ein Feature dagegen relativ.
+`import { PatientCard } from "fhir-vitals/angular/ui/cards";` in `angular/ui/cards` meldet `Innerhalb des eigenen Einstiegspunkts relativ importieren`.
+Ein UI-Feature bekommt seine Daten über Inputs.
+Ein Import von `fhir-vitals/angular/data` im Dashboard meldet deshalb `Die UI importiert nur fhir-vitals/core und andere UI-Einstiegspunkte. Daten kommen über Inputs, verbunden wird in der App`.
+Die Datenschicht kennt umgekehrt keine Oberfläche.
+Für `@angular/material/card` in `angular/data` meldet ESLint `Die Datenschicht kennt die UI nicht. Angular Material gehört in ein UI-Feature wie fhir-vitals/angular/ui/cards`.
+Die vorgeschlagenen Pakete gridstack, Chart.js und ng2-charts sind überall in der Bibliothek außer in `angular/ui/dashboard` verboten.
+So hängt nur das Dashboard von ihnen ab.
+Ein Import von `chart.js` in `angular/ui/cards` meldet `'chart.js' import is restricted from being used by a pattern. Diese Pakete gehören nach fhir-vitals/angular/ui/dashboard, damit nur das Dashboard von ihnen abhängt`.
+
+**Was ein Einstiegspunkt trennt.**
+Die Datei `src/public-api.ts` legt die öffentliche Schnittstelle eines Einstiegspunkts fest, englisch Public API.
+Nur was sie exportiert, sehen andere Einstiegspunkte und Apps.
+Alles andere bleibt intern, etwa die Formatfunktionen aus `format.ts` im Dashboard-Beispiel.
+ng-packagr baut jeden Einstiegspunkt zu genau einer Datei `.mjs` im Ordner `dist/fhir-vitals/fesm2022`.
+Diese Datei importiert nur die Pakete, die ihr Einstiegspunkt selbst braucht.
+So bleiben die Abhängigkeiten eines Features in diesem Feature.
+Nach `npx ng build fhir-vitals` zeigt unter macOS und Linux `grep '^import ' dist/fhir-vitals/fesm2022/fhir-vitals-angular-ui-cards.mjs` nur Importe aus `@angular/core`:
+
+```text
+import * as i0 from "@angular/core";
+import { Component, computed, input, output } from "@angular/core";
+```
+
+Derselbe Befehl für `fhir-vitals-angular-ui-dashboard.mjs` zeigt zusätzlich Chart.js, ng2-charts, Angular Material und gridstack:
+
+```text
+import * as i0 from "@angular/core";
+import { Component, computed, input } from "@angular/core";
+import { Legend, LineController, LineElement, LinearScale, PointElement, Tooltip } from "chart.js";
+import { BaseChartDirective, provideCharts } from "ng2-charts";
+import * as i1 from "@angular/material/card";
+import { MatCardModule } from "@angular/material/card";
+import { GridstackComponent, GridstackItemComponent } from "gridstack/dist/angular";
+```
+
+**Wohin neuer Code gehört.**
+
+- Komponenten, Direktiven und UI-Services gehören in ein UI-Feature unter `angular/ui`, auch wenn sie Angular Material nutzen. Eine Direktive ist ein Baustein ohne eigenes Template, der einem vorhandenen HTML-Element Verhalten gibt. Ein UI-Service ist ein Service nur für die Oberfläche, etwa zum Öffnen eines Dialogs.
+- Nutzen mehrere Features denselben Baustein, kommt er in ein eigenes Feature, etwa `angular/ui/shared`. Die anderen Features importieren ihn dann über `fhir-vitals/angular/ui/shared`. `shared` selbst importiert keine anderen Features. Importieren sich zwei Features gegenseitig, etwa `dashboard` und `shared`, bricht `npx ng build fhir-vitals` mit `Entry point fhir-vitals/angular/ui/dashboard has a circular dependency on fhir-vitals/angular/ui/shared.` ab. ESLint meldet das nicht.
+- Services, die Daten laden oder den Zustand der Daten halten, etwa Patient, Messungen oder Verbindungsstatus, gehören nach `angular/data`. Reiner Zustand der Oberfläche, etwa ob ein Dialog offen ist, bleibt im UI-Feature. ESLint prüft dabei nur die Importe und nicht, wo ein Zustand liegt.
+- Logik ohne Angular gehört nach `core`, ein Adapter für einen Server nach `fhir`.
+
+**Ein neues UI-Feature anlegen.**
+Die Schritte am Beispiel eines Features `shared`:
+
+1. Den Ordner `projects/fhir-vitals/angular/ui/shared/` anlegen und `ng-package.json` aus `angular/ui/cards` hineinkopieren. Der Pfad unter `$schema` passt ohne Änderung, weil der Ordner gleich tief liegt.
+2. Komponenten wie in Abschnitt 4 mit `--path projects/fhir-vitals/angular/ui/shared/src/lib` anlegen. Dann die Datei `src/public-api.ts` anlegen und die Komponenten dort exportieren.
+3. In `projects/fhir-vitals/tsconfig.lib.json` und `projects/fhir-vitals/tsconfig.spec.json` unter `paths` den Eintrag `"fhir-vitals/angular/ui/shared": ["./angular/ui/shared/src/public-api.ts"]` ergänzen.
+4. In `eslint.config.js` den Namen `"angular/ui/shared"` in die Liste `entryPoints` eintragen. Dann direkt nach `uiFeature("dashboard"),` innerhalb von `defineConfig(…)` den Block `uiFeature("shared", dashboardPackages),` ergänzen. `dashboardPackages` verbietet dem neuen Feature gridstack, Chart.js und ng2-charts.
+5. Den Eintrag `"../../ui/**/*.spec.ts"` für die Tests in `angular.json` so lassen. Er erfasst schon jedes Feature unter `angular/ui`.
+6. `npx ng build fhir-vitals` ausführen. Dann erscheint zusätzlich die Zeile `✔ Built fhir-vitals/angular/ui/shared`, und `dist/fhir-vitals/package.json` nennt unter `exports` den Eintrag `./angular/ui/shared`. Läuft gerade `npm run watch:lib`, ihn mit `Strg+C` beenden und neu starten. Einen neuen Einstiegspunkt erkennt er erst beim Start. Im Test baute ein laufendes `npm run watch:lib` nach dem Speichern einer Datei in `angular/ui/cards` nur `✔ Built fhir-vitals/angular/ui/cards` neu und das neue Feature erst nach dem Neustart.
+
+Am 06.11.2026 entstand so in einer Kopie des Repositorys ein Feature `shared` mit der Komponente `unit-label`.
+`npm run lint` zeigte danach nur die beiden Kopfzeilen, und `npx ng test fhir-vitals --watch=false` meldete mit dem Test der neuen Komponente `TOTAL: 52 SUCCESS`.
+Ein Import von `fhir-vitals/angular/ui/shared` im Dashboard war erlaubt.
+Ein Import von `gridstack` in `angular/ui/shared` meldete `Diese Pakete gehören nach fhir-vitals/angular/ui/dashboard, damit nur das Dashboard von ihnen abhängt`.
 
 **Andere UI-Frameworks.**
 Vue ist wie Angular ein Framework für Webanwendungen im Browser.
@@ -359,6 +429,10 @@ Zustand und Messungen hielt er in je einem `shallowRef()`.
 esbuild baute daraus die Datei `app.js` mit 322,6 kB aus 20 Modulen.
 Das sind die eigene Einstiegsdatei und 19 JavaScript-Dateien aus den Paketen von Vue, aus `fhir-vitals`, `fhirclient` und `js-base64`.
 Sie enthielt kein Modul aus Angular, und die Zeichenfolge `@angular` kam darin nicht vor.
+Der Befehl dafür lautet `npx esbuild src/main.ts --bundle --format=esm --outfile=dist/app.js`, und esbuild meldet dann `dist/app.js  322.6kb`.
+Nach dem Umzug der Komponenten nach `angular/ui/cards` und `angular/ui/dashboard` lief die Prüfung am selben Tag mit dem neu gebauten Paket erneut.
+npm meldete dann `package size: 19.6 kB` und `total files: 19`.
+Die Zahl der installierten Pakete, die Größe von `app.js` und die 20 Module blieben gleich, und `@angular` kam wieder nicht vor.
 Diese Prüfung hat die Vue-App nur gebaut und nicht im Browser gestartet.
 Später können `core` und `fhir` trotzdem in eigene Pakete kommen.
 Weil alle Schichten einander schon heute nur über Paketnamen importieren, ändern sich dabei im Code vor allem die Importnamen.
@@ -370,7 +444,7 @@ Es zeigt eine feste Kachel und dient als Startpunkt für das Dashboard, das im W
 Die genutzten Bibliotheken sind ein Vorschlag, siehe Abschnitt 10.
 
 **Wo es liegt.**
-Das Beispiel liegt im Einstiegspunkt `fhir-vitals/angular/dashboard`, Ordner `projects/fhir-vitals/angular/dashboard/`.
+Das Beispiel liegt im Einstiegspunkt `fhir-vitals/angular/ui/dashboard`, Ordner `projects/fhir-vitals/angular/ui/dashboard/`.
 Es besteht aus zwei Komponenten.
 `VitalsDashboard` legt mit gridstack ein Raster an und zeigt darin genau eine Kachel.
 Die Kachel ist eine Karte von Angular Material mit der Überschrift „Blutdruckverlauf“.
@@ -379,17 +453,18 @@ Beide bekommen die Messungen über das Input `history`, die älteste zuerst, so 
 Die Demo-App bindet das Beispiel in `app.html` mit `<lib-vitals-dashboard [history]="vitals.state().history" />` ein.
 
 **Eigener Einstiegspunkt und `@defer`.**
-ng-packagr baut jeden Einstiegspunkt zu genau einer Datei `.mjs`.
-Eine App kann eine solche Datei nur als Ganzes sofort oder als Ganzes später laden.
-Im eigenen Einstiegspunkt kann die Demo-App das Dashboard mit den vorgeschlagenen Bibliotheken später laden.
-Dafür steht `<lib-vitals-dashboard>` in `app.html` in einem Block `@defer (on viewport)`.
+Das Beispiel ist ein eigenes Feature mit eigenem Einstiegspunkt.
+So hängt nur das Dashboard von gridstack, Chart.js und ng2-charts ab.
+`fhir-vitals/angular/ui/cards` und die übrigen Schichten kommen ohne diese Pakete aus.
+Im Code der Bibliothek betrifft ein Austausch der vorgeschlagenen Bibliotheken deshalb nur dieses Feature, siehe Abschnitt 10.
+In `app.html` steht `<lib-vitals-dashboard>` in einem Block `@defer (on viewport)`.
 `@defer` ist ein Block im Template, dessen Inhalt Angular in einen eigenen Lazy Chunk legt.
 Mit `on viewport` lädt der Browser diesen Chunk erst, wenn der Platzhalter des Blocks in den sichtbaren Bereich der Seite kommt.
 Bis dahin zeigt die Seite „Dashboard wird geladen …“.
-Im Build vom 06.11.2026 lagen die Initial Chunks zusammen bei 260,48 kB und der Lazy Chunk `fhir-vitals-angular-dashboard` bei 277,29 kB.
-Die Warngrenze von 500 kB gilt nur für die Initial Chunks.
-In einem Browserfenster von 400 Pixeln Höhe lud der Browser den Lazy Chunk dieses Builds erst, nachdem die Seite bis zum Dashboard gescrollt war.
+Im Build für die Auslieferung lud der Browser den Lazy Chunk in einem Fenster von 400 Pixeln Höhe erst, nachdem die Seite bis zum Dashboard gescrollt war.
 Mit `npm start` lädt Angular die Pakete des Dashboards dagegen sofort mit, siehe `NG0751` in Abschnitt 9.
+Der Block `@defer` ist nicht der Grund für den eigenen Einstiegspunkt.
+Die Trennung gilt auch ohne ihn.
 
 **Eine feste Kachel.**
 Die Einstellungen des Rasters stehen in `gridOptions` in `vitals-dashboard.ts`.
@@ -461,12 +536,14 @@ Gestrichelte Pfeile zeigen Anfragen über das Netz.
 flowchart LR
   Browser["Browser"]
   subgraph App["Demo-App, ausgeliefert von ng serve oder nginx auf Port 4200"]
-    Page["Komponente App: verbindet Datenschicht, UI und Dashboard"]
+    Page["Komponente App: verbindet Datenschicht und UI-Features"]
     Assets[("Assets: config.json, patient.json, blutdruck.json, blutdruck-verlauf.json")]
   end
   subgraph Lib["Bibliothek fhir-vitals"]
-    UI["fhir-vitals/angular/ui: PatientCard, ServerStatus"]
-    DASH["fhir-vitals/angular/dashboard: VitalsDashboard, BloodPressureChart"]
+    subgraph UI["Schicht angular/ui, ein Einstiegspunkt je Feature"]
+      CARDS["fhir-vitals/angular/ui/cards: PatientCard, ServerStatus"]
+      DASH["fhir-vitals/angular/ui/dashboard: VitalsDashboard, BloodPressureChart"]
+    end
     NG["fhir-vitals/angular/data: VitalsFacade, FhirAssets"]
     FHIR["fhir-vitals/fhir: FhirClientConnection"]
     CORE["fhir-vitals/core: VitalsSync, Ports"]
@@ -474,10 +551,10 @@ flowchart LR
   HAPI[("HAPI FHIR auf Port 8080, Basis /fhir")]
   Browser -. "index.html und Initial Chunks laden" .-> Page
   Browser -. "Lazy Chunk laden, wenn das Dashboard sichtbar wird" .-> DASH
-  Page --> UI
+  Page --> CARDS
   Page -- "nur im @defer-Block" --> DASH
   Page --> NG
-  UI --> CORE
+  CARDS --> CORE
   DASH --> CORE
   NG --> CORE
   NG --> FHIR
@@ -596,7 +673,7 @@ Diese Angaben stammen aus dem Quelltext der Erweiterung, die Erweiterung selbst 
 10. `VitalsSync` liest die Observation `Observation/blutdruck-01` vom Server zurück. Erst danach zeigt die Seite „verbunden, Patient und Blutdruck gespeichert“ und „Blutdruck vom Server: 104/66 mm[Hg]“. Geht dabei etwas schief, zeigt der Status die Fehlermeldung.
 11. Bei jeder Änderung meldet `VitalsSync` den neuen Zustand an alle, die ihn mit `subscribe()` abonniert haben. Die Facade legt ihn in ein Signal, und die Komponenten `PatientCard` und `ServerStatus` zeigen ihn an. Keine der beiden kennt fhirclient oder HttpClient.
 12. „Erneut verbinden“ ruft über `reconnect()` die Prüfung der Adresse aus Schritt 7 und die Schritte 8 bis 10 noch einmal auf. `config.json` liest es dabei nicht neu. Ist schon das Laden in den Schritten 5 bis 7 gescheitert, versucht es auch dieses noch einmal. Bis ein Lauf zu Ende ist, ist der Knopf gesperrt. Ein zweiter Aufruf während eines Laufs schließt sich diesem Lauf an, statt einen eigenen zu starten. Ein PUT mit gleichem Inhalt legt weder eine neue Ressource noch eine neue Version an. Nach mehreren Starts gibt es deshalb weiterhin genau eine Observation mit `versionId` 1.
-13. Unter der Überschrift „Dashboard“ steht der Block `@defer (on viewport)`. Zuerst zeigt er „Dashboard wird geladen …“. Sobald dieser Text in den sichtbaren Bereich kommt, lädt der Browser im Build für die Auslieferung den Lazy Chunk `fhir-vitals-angular-dashboard` mit den vorgeschlagenen Bibliotheken gridstack, Chart.js und Angular Material. Danach erscheint `VitalsDashboard` mit der Kachel „Blutdruckverlauf“. Das Diagramm zeigt die Messungen aus Schritt 6, sobald `VitalsSync` sie geladen hat. Dieser Schritt hängt nicht vom FHIR-Server ab.
+13. Unter der Überschrift „Dashboard“ steht der Block `@defer (on viewport)`. Zuerst zeigt er „Dashboard wird geladen …“. Sobald dieser Text in den sichtbaren Bereich kommt, lädt der Browser im Build für die Auslieferung den Lazy Chunk `fhir-vitals-angular-ui-dashboard` mit den vorgeschlagenen Bibliotheken gridstack, Chart.js und Angular Material. Danach erscheint `VitalsDashboard` mit der Kachel „Blutdruckverlauf“. Das Diagramm zeigt die Messungen aus Schritt 6, sobald `VitalsSync` sie geladen hat. Dieser Schritt hängt nicht vom FHIR-Server ab.
 
 ## 9 Typische Probleme
 
@@ -620,7 +697,8 @@ Sobald JSON zurückkommt, auf der Seite „Erneut verbinden“ klicken.
 Die Zeile `Started Application in … seconds` markiert das Ende.
 
 **Bibliothek nicht gebaut.**
-`npm run start:app` oder `npx ng build demo-app` melden `Could not resolve "fhir-vitals/angular/data"`, `Could not resolve "fhir-vitals/angular/dashboard"` und `Could not resolve "fhir-vitals/angular/ui"`.
+`npx ng build demo-app` meldet `Could not resolve "fhir-vitals/angular/data"`, `Could not resolve "fhir-vitals/angular/ui/cards"` und `Could not resolve "fhir-vitals/angular/ui/dashboard"`.
+`npm run start:app` meldet stattdessen `TS2307: Cannot find module 'fhir-vitals/angular/ui/cards' or its corresponding type declarations.` und dieselbe Meldung für die beiden anderen Einstiegspunkte.
 Der Ordner `dist/fhir-vitals` fehlt dann.
 `npx ng build fhir-vitals` oder `npm run watch:lib` ausführen, oder gleich `npm start` nutzen.
 
@@ -639,15 +717,15 @@ Erst `docker compose --profile fhir down` stoppt beide.
 **ESLint meldet `… import is restricted from being used by a pattern`.**
 Ein Import verletzt eine Regel zwischen den Schichten aus Abschnitt 5.
 Die Meldung nennt den Grund, etwa `Die UI spricht nicht selbst mit Servern`.
-Dasselbe gilt für Importe der vorgeschlagenen Pakete gridstack, Chart.js oder ng2-charts in `core`, `fhir`, `angular/data` oder `angular/ui`.
-Den Code in die passende Schicht verschieben.
+Dasselbe gilt für Importe der vorgeschlagenen Pakete gridstack, Chart.js oder ng2-charts außerhalb von `angular/ui/dashboard`.
+Den Code in die passende Schicht oder das passende Feature verschieben.
 Eine Komponente bekommt Daten dann über ein Input, und die Demo-App holt sie über die Facade.
 Danach zeigt `npm run lint` nur noch die beiden Kopfzeilen.
 
 **Neue Komponente liegt in `angular/data` statt in `angular/ui`.**
 `npx ng generate component` ohne `--path` legt die Komponente in der Angular-Datenschicht unter `angular/data/src/lib` an.
-Die neuen Dateien löschen und den Befehl mit `--path projects/fhir-vitals/angular/ui/src/lib` wiederholen.
-Danach erscheinen vier Zeilen `CREATE projects/fhir-vitals/angular/ui/src/lib/<name>/…`.
+Die neuen Dateien löschen und den Befehl mit `--path projects/fhir-vitals/angular/ui/cards/src/lib` wiederholen, für eine Kachel mit `--path projects/fhir-vitals/angular/ui/dashboard/src/lib`.
+Danach erscheinen vier Zeilen wie `CREATE projects/fhir-vitals/angular/ui/cards/src/lib/vitals-card/vitals-card.css (0 bytes)`.
 
 **Tests finden keinen Browser.**
 Karma meldet `No binary for ChromeHeadless browser on your platform. Please, set "CHROME_BIN" env variable.`
@@ -712,9 +790,9 @@ Sie zeigt die Architektur aus Folie 73 im Workshop-Deck an einem einzigen Beispi
 
 Weitere Schritte im Workshop:
 
-- weitere Vitalparameter aus der [Vital-Signs-Übersicht](https://hl7.org/fhir/R4/observation-vitalsigns.html) ergänzen. Dazu kommen Codes und Formatierung nach `core`, eigene Beispieldateien unter `public/assets/fhir/` und eine Komponente nach `angular/ui`.
+- weitere Vitalparameter aus der [Vital-Signs-Übersicht](https://hl7.org/fhir/R4/observation-vitalsigns.html) ergänzen. Dazu kommen Codes und Formatierung nach `core`, eigene Beispieldateien unter `public/assets/fhir/` und eine Komponente in ein UI-Feature wie `angular/ui/cards`.
 - für neue Ressourcen IDs mit mindestens einem Buchstaben wählen, etwa `puls-01`. HAPI lehnt in der Voreinstellung ein PUT mit rein numerischer ID ab.
-- neue Komponenten mit `--path projects/fhir-vitals/angular/ui/src/lib` anlegen und in `angular/ui/src/public-api.ts` exportieren
+- neue Komponenten mit `--path projects/fhir-vitals/angular/ui/cards/src/lib` anlegen und in `angular/ui/cards/src/public-api.ts` exportieren. Für ein neues Feature gelten die Schritte aus Abschnitt 5 unter „Ein neues UI-Feature anlegen“.
 - eine zweite Oberfläche mit Vue oder einem anderen Framework auf `fhir-vitals/core` und `fhir-vitals/fhir` aufbauen, siehe Abschnitt 5
 - `core` und `fhir` in eigene npm-Pakete auslagern, sobald eine andere Oberfläche sie als Paket installieren soll
 - für Daten, die einen Neustart überleben, HAPI mit PostgreSQL betreiben. Die passende `compose.yaml` steht im Workshop-Material auf Folie 80.
@@ -754,15 +832,15 @@ Die Schritte am Beispiel von gridstack:
 2. Das neue Paket mit `npm install <paket>` installieren. npm meldet dann eine Zeile `added … packages`.
 3. In `angular.json` unter `styles` die Zeile `gridstack/dist/gridstack.min.css` entfernen und, falls nötig, die CSS-Datei des neuen Pakets eintragen.
 4. In `projects/fhir-vitals/package.json` die peerDependency und ihren Eintrag unter `peerDependenciesMeta` auf das neue Paket ändern.
-5. In `eslint.config.js` das Muster `dashboardPackages` anpassen. Dann meldet `npm run lint` einen Import des neuen Pakets in `core`, `fhir`, `angular/data` oder `angular/ui` als Fehler.
-6. Die Komponenten in `projects/fhir-vitals/angular/dashboard/src/lib` umbauen, dazu ihre Tests.
+5. In `eslint.config.js` das Muster `dashboardPackages` anpassen. Dann meldet `npm run lint` einen Import des neuen Pakets überall in der Bibliothek außer in `angular/ui/dashboard` als Fehler.
+6. Die Komponenten in `projects/fhir-vitals/angular/ui/dashboard/src/lib` umbauen, dazu ihre Tests.
 7. `npm run lint` und `npm test` ausführen. Die erwartete Ausgabe beschreibt Abschnitt 4.
 
 **Ideen für das Dashboard im Workshop.**
 Diese Punkte sind Hinweise und keine fertige Lösung.
 
 - Kacheln verschiebbar und in der Größe änderbar machen. In gridstack schaltet `staticGrid: false` das Ziehen mit der Maus wieder ein.
-- weitere Kachelarten ergänzen, etwa einen Pulsverlauf oder die letzte Messung in großen Ziffern. Neue Komponenten wie in Abschnitt 4 mit `--path projects/fhir-vitals/angular/dashboard/src/lib` anlegen.
+- weitere Kachelarten ergänzen, etwa einen Pulsverlauf oder die letzte Messung in großen Ziffern. Neue Komponenten wie in Abschnitt 4 mit `--path projects/fhir-vitals/angular/ui/dashboard/src/lib` anlegen.
 - das Layout, also die Anordnung der Kacheln mit Spalte, Zeile, Breite und Höhe, als JSON in `core` beschreiben. Zum Speichern einen Port in `core` und einen Adapter in `fhir` ergänzen, etwa für den Speicher des Browsers oder einen Server. So kann auch eine Oberfläche mit Vue dasselbe Layout nutzen.
 - die Messwerte zusätzlich als Tabelle zeigen. Ein Screenreader kann eine Tabelle Zelle für Zelle vorlesen. Die Tabelle ergänzt so die Textalternative des Diagramms.
 - eine Bedienung ohne Ziehen anbieten, etwa Knöpfe „Nach links“ oder „Breiter“ an jeder Kachel. Kriterium 2.5.7 „Dragging Movements“ der WCAG 2.2 verlangt für jede Funktion mit Ziehen einen Weg ohne Ziehen, etwa durch einfaches Klicken. Knöpfe funktionieren außerdem mit der Tastatur.
@@ -820,6 +898,12 @@ Regeln für die Nutzung:
 | Decorator | eine Markierung über einer Klasse wie `@Service()` oder `@Component()`. Angular erkennt daran, wie es die Klasse behandeln soll. |
 | Dependency Injection | Angular erzeugt benötigte Objekte selbst und reicht sie weiter. Mit `inject(VitalsFacade)` holt sich eine Klasse den Service, statt ihn selbst zu bauen. |
 | Einstiegspunkt | ein Teilpaket der Bibliothek mit eigenem Importnamen, etwa `fhir-vitals/core`, und eigener Datei `public-api.ts`. Der leere Platzhalter `fhir-vitals` zählt nicht dazu. |
+| Public API | die öffentliche Schnittstelle eines Einstiegspunkts in `src/public-api.ts`. Nur was diese Datei exportiert, sehen andere Einstiegspunkte und Apps. |
+| Trennung der Zuständigkeiten | englisch Separation of Concerns. Jeder Teil des Codes hat genau eine Aufgabe und kennt nur das, was er dafür braucht. |
+| Schicht | ein Teil der Bibliothek mit einer festen Aufgabe, hier `core`, `fhir`, `angular/data` und `angular/ui`. Die Schicht `angular/ui` teilt sich in Features. |
+| Feature | ein abgegrenzter Teil einer Schicht mit eigener Aufgabe und eigenem Einstiegspunkt, etwa `fhir-vitals/angular/ui/cards` oder `fhir-vitals/angular/ui/dashboard` |
+| Direktive | ein Baustein ohne eigenes Template, der einem vorhandenen HTML-Element Verhalten gibt |
+| UI-Service | ein Service nur für die Oberfläche, etwa zum Öffnen eines Dialogs. Er gehört in ein UI-Feature unter `angular/ui`, nicht nach `angular/data`. |
 | Port (Architektur) | eine Schnittstelle, die beschreibt, was ein Ablauf von außen braucht, etwa das Speichern einer Ressource |
 | Adapter | eine Umsetzung eines Ports mit einer bestimmten Technik, etwa `FhirClientConnection` mit fhirclient |
 | Facade | ein einfacher Zugang für die Oberfläche, der die Einzelheiten dahinter verbirgt, hier `VitalsFacade` |
