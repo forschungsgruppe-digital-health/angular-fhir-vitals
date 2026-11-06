@@ -1,4 +1,6 @@
 import { Component, computed, input, output } from "@angular/core";
+import { MatButton } from "@angular/material/button";
+import { MatCardModule } from "@angular/material/card";
 import type { ConnectionStatus, VitalsState } from "fhir-vitals/core";
 
 // German wording for the status codes of fhir-vitals/core. Another UI may choose other texts.
@@ -12,8 +14,10 @@ const TEXTS: Record<ConnectionStatus, string> = {
 };
 
 // Shows the server state and offers a reconnect; the app decides what a reconnect does.
+// Card and button come from Angular Material, which is a suggestion and can be replaced.
 @Component({
   selector: "lib-server-status",
+  imports: [MatButton, MatCardModule],
   templateUrl: "./server-status.html",
 })
 export class ServerStatus {
@@ -31,4 +35,11 @@ export class ServerStatus {
       this.state().status === "checking" ||
       this.state().status === "connecting",
   );
+
+  // With disabledInteractive the button still receives clicks while it is disabled, so it checks busy itself.
+  protected requestReconnect(): void {
+    if (!this.busy()) {
+      this.reconnect.emit();
+    }
+  }
 }

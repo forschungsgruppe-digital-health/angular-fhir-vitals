@@ -1,18 +1,29 @@
-<h1>FHIR-Starter</h1>
+<header>
+  <mat-toolbar>
+    <h1>FHIR-Starter</h1>
+  </mat-toolbar>
+</header>
 
-<h2>Patient aus den Assets</h2>
-<lib-patient-card [patient]="vitals.state().patient" />
+<main>
+  <p>
+    Diese Seite zeigt, wie eine App die Bibliothek fhir-vitals nutzt. Angular
+    Material, gridstack und Chart.js sind ein Vorschlag und lassen sich
+    austauschen.
+  </p>
 
-<h2>FHIR-Server</h2>
-<lib-server-status [state]="vitals.state()" (reconnect)="vitals.reconnect()" />
+  <div class="cards">
+    <lib-patient-card [patient]="vitals.state().patient" />
+    <lib-server-status
+      [state]="vitals.state()"
+      (reconnect)="vitals.reconnect()"
+    />
+  </div>
 
-<h2>Dashboard</h2>
-<p>
-  Minimales Beispiel mit einer festen Kachel. gridstack, Angular Material und
-  Chart.js sind ein Vorschlag und lassen sich austauschen.
-</p>
-@defer (on viewport) {
-  <lib-vitals-dashboard [history]="vitals.state().history" />
-} @placeholder {
-  <p>Dashboard wird geladen …</p>
-}
+  <h2>Dashboard</h2>
+  <p>Minimales Beispiel mit einer festen Kachel.</p>
+  @defer (on viewport) {
+    <lib-vitals-dashboard [history]="vitals.state().history" />
+  } @placeholder {
+    <p>Dashboard wird geladen …</p>
+  }
+</main>

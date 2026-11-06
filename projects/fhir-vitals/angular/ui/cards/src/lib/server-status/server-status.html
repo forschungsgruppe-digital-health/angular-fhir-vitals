@@ -1,5 +1,22 @@
-<p>Status: {{ text() }}</p>
-<p>Blutdruck vom Server: {{ state().bloodPressure ?? "–" }}</p>
-<button type="button" [disabled]="busy()" (click)="reconnect.emit()">
-  Erneut verbinden
-</button>
+<mat-card appearance="outlined">
+  <mat-card-header>
+    <h2 mat-card-title>FHIR-Server</h2>
+  </mat-card-header>
+  <mat-card-content>
+    <!-- role="status" lets a screen reader announce a new status without moving the focus. -->
+    <p role="status">Status: {{ text() }}</p>
+    <p>Blutdruck vom Server: {{ state().bloodPressure ?? "–" }}</p>
+  </mat-card-content>
+  <mat-card-actions>
+    <!-- disabledInteractive keeps the button focusable while it is disabled, so keyboard users keep their place. -->
+    <button
+      matButton="outlined"
+      type="button"
+      disabledInteractive
+      [disabled]="busy()"
+      (click)="requestReconnect()"
+    >
+      Erneut verbinden
+    </button>
+  </mat-card-actions>
+</mat-card>

@@ -9,7 +9,7 @@ Die Demo-App zeigt einen synthetischen Patienten und speichert auf Wunsch eine B
 Im Workshop entsteht daraus Schritt für Schritt eine Bibliothek für Vitalparameter, die sich später in ein Patientenportal einbinden lässt.
 Weiter unten zeigt eine Kachel, also ein Rechteck mit Titel und Inhalt, den Blutdruckverlauf aus sieben synthetischen Messungen als Liniendiagramm.
 Sie ist ein minimales Beispiel für das Dashboard, also die Übersicht aus Kacheln, die im Workshop entsteht.
-Die Bibliotheken für das Beispiel sind ein Vorschlag, siehe Abschnitt 10.
+Die Bibliotheken für die Oberfläche sind ein Vorschlag, siehe Abschnitt 10.
 
 ## 2 Voraussetzungen
 
@@ -62,9 +62,14 @@ npm start
 Die Ausgabe von `npm ci` beschreibt Abschnitt 4.
 Nach `npm start` erscheint `Local: http://localhost:4200/`.
 Danach http://localhost:4200 im Browser öffnen.
-Die Seite zeigt den Patienten „Herr K.“ und den Status „nicht erreichbar“, weil kein FHIR-Server läuft.
-Darunter folgt die Überschrift „Dashboard“ mit einem kurzen Text.
-Er nennt die Kachel ein minimales Beispiel und gridstack, Angular Material und Chart.js einen Vorschlag.
+Oben steht eine Toolbar, also eine Leiste über die ganze Breite, mit dem Titel „FHIR-Starter“.
+Darunter nennt ein kurzer Text Angular Material, gridstack und Chart.js einen Vorschlag, der sich austauschen lässt.
+Es folgen zwei Karten, also umrandete Kästen mit Überschrift und Inhalt.
+Die Karte „Patient“ zeigt Herrn K.
+Die Karte „FHIR-Server“ zeigt den Status „nicht erreichbar“, weil kein FHIR-Server läuft.
+In einem breiten Fenster stehen beide Karten nebeneinander.
+In einem schmalen Fenster stehen sie untereinander.
+Darunter folgt die Überschrift „Dashboard“ mit dem Satz „Minimales Beispiel mit einer festen Kachel.“
 Danach erscheint die Kachel „Blutdruckverlauf“ mit dem Diagramm der Messungen vom 26.05. bis 01.06.2026.
 `Strg+C` im Terminal beendet den Entwicklungsserver.
 
@@ -108,6 +113,8 @@ Jeder Befehl in diesen Tabellen ist am 05.11.2026 mit den Versionen aus Abschnit
 Nach dem Einbau des Dashboard-Beispiels liefen am 06.11.2026 unter macOS erneut: `npm ci`, `npm start`, `npx ng build fhir-vitals`, `npx ng test fhir-vitals --watch=false`, `npm test`, `npm run lint`, `npm run format` und `npm run build`, dazu in einer Kopie des Repositorys der neue Befehl für Komponenten im Dashboard.
 Nach dem Umzug der Komponenten nach `angular/ui/cards` und `angular/ui/dashboard` liefen am selben Tag erneut: `npx ng build fhir-vitals`, `npx ng test fhir-vitals --watch=false`, `npm test`, `npm run lint`, `npm run format` und `npm run build`.
 In einer Kopie des Repositorys liefen dazu `npm start`, beide Befehle für neue Komponenten, der Befehl für UI-Services und der Build mit und ohne die neue Zeile in `public-api.ts`.
+Nach dem Umbau der Karten und des Grundgerüsts der Demo-App mit Angular Material liefen am selben Tag erneut: `npx ng build fhir-vitals`, `npx ng test fhir-vitals --watch=false`, `npm test`, `npm run lint`, `npm run format` und `npm run build`.
+Dazu lief die Demo-App im Entwicklungsserver, einmal zusammen mit HAPI FHIR aus dem Compose-Profil `fhir`.
 Die Spalte „Was danach zu sehen ist“ gibt die tatsächliche Ausgabe wieder.
 
 ### a) Bibliothek entwickeln
@@ -144,11 +151,11 @@ Bundle meint dort die gebauten JavaScript-Dateien und nicht ein FHIR-Bundle aus 
 | `npx ng generate component <name> --project fhir-vitals --path projects/fhir-vitals/angular/ui/dashboard/src/lib` | legt eine Komponente im Einstiegspunkt `fhir-vitals/angular/ui/dashboard` an | für weitere Kacheln im Dashboard, siehe Abschnitt 10 | Vier Zeilen `CREATE projects/fhir-vitals/angular/ui/dashboard/src/lib/<name>/<name>.css`, `.spec.ts`, `.ts` und `.html`, jeweils mit der Größe in Bytes. Mit dem Namen `weight-chart` heißt die Klasse `WeightChart` und der Selektor `lib-weight-chart`. |
 | neue Zeile in der Datei `src/public-api.ts` des Einstiegspunkts, zum Beispiel `export * from "./lib/vitals-card/vitals-card";` in `projects/fhir-vitals/angular/ui/cards/src/public-api.ts` | macht den neuen Baustein außerhalb der Bibliothek sichtbar | nach jedem neuen Service, jeder neuen Komponente und jeder neuen Datei in `core` oder `fhir` | Nach dem nächsten Build der Bibliothek klappt in der Demo-App `import { VitalsCard } from "fhir-vitals/angular/ui/cards";`. Ohne diese Zeile meldet der Build `TS2305: Module '"fhir-vitals/angular/ui/cards"' has no exported member 'VitalsCard'.` |
 | `npx ng build fhir-vitals` | baut das Paket mit allen fünf Einstiegspunkten einmal nach `dist/fhir-vitals` | vor `npm run start:app`, wenn `watch:lib` nicht läuft | Sechs Zeilen `Built …` für `fhir-vitals`, `fhir-vitals/core`, `fhir-vitals/fhir`, `fhir-vitals/angular/data`, `fhir-vitals/angular/ui/cards` und `fhir-vitals/angular/ui/dashboard`, dann `Built Angular Package`. Die Reihenfolge ergibt sich aus den Abhängigkeiten: `core` kommt immer vor den Schichten, die es nutzen, sonst kann sie wechseln. Der Ordner `dist/fhir-vitals/fesm2022` enthält je Einstiegspunkt eine Datei `.mjs` und eine `.mjs.map`, etwa `fhir-vitals-core.mjs` und `fhir-vitals-angular-ui-cards.mjs`. |
-| `npx ng test fhir-vitals --watch=false` | testet alle Einstiegspunkte der Bibliothek, direkt aus den Quellen | nach Änderungen an der Bibliothek | `TOTAL: 51 SUCCESS`. Dafür muss die Bibliothek vorher nicht gebaut sein. |
-| `npm test` | baut die Bibliothek und testet dann Bibliothek und Demo-App nacheinander, ohne Watch-Modus | vor jedem Commit | Die sechs Zeilen `Built fhir-vitals…`, dann zwei Blöcke: zuerst `TOTAL: 51 SUCCESS` für die Bibliothek, dann `TOTAL: 3 SUCCESS` für die Demo-App. Im zweiten Block stehen vier Warnungen `WARN [web-server]: 404: /base/media/roboto-latin-…`, siehe Abschnitt 9. |
+| `npx ng test fhir-vitals --watch=false` | testet alle Einstiegspunkte der Bibliothek, direkt aus den Quellen | nach Änderungen an der Bibliothek | `TOTAL: 52 SUCCESS`. Dafür muss die Bibliothek vorher nicht gebaut sein. |
+| `npm test` | baut die Bibliothek und testet dann Bibliothek und Demo-App nacheinander, ohne Watch-Modus | vor jedem Commit | Die sechs Zeilen `Built fhir-vitals…`, dann zwei Blöcke: zuerst `TOTAL: 52 SUCCESS` für die Bibliothek, dann `TOTAL: 3 SUCCESS` für die Demo-App. Im zweiten Block stehen vier Warnungen `WARN [web-server]: 404: /base/media/roboto-latin-…`, siehe Abschnitt 9. |
 | `npm run lint` | prüft den Code mit ESLint, auch die Regeln zwischen den Schichten aus Abschnitt 5 | vor jedem Commit | nur die beiden Kopfzeilen `> angular-fhir-vitals@0.0.0 lint` und `> eslint .`. Folgt keine weitere Ausgabe, hat ESLint nichts zu beanstanden. |
 | `npm run format` | formatiert TypeScript, HTML und CSS mit Prettier | vor jedem Commit | eine Zeile je Datei. `(unchanged)` heißt, dass die Datei schon passte. |
-| `npm run build` | baut erst die Bibliothek, dann die Demo-App für die Auslieferung | vor einer Auslieferung ohne Docker | sechs Zeilen `Built fhir-vitals…`, dann eine Tabelle `Initial chunk files` mit der Zeile `Initial total` und `260.48 kB`, geschätzt `77.36 kB` bei der Übertragung. Darunter steht `Lazy chunk files` mit der Zeile `fhir-vitals-angular-ui-dashboard` und `277.29 kB`, geschätzt `77.53 kB`. Eine Warnung zum Budget erscheint nicht. Am Ende folgen `Application bundle generation complete` und `Output location: …/dist/demo-app`. |
+| `npm run build` | baut erst die Bibliothek, dann die Demo-App für die Auslieferung | vor einer Auslieferung ohne Docker | sechs Zeilen `Built fhir-vitals…`, dann eine Tabelle `Initial chunk files` mit der Zeile `Initial total` und `329.44 kB`, geschätzt `89.83 kB` bei der Übertragung. Darunter steht `Lazy chunk files` mit der Zeile `fhir-vitals-angular-ui-dashboard` und `271.24 kB`, geschätzt `76.38 kB`. Eine Warnung zum Budget erscheint nicht. Am Ende folgen `Application bundle generation complete` und `Output location: …/dist/demo-app`. |
 
 ### b) Demo-App mit Docker, ohne HAPI FHIR
 
@@ -251,8 +258,8 @@ angular-fhir-vitals/
 │       ├── public/assets/fhir/        Beispieldaten patient.json, blutdruck.json und blutdruck-verlauf.json
 │       ├── src/index.html             HTML-Grundgerüst mit dem Element <app-root>
 │       ├── src/main.ts                Startpunkt von Angular
-│       ├── src/styles.css             die wenigen globalen Styles
-│       └── src/app/                   die einzige Seite: app.ts, app.html, app.config.ts, app.spec.ts
+│       ├── src/styles.css             globale Styles: Schrift und Farben der Seite
+│       └── src/app/                   die einzige Seite: app.ts, app.html, app.css, app.config.ts, app.spec.ts
 ├── dist/                              Build-Ergebnisse, nicht im Repository
 ├── angular.json                       Projekte und Einstellungen für Build, Server und Tests
 ├── tsconfig.json                      TypeScript-Einstellungen und die Pfadzuordnung für "fhir-vitals"
@@ -284,10 +291,14 @@ Die Tests der Bibliothek brauchen keinen Build, weil `projects/fhir-vitals/tscon
 **peerDependencies.** peerDependencies sind Pakete, die eine Bibliothek voraussetzt, die aber die einbindende Anwendung selbst installiert.
 So nutzen Bibliothek und Anwendung dieselbe Version.
 Die Bibliothek führt `@angular/core`, `@angular/common`, `fhirclient` und `@types/fhir` als peerDependencies.
-Das Dashboard-Beispiel bringt weitere Pakete mit.
+Die Karten und das Dashboard-Beispiel bringen weitere Pakete mit.
 Sie sind ein Vorschlag und lassen sich austauschen, siehe Abschnitt 10.
 Angular Material ist eine Sammlung fertiger Komponenten wie Karten und Tabellen vom Angular-Team.
-Sie baut auf dem CDK (Component Dev Kit) auf, einem Baukasten für Verhalten wie Menüs und Fokus.
+Sie baut auf dem CDK (Component Dev Kit) auf, einem Baukasten für Verhalten wie Menüs und den Fokus.
+Der Fokus ist das Element der Seite, das gerade Eingaben von der Tastatur empfängt.
+`PatientCard` und `ServerStatus` in `angular/ui/cards` nutzen Angular Material.
+Das Dashboard-Beispiel nutzt es ebenfalls.
+Nur das Dashboard-Beispiel nutzt gridstack, Chart.js und ng2-charts.
 gridstack ordnet Kacheln in einem Raster aus Spalten und Zeilen an.
 Chart.js zeichnet Diagramme, und ng2-charts bindet Chart.js an Angular an.
 Für diese Vorschläge führt die Bibliothek zusätzlich `@angular/cdk`, `@angular/material`, `chart.js`, `gridstack` und `ng2-charts` als peerDependencies.
@@ -333,7 +344,7 @@ Die Schichten `core`, `fhir` und `angular/data` sind je ein einziger Einstiegspu
 | `fhir-vitals/core` | die Ports `ResourceLoader` und `FhirServerConnection`, der Ablauf `VitalsSync` mit Patient und Messverlauf laden, Adresse lesen, verbinden, prüfen, speichern und zurücklesen, dazu `formatBloodPressure`, `bloodPressureHistory` und die LOINC-Codes | FHIR-Typen aus `fhir/r4` | Angular, RxJS, Vue, fhirclient, `fetch`, gridstack, Chart.js, ng2-charts und alle anderen Teile der Bibliothek |
 | `fhir-vitals/fhir` | die Adapter `FhirClientConnection` mit fhirclient und `FetchResourceLoader` mit fetch | `fhir-vitals/core`, fhirclient, FHIR-Typen aus `fhir/r4` | Angular, RxJS, Vue, gridstack, Chart.js, ng2-charts und die übrigen Teile |
 | `fhir-vitals/angular/data` | die Angular-Datenschicht: `FhirAssets` als Adapter mit HttpClient, dem Dienst von Angular für HTTP-Anfragen, und `VitalsFacade`, die den Zustand von `VitalsSync` als Signal anbietet | `fhir-vitals/core`, `fhir-vitals/fhir`, Angular, RxJS, FHIR-Typen aus `fhir/r4` | jedes UI-Feature wie `fhir-vitals/angular/ui/cards`, Angular Material, fhirclient direkt, gridstack, Chart.js und ng2-charts |
-| `fhir-vitals/angular/ui/cards` | die Komponenten `PatientCard` und `ServerStatus`. Sie bekommen Daten über Inputs und übersetzen die Statuscodes des Kerns in deutsche Texte. | `fhir-vitals/core`, andere UI-Features über ihren Paketnamen, Angular mit Angular Material, FHIR-Typen aus `fhir/r4` | die Datenschicht, `fhir-vitals/fhir`, fhirclient, HttpClient, `fetch`, gridstack, Chart.js und ng2-charts |
+| `fhir-vitals/angular/ui/cards` | die Komponenten `PatientCard` und `ServerStatus`, beide als Karte von Angular Material. Sie bekommen Daten über Inputs und übersetzen die Statuscodes des Kerns in deutsche Texte. | `fhir-vitals/core`, andere UI-Features über ihren Paketnamen, Angular mit Angular Material, FHIR-Typen aus `fhir/r4` | die Datenschicht, `fhir-vitals/fhir`, fhirclient, HttpClient, `fetch`, gridstack, Chart.js und ng2-charts |
 | `fhir-vitals/angular/ui/dashboard` | das minimale Dashboard-Beispiel: `VitalsDashboard` mit einer festen Kachel und `BloodPressureChart` für das Diagramm. Die Messwerte kommen über das Input `history`. | `fhir-vitals/core`, andere UI-Features über ihren Paketnamen, Angular und die vorgeschlagenen Pakete Angular Material, gridstack, Chart.js und ng2-charts | die Datenschicht, `fhir-vitals/fhir`, fhirclient, HttpClient und `fetch` |
 
 Die Demo-App ist die einzige Stelle, die Datenschicht und UI-Features kennt.
@@ -361,14 +372,17 @@ Alles andere bleibt intern, etwa die Formatfunktionen aus `format.ts` im Dashboa
 ng-packagr baut jeden Einstiegspunkt zu genau einer Datei `.mjs` im Ordner `dist/fhir-vitals/fesm2022`.
 Diese Datei importiert nur die Pakete, die ihr Einstiegspunkt selbst braucht.
 So bleiben die Abhängigkeiten eines Features in diesem Feature.
-Nach `npx ng build fhir-vitals` zeigt unter macOS und Linux `grep '^import ' dist/fhir-vitals/fesm2022/fhir-vitals-angular-ui-cards.mjs` nur Importe aus `@angular/core`:
+Nach `npx ng build fhir-vitals` zeigt unter macOS und Linux `grep '^import ' dist/fhir-vitals/fesm2022/fhir-vitals-angular-ui-cards.mjs` nur Importe aus `@angular/core` und Angular Material:
 
 ```text
 import * as i0 from "@angular/core";
 import { Component, computed, input, output } from "@angular/core";
+import * as i1 from "@angular/material/card";
+import { MatCardModule } from "@angular/material/card";
+import { MatButton } from "@angular/material/button";
 ```
 
-Derselbe Befehl für `fhir-vitals-angular-ui-dashboard.mjs` zeigt zusätzlich Chart.js, ng2-charts, Angular Material und gridstack:
+Derselbe Befehl für `fhir-vitals-angular-ui-dashboard.mjs` zeigt neben `@angular/core` und der Karte von Angular Material auch Chart.js, ng2-charts und gridstack:
 
 ```text
 import * as i0 from "@angular/core";
@@ -398,7 +412,8 @@ Die Schritte am Beispiel eines Features `shared`:
 6. `npx ng build fhir-vitals` ausführen. Dann erscheint zusätzlich die Zeile `✔ Built fhir-vitals/angular/ui/shared`, und `dist/fhir-vitals/package.json` nennt unter `exports` den Eintrag `./angular/ui/shared`. Läuft gerade `npm run watch:lib`, ihn mit `Strg+C` beenden und neu starten. Einen neuen Einstiegspunkt erkennt er erst beim Start. Im Test baute ein laufendes `npm run watch:lib` nach dem Speichern einer Datei in `angular/ui/cards` nur `✔ Built fhir-vitals/angular/ui/cards` neu und das neue Feature erst nach dem Neustart.
 
 Am 06.11.2026 entstand so in einer Kopie des Repositorys ein Feature `shared` mit der Komponente `unit-label`.
-`npm run lint` zeigte danach nur die beiden Kopfzeilen, und `npx ng test fhir-vitals --watch=false` meldete mit dem Test der neuen Komponente `TOTAL: 52 SUCCESS`.
+`npm run lint` zeigte danach nur die beiden Kopfzeilen.
+`npx ng test fhir-vitals --watch=false` meldete `TOTAL: 52 SUCCESS`, also einen Test mehr als der damalige Stand mit 51 Tests.
 Ein Import von `fhir-vitals/angular/ui/shared` im Dashboard war erlaubt.
 Ein Import von `gridstack` in `angular/ui/shared` meldete `Diese Pakete gehören nach fhir-vitals/angular/ui/dashboard, damit nur das Dashboard von ihnen abhängt`.
 
@@ -437,6 +452,48 @@ Diese Prüfung hat die Vue-App nur gebaut und nicht im Browser gestartet.
 Später können `core` und `fhir` trotzdem in eigene Pakete kommen.
 Weil alle Schichten einander schon heute nur über Paketnamen importieren, ändern sich dabei im Code vor allem die Importnamen.
 
+### Karten und Grundgerüst der Demo-App
+
+`PatientCard` und `ServerStatus` zeigen ihren Inhalt in `<mat-card appearance="outlined">`, einer Karte von Angular Material mit dünnem Rand.
+Die Daten bekommen beide Karten weiterhin nur über Inputs.
+Ein Screenreader ist ein Programm, das den Inhalt einer Seite vorliest oder in Braille ausgibt.
+Die Überschrift jeder Karte steht in `<h2 mat-card-title>`.
+Ein Attribut ist eine Zusatzangabe in einem HTML-Element, etwa `appearance="outlined"` in `<mat-card>`.
+Das Attribut `mat-card-title` gibt ihr nur das Aussehen eines Kartentitels.
+Für Screenreader bleibt sie eine echte Überschrift `h2`.
+
+Der Knopf „Erneut verbinden“ trägt `matButton="outlined"` und erscheint so als umrandeter Knopf von Angular Material.
+Während eines Laufs ist er gesperrt.
+Wegen `disabledInteractive` sperrt Angular Material ihn dabei nur mit `aria-disabled="true"`, einem Attribut, das einem Screenreader den gesperrten Zustand meldet.
+Das HTML-Attribut `disabled` setzt Angular Material nicht.
+So behält der Knopf den Fokus.
+Ein Knopf mit `disabled` verliert dagegen den Fokus.
+Im Test am 06.11.2026 lag der Fokus danach auf dem Element `body`, also auf der Seite als Ganzes.
+Klicks auf den gesperrten Knopf kommen trotzdem an.
+Deshalb meldet `ServerStatus` während eines Laufs kein `reconnect`.
+Der Absatz mit dem Status trägt `role="status"` und ist damit eine Live-Region, also ein Bereich, dessen neuen Inhalt ein Screenreader von selbst vorliest.
+Im Test am 06.11.2026 blieb der Fokus nach einem Klick auf „Erneut verbinden“ auf dem Knopf, und der Status wechselte zu „nicht erreichbar“.
+
+Die Demo-App setzt in `app.html` den Titel „FHIR-Starter“ in eine Toolbar aus `<mat-toolbar>`.
+`<header>` um die Toolbar und `<main>` um den übrigen Inhalt sind Landmarken, also Bereiche, zu denen ein Screenreader direkt springen kann.
+`app.css` ordnet die Karten in einem CSS-Grid an, also in Spalten, die der Browser selbst verteilt.
+Die Längeneinheit rem richtet sich nach der Grundschrift des Browsers.
+Bei der üblichen Grundschrift von 16 Pixeln sind 20rem genau 320 Pixel.
+Die Angabe `repeat(auto-fit, minmax(min(100%, 20rem), 1fr))` legt so viele Spalten an, wie in die Breite passen.
+Jede Spalte ist mindestens 20rem breit.
+Ist die Seite schmaler, nimmt die Spalte die ganze Breite ein.
+Dafür sorgt `min(100%, 20rem)`.
+Im Test am 06.11.2026 standen die Karten bei 1024 Pixeln Fensterbreite nebeneinander und bei 375 Pixeln untereinander.
+
+Ein Theme legt Farben, Schriften und Abstände der Material-Komponenten fest.
+Eine CSS-Variable ist ein benannter Wert in CSS, dessen Name mit zwei Bindestrichen beginnt.
+`var(…)` liest diesen Wert aus.
+Ein Token ist hier eine CSS-Variable, aus der eine Material-Komponente ihre Farbe liest.
+Die Farbe der Toolbar setzt `app.css` über das Token `--mat-toolbar-container-background-color`.
+Es bekommt den Wert `var(--mat-sys-surface-container)`, einen Farbton aus dem Theme, der etwas dunkler ist als der Hintergrund der Seite.
+Auch `styles.css` nimmt Hintergrund und Textfarbe der Seite aus dem Theme.
+Angular Material bleibt ein Vorschlag, siehe Abschnitt 10.
+
 ### Das Dashboard-Beispiel
 
 Das Beispiel ist absichtlich klein.
@@ -456,11 +513,14 @@ Die Demo-App bindet das Beispiel in `app.html` mit `<lib-vitals-dashboard [histo
 Das Beispiel ist ein eigenes Feature mit eigenem Einstiegspunkt.
 So hängt nur das Dashboard von gridstack, Chart.js und ng2-charts ab.
 `fhir-vitals/angular/ui/cards` und die übrigen Schichten kommen ohne diese Pakete aus.
-Im Code der Bibliothek betrifft ein Austausch der vorgeschlagenen Bibliotheken deshalb nur dieses Feature, siehe Abschnitt 10.
+Im Code der Bibliothek betrifft ein Austausch von gridstack oder Chart.js deshalb nur dieses Feature, siehe Abschnitt 10.
+Ein Austausch von Angular Material betrifft dagegen auch `angular/ui/cards` und die Demo-App.
 In `app.html` steht `<lib-vitals-dashboard>` in einem Block `@defer (on viewport)`.
 `@defer` ist ein Block im Template, dessen Inhalt Angular in einen eigenen Lazy Chunk legt.
 Mit `on viewport` lädt der Browser diesen Chunk erst, wenn der Platzhalter des Blocks in den sichtbaren Bereich der Seite kommt.
 Bis dahin zeigt die Seite „Dashboard wird geladen …“.
+Der Lazy Chunk bringt gridstack, Chart.js und ng2-charts mit.
+Den Code der Karte von Angular Material lädt der Browser dagegen schon mit den Initial Chunks, weil die Karten „Patient“ und „FHIR-Server“ ihn sofort brauchen.
 Im Build für die Auslieferung lud der Browser den Lazy Chunk in einem Fenster von 400 Pixeln Höhe erst, nachdem die Seite bis zum Dashboard gescrollt war.
 Mit `npm start` lädt Angular die Pakete des Dashboards dagegen sofort mit, siehe `NG0751` in Abschnitt 9.
 Der Block `@defer` ist nicht der Grund für den eigenen Einstiegspunkt.
@@ -494,14 +554,13 @@ Die Elemente des Rasters, etwa das innere Element jeder Kachel mit der Klasse `g
 Die Styles einer Angular-Komponente gelten aber nur für Elemente aus ihrem eigenen Template.
 Deshalb gehört `gridstack.min.css` zu den globalen Styles der App.
 Die Demo-App lädt in `angular.json` unter `styles` vier Dateien vor ihrer eigenen `styles.css`: `@fontsource/roboto/latin-400.css` und `@fontsource/roboto/latin-500.css` für die Schrift Roboto, `@angular/material/prebuilt-themes/azure-blue.css` und `gridstack/dist/gridstack.min.css`.
-Ein Theme legt Farben, Schriften und Abstände der Material-Komponenten fest.
 `azure-blue.css` ist ein fertiges Theme als CSS-Datei.
+Es gilt für alle Material-Komponenten der Seite, also auch für die Karten „Patient“ und „FHIR-Server“, den Knopf und die Toolbar.
 Es nutzt die Schrift Roboto.
 Das Paket `@fontsource/roboto` liefert diese Schrift als Dateien mit der App aus.
 Der Browser lädt sie vom eigenen Server unter `media/` und schickt keine Anfrage an Google Fonts.
 
 **Barrierefreiheit.**
-Ein Screenreader ist ein Programm, das den Inhalt einer Seite vorliest oder in Braille ausgibt.
 Chart.js zeichnet in ein Canvas, eine Zeichenfläche aus Pixeln ohne lesbaren Text.
 Das Canvas hat deshalb das Attribut `role="img"`.
 Es meldet einem Screenreader, dass das Canvas ein Bild ist.
@@ -510,7 +569,8 @@ Mit den Daten aus den Assets lautet sie „Blutdruckverlauf: 7 Messungen vom 26.
 „Systolisch“ ist eine blaue durchgezogene Linie mit runden Punkten, „Diastolisch“ eine orange gestrichelte Linie mit quadratischen Punkten.
 Die beiden Reihen unterscheiden sich so nicht nur durch die Farbe, wie es Kriterium 1.4.1 „Use of Color“ der WCAG 2.2 verlangt.
 Die WCAG (Web Content Accessibility Guidelines) sind die Richtlinien des W3C, des Gremiums für Webstandards, für barrierefreie Webinhalte.
-Die Kachel hat die Überschrift `h3` „Blutdruckverlauf“, unter `h1` „FHIR-Starter“ und `h2` „Dashboard“.
+Unter `h1` „FHIR-Starter“ stehen die Überschriften `h2` „Patient“, „FHIR-Server“ und „Dashboard“.
+Die Kachel hat die Überschrift `h3` „Blutdruckverlauf“ unter „Dashboard“.
 Ist im Betriebssystem die Einstellung für weniger Bewegung aktiv, zeichnet Chart.js das Diagramm ohne Animation.
 gridstack animiert die Kachel nie, denn `gridOptions` enthält `animate: false`.
 Die Animation von gridstack würde diese Einstellung nicht beachten, denn `gridstack.min.css` berücksichtigt sie nicht.
@@ -665,15 +725,15 @@ Diese Angaben stammen aus dem Quelltext der Erweiterung, die Erweiterung selbst 
 2. `main.ts` startet Angular mit den Einstellungen aus `app.config.ts`. Dort schaltet `provideZoneChangeDetection()` die Änderungserkennung mit zone.js ein. Die Änderungserkennung prüft nach Ereignissen wie Klicks oder Serverantworten, ob sich die Seite ändern muss. zone.js meldet Angular diese Ereignisse. `provideHttpClient(withFetch())` richtet HTTP-Anfragen mit der Fetch-API des Browsers ein.
 3. Die Komponente `App` holt sich die `VitalsFacade` aus der Angular-Datenschicht `fhir-vitals/angular/data`. Die Facade erzeugt den Ablauf `VitalsSync` aus `fhir-vitals/core` und gibt ihm zwei Adapter mit: `FhirAssets` zum Laden der Assets und `connectWithFhirClient` aus `fhir-vitals/fhir` für den Server.
 4. `App` ruft `start()` der Facade auf und übergibt eine Funktion, die `config.json` liest. `VitalsSync` liest die Datei beim Start und nicht beim Build, damit sie sich ohne Neubau des Images ändern lässt.
-5. `VitalsSync` lädt `assets/fhir/patient.json`. Die Komponente `PatientCard` zeigt Name, Geschlecht, Geburtsdatum und Kennung. Fehlt ein Feld, steht dort „–“.
+5. `VitalsSync` lädt `assets/fhir/patient.json`. Die Komponente `PatientCard` zeigt in der Karte „Patient“ Name, Geschlecht, Geburtsdatum und Kennung. Fehlt ein Feld, steht dort „–“.
 6. `VitalsSync` lädt das FHIR-Bundle `assets/fhir/blutdruck-verlauf.json`. `bloodPressureHistory()` macht daraus eine Liste von Messpunkten mit Zeitpunkt, systolischem und diastolischem Wert, die älteste zuerst. Der Zustand führt sie unter `history`.
-7. `VitalsSync` liest danach über die übergebene Funktion die Adresse des Servers. Ist `fhirBaseUrl` leer oder `null`, meldet er den Status `not-configured`, und die Komponente `ServerStatus` zeigt „nicht konfiguriert“. Der Ablauf endet dann hier.
+7. `VitalsSync` liest danach über die übergebene Funktion die Adresse des Servers. Ist `fhirBaseUrl` leer oder `null`, meldet er den Status `not-configured`, und die Komponente `ServerStatus` zeigt in der Karte „FHIR-Server“ „nicht konfiguriert“. Der Ablauf endet dann hier.
 8. `VitalsSync` erzeugt mit `connectWithFhirClient` eine `FhirClientConnection`. `isReachable()` fragt `metadata` ab. Antwortet der Server nicht, zeigt die Seite „nicht erreichbar“ und bleibt trotzdem vollständig bedienbar. Auch die Kachel zeigt ihre Messungen, denn sie stammen aus den Assets.
 9. `VitalsSync` lädt `assets/fhir/blutdruck.json` und ruft `seed()` auf. `seed()` schreibt erst den Patienten und dann die Observation per PUT unter ihrer festen ID. Die Reihenfolge ist nötig, weil HAPI prüft, ob der Verweis `subject` auf einen vorhandenen Patienten zeigt. Die sieben Messungen des Verlaufs schreibt `seed()` nicht auf den Server.
 10. `VitalsSync` liest die Observation `Observation/blutdruck-01` vom Server zurück. Erst danach zeigt die Seite „verbunden, Patient und Blutdruck gespeichert“ und „Blutdruck vom Server: 104/66 mm[Hg]“. Geht dabei etwas schief, zeigt der Status die Fehlermeldung.
 11. Bei jeder Änderung meldet `VitalsSync` den neuen Zustand an alle, die ihn mit `subscribe()` abonniert haben. Die Facade legt ihn in ein Signal, und die Komponenten `PatientCard` und `ServerStatus` zeigen ihn an. Keine der beiden kennt fhirclient oder HttpClient.
-12. „Erneut verbinden“ ruft über `reconnect()` die Prüfung der Adresse aus Schritt 7 und die Schritte 8 bis 10 noch einmal auf. `config.json` liest es dabei nicht neu. Ist schon das Laden in den Schritten 5 bis 7 gescheitert, versucht es auch dieses noch einmal. Bis ein Lauf zu Ende ist, ist der Knopf gesperrt. Ein zweiter Aufruf während eines Laufs schließt sich diesem Lauf an, statt einen eigenen zu starten. Ein PUT mit gleichem Inhalt legt weder eine neue Ressource noch eine neue Version an. Nach mehreren Starts gibt es deshalb weiterhin genau eine Observation mit `versionId` 1.
-13. Unter der Überschrift „Dashboard“ steht der Block `@defer (on viewport)`. Zuerst zeigt er „Dashboard wird geladen …“. Sobald dieser Text in den sichtbaren Bereich kommt, lädt der Browser im Build für die Auslieferung den Lazy Chunk `fhir-vitals-angular-ui-dashboard` mit den vorgeschlagenen Bibliotheken gridstack, Chart.js und Angular Material. Danach erscheint `VitalsDashboard` mit der Kachel „Blutdruckverlauf“. Das Diagramm zeigt die Messungen aus Schritt 6, sobald `VitalsSync` sie geladen hat. Dieser Schritt hängt nicht vom FHIR-Server ab.
+12. „Erneut verbinden“ ruft über `reconnect()` die Prüfung der Adresse aus Schritt 7 und die Schritte 8 bis 10 noch einmal auf. `config.json` liest es dabei nicht neu. Ist schon das Laden in den Schritten 5 bis 7 gescheitert, versucht es auch dieses noch einmal. Bis ein Lauf zu Ende ist, ist der Knopf gesperrt und behält trotzdem den Fokus, siehe „Karten und Grundgerüst der Demo-App“ in Abschnitt 5. Der neue Status erscheint in der Live-Region. Ein zweiter Aufruf während eines Laufs schließt sich diesem Lauf an, statt einen eigenen zu starten. Ein PUT mit gleichem Inhalt legt weder eine neue Ressource noch eine neue Version an. Nach mehreren Starts gibt es deshalb weiterhin genau eine Observation mit `versionId` 1.
+13. Unter der Überschrift „Dashboard“ steht der Block `@defer (on viewport)`. Zuerst zeigt er „Dashboard wird geladen …“. Sobald dieser Text in den sichtbaren Bereich kommt, lädt der Browser im Build für die Auslieferung den Lazy Chunk `fhir-vitals-angular-ui-dashboard` mit den vorgeschlagenen Bibliotheken gridstack, Chart.js und ng2-charts. Den Code der Karte von Angular Material hat der Browser schon mit den Initial Chunks geladen, weil `PatientCard` und `ServerStatus` ihn sofort brauchen. Danach erscheint `VitalsDashboard` mit der Kachel „Blutdruckverlauf“. Das Diagramm zeigt die Messungen aus Schritt 6, sobald `VitalsSync` sie geladen hat. Dieser Schritt hängt nicht vom FHIR-Server ab.
 
 ## 9 Typische Probleme
 
@@ -798,18 +858,20 @@ Weitere Schritte im Workshop:
 - für Daten, die einen Neustart überleben, HAPI mit PostgreSQL betreiben. Die passende `compose.yaml` steht im Workshop-Material auf Folie 80.
 - später die Anmeldung über [SMART App Launch](https://hl7.org/fhir/smart-app-launch/) ergänzen. Das Paket `fhirclient` unterstützt diesen Ablauf mit OAuth 2.0, einem Standard für die Freigabe von Zugriffen.
 
-### Vorschlag: Bibliotheken für das Dashboard
+### Vorschlag: Bibliotheken für Karten und Dashboard
 
-Das Dashboard-Beispiel aus Abschnitt 5 nutzt Angular Material mit CDK, gridstack, Chart.js mit ng2-charts und die Schrift Roboto aus `@fontsource/roboto`.
+Die Karten, die Toolbar der Demo-App und das Dashboard-Beispiel aus Abschnitt 5 nutzen Angular Material mit CDK.
+Das Dashboard-Beispiel nutzt zusätzlich gridstack und Chart.js mit ng2-charts.
+Die Schrift Roboto aus `@fontsource/roboto` gilt für die ganze Seite.
 Diese Bibliotheken sind ein Vorschlag.
-Sie sind installiert, damit das Beispiel läuft.
+Sie sind installiert, damit die Beispiele laufen.
 Im Workshop lassen sie sich durch andere ersetzen.
 Stand der Angaben: 06.11.2026.
 Versionen stammen von der npm-Registry, Lizenzen aus den Lizenzdateien der Pakete.
 
 | Paket | Version | Lizenz | Aufgabe im Beispiel | Warum vorgeschlagen | Grenzen |
 |---|---|---|---|---|---|
-| Angular Material und CDK (`@angular/material`, `@angular/cdk`) | 22.2.6 | MIT | Karte um die Kachel, fertiges Theme `azure-blue.css` | Das Patientenportal nutzt Angular Material ebenfalls. Es kommt vom Angular-Team und passt zu Angular 22.2. | Nur für Angular, denn beide Pakete setzen `@angular/core` voraus. Eine Oberfläche mit Vue kann sie nicht nutzen. Das Beispiel nutzt nur die Karte und ein fertiges Theme. |
+| Angular Material und CDK (`@angular/material`, `@angular/cdk`) | 22.2.6 | MIT | Karten „Patient“ und „FHIR-Server“, Karte um die Kachel, Knopf „Erneut verbinden“, Toolbar der Demo-App, fertiges Theme `azure-blue.css` | Das Patientenportal nutzt Angular Material ebenfalls. Es kommt vom Angular-Team und passt zu Angular 22.2. | Nur für Angular, denn beide Pakete setzen `@angular/core` voraus. Eine Oberfläche mit Vue kann sie nicht nutzen. Die Beispiele nutzen nur Karte, Knopf, Toolbar und ein fertiges Theme. |
 | gridstack | 14.1.0 | MIT | Raster mit 12 Spalten, darin eine feste Kachel | Es bringt eigene Anbindungen für Angular, React und Vue mit, etwa `gridstack/dist/angular` und `gridstack/dist/vue`. Eine Oberfläche mit Vue kann deshalb dieselbe Bibliothek nutzen. | Kacheln lassen sich nicht per Tastatur verschieben. gridstack wertet Tasten nur während eines Zugs mit der Maus aus, etwa `Esc` zum Abbrechen. Es setzt keine Attribute wie `aria-label`, die einem Screenreader Rolle oder Zustand mitteilen. Die Hauptversionen wechseln schnell. Laut npm-Registry erschien 13.0.0 am 19.07.2026 und 14.0.0 am 21.09.2026. Deshalb ist die Version genau festgelegt. |
 | Chart.js mit ng2-charts (`chart.js`, `ng2-charts`) | 4.6.1 und 11.0.0 | MIT | Liniendiagramm in der Kachel | Das Patientenportal nutzt dieselben beiden Pakete. | Chart.js zeichnet in ein Canvas. Jedes Diagramm braucht deshalb eine eigene Textalternative für Screenreader. |
 | `@fontsource/roboto` | 5.3.0 | OFL-1.1 | Schrift Roboto für das Theme und die Demo-App | Die Schrift kommt vom eigenen Server statt von Google Fonts. So geht beim Seitenaufruf keine Anfrage an Google. | Eingebunden ist nur die Teilmenge `latin` in den Schriftstärken 400 und 500, also normal und mittel. |
@@ -835,6 +897,11 @@ Die Schritte am Beispiel von gridstack:
 5. In `eslint.config.js` das Muster `dashboardPackages` anpassen. Dann meldet `npm run lint` einen Import des neuen Pakets überall in der Bibliothek außer in `angular/ui/dashboard` als Fehler.
 6. Die Komponenten in `projects/fhir-vitals/angular/ui/dashboard/src/lib` umbauen, dazu ihre Tests.
 7. `npm run lint` und `npm test` ausführen. Die erwartete Ausgabe beschreibt Abschnitt 4.
+
+Für Angular Material gelten die Schritte sinngemäß, aber die Änderungen reichen weiter.
+In `angular.json` betrifft das die Zeile `azure-blue.css`.
+In `eslint.config.js` betrifft es die Regel für `@angular/material` in der Datenschicht.
+Außer dem Dashboard ändern sich auch `PatientCard` und `ServerStatus` in `angular/ui/cards` sowie `app.ts`, `app.html`, `app.css` und `styles.css` der Demo-App.
 
 **Ideen für das Dashboard im Workshop.**
 Diese Punkte sind Hinweise und keine fertige Lösung.
@@ -948,6 +1015,17 @@ Regeln für die Nutzung:
 | HMR | Hot Module Replacement. Der Entwicklungsserver tauscht geänderte Teile der App im Browser aus, ohne die ganze Seite neu zu laden. |
 | Angular Material | eine Sammlung fertiger Komponenten wie Karten und Tabellen vom Angular-Team. Sie baut auf dem CDK (Component Dev Kit) auf. Im Beispiel ein Vorschlag. |
 | Theme | Farben, Schriften und Abstände der Material-Komponenten, hier das fertige Theme `azure-blue.css` |
+| Karte | ein umrandeter Kasten mit Überschrift und Inhalt, hier `mat-card` von Angular Material für „Patient“, „FHIR-Server“ und die Kachel |
+| Toolbar | eine Leiste über die ganze Breite der Seite, hier `mat-toolbar` mit dem Titel „FHIR-Starter“ |
+| CSS-Variable | ein benannter Wert in CSS, dessen Name mit zwei Bindestrichen beginnt, etwa `--mat-sys-surface`. `var(--mat-sys-surface)` liest ihn aus. |
+| Token | eine CSS-Variable, aus der eine Material-Komponente Farben oder Abstände liest, etwa `--mat-toolbar-container-background-color` |
+| CSS-Grid | eine Anordnung in Spalten und Zeilen, die der Browser selbst verteilt. `app.css` stellt so die beiden Karten nebeneinander oder untereinander. |
+| rem | eine Längeneinheit in CSS, die sich nach der Grundschrift des Browsers richtet. Bei der üblichen Grundschrift sind 1rem 16 Pixel. |
+| Fokus | das Element der Seite, das gerade Eingaben von der Tastatur empfängt |
+| Attribut | eine Zusatzangabe in einem HTML-Element, etwa `role="status"` oder `appearance="outlined"` |
+| aria-disabled | ein Attribut, das einem Screenreader meldet, dass ein Element gesperrt ist. Anders als beim Attribut `disabled` behält das Element dabei den Fokus. |
+| Live-Region | ein Bereich der Seite, dessen neuen Inhalt ein Screenreader von selbst vorliest, ohne den Fokus zu verschieben. Hier der Status mit `role="status"`. |
+| Landmarke | ein Bereich der Seite wie `<header>` oder `<main>`, zu dem ein Screenreader direkt springen kann |
 | gridstack | eine Bibliothek, die Kacheln in einem Raster anordnet. Sie kann Kacheln auch verschiebbar machen, das Beispiel nutzt das nicht. Im Beispiel ein Vorschlag. |
 | Chart.js, ng2-charts | Chart.js zeichnet Diagramme, ng2-charts bindet Chart.js an Angular an. Im Beispiel ein Vorschlag. |
 | optionale peerDependency | eine peerDependency, die das Feld `peerDependenciesMeta` mit `"optional": true` markiert. npm installiert sie nicht von selbst. |
@@ -963,7 +1041,7 @@ Regeln für die Nutzung:
 ## 13 Links
 
 Stand aller Links: 05.11.2026.
-Die Links zum FHIR-Bundle und zu `$validate` und die vier Gruppen „Dashboard-Beispiel: vorgeschlagene Bibliotheken“, „Barrierefreiheit“, „npm-Paket und Vue“ und „Alternativen und ihre Lizenzen“ sind vom 06.11.2026.
+Die Links zum FHIR-Bundle und zu `$validate` und die vier Gruppen „Karten und Dashboard: vorgeschlagene Bibliotheken“, „Barrierefreiheit“, „npm-Paket und Vue“ und „Alternativen und ihre Lizenzen“ sind vom 06.11.2026.
 
 **Angular und Werkzeuge**
 
@@ -1037,7 +1115,7 @@ Die Links zum FHIR-Bundle und zu `$validate` und die vier Gruppen „Dashboard-B
 - JSON-Schema von FHIR R4 (Download-Seite): https://hl7.org/fhir/R4/downloads.html
 - Erweiterung FHIR tools: https://marketplace.visualstudio.com/items?itemName=Yannick-Lagger.vscode-fhir-tools und https://github.com/laggery/vscode-fhir-tools
 
-**Dashboard-Beispiel: vorgeschlagene Bibliotheken**
+**Karten und Dashboard: vorgeschlagene Bibliotheken**
 
 - gridstack: https://gridstackjs.com und https://github.com/gridstack/gridstack.js
 - Angular-Anbindung von gridstack: https://github.com/gridstack/gridstack.js/tree/master/angular
@@ -1048,6 +1126,9 @@ Die Links zum FHIR-Bundle und zu `$validate` und die vier Gruppen „Dashboard-B
 - Angular Material: https://material.angular.dev
 - Themes für Angular Material: https://material.angular.dev/guide/theming
 - Karte von Angular Material: https://material.angular.dev/components/card/overview
+- Knopf von Angular Material: https://material.angular.dev/components/button/overview
+- Toolbar von Angular Material: https://material.angular.dev/components/toolbar/overview
+- CSS-Grid: https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Grid_layout
 - Fontsource Roboto: https://fontsource.org/fonts/roboto
 - Fontsource installieren: https://fontsource.org/docs/getting-started/install
 - `@defer`: https://angular.dev/guide/templates/defer
@@ -1058,6 +1139,8 @@ Die Links zum FHIR-Bundle und zu `$validate` und die vier Gruppen „Dashboard-B
 - WCAG 1.4.1 „Use of Color“: https://www.w3.org/WAI/WCAG22/Understanding/use-of-color.html
 - WCAG 2.5.7 „Dragging Movements“: https://www.w3.org/WAI/WCAG22/Understanding/dragging-movements.html
 - `prefers-reduced-motion`: https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/At-rules/@media/prefers-reduced-motion
+- Live-Region mit `role="status"`: https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Reference/Roles/status_role
+- Landmarken: https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Reference/Roles/landmark_role
 
 **npm-Paket und Vue**
 
@@ -1091,7 +1174,7 @@ Gemeint ist das Repository `cross-hub-patientportal`, Ordner `apps/frontend`, St
 Die Spalte „Portal“ nennt die installierten Paketversionen aus dessen `package-lock.json`.
 Node.js, nginx und HAPI FHIR stammen aus `.nvmrc` und den Dockerfiles des Portals.
 Die Versionen des Starters stammen von der npm-Registry, von nodejs.org und von Docker Hub, Stand 05.11.2026.
-Die Zeilen für die vorgeschlagenen Pakete des Dashboard-Beispiels stammen vom 06.11.2026, auch die Spalte „Portal“.
+Die Zeilen für die vorgeschlagenen Pakete stammen vom 06.11.2026, auch die Spalte „Portal“.
 
 | Paket | Portal | Starter | Begründung |
 |---|---|---|---|
@@ -1106,11 +1189,11 @@ Die Zeilen für die vorgeschlagenen Pakete des Dashboard-Beispiels stammen vom 0
 | ESLint | ESLint 9.39.4, angular-eslint 22.0.0, typescript-eslint 8 | ESLint 10.14.0, angular-eslint 22.0.0, typescript-eslint 8.72.1 | Abweichung. Das ESLint-Team pflegt ESLint 9 seit dem 06.08.2026 nicht mehr. Die Regeln entsprechen denen des Portals. |
 | Prettier | 3.9.4 ohne eigene Einstellungen | 3.9.10 mit Standardwerten | wie im Portal: doppelte Anführungszeichen, 80 Zeichen je Zeile. Der Bereich `^3.9.4` entspricht dem Portal. Installiert ist der neuere Patch 3.9.10. |
 | @types/fhir | 0.0.44 | 0.0.44 | gleich |
-| Angular Material und CDK (`@angular/material`, `@angular/cdk`) | 22.0.3 | 22.2.6 (`~22.2.6`) | Vorschlag für das Dashboard-Beispiel. Passend zu Angular 22.2, Tilde wie bei den anderen Angular-Paketen. Das Portal nutzt Angular Material ebenfalls. 22.2.6 war am 06.11.2026 die neueste Version. |
+| Angular Material und CDK (`@angular/material`, `@angular/cdk`) | 22.0.3 | 22.2.6 (`~22.2.6`) | Vorschlag für die Karten, die Toolbar der Demo-App und das Dashboard-Beispiel. Passend zu Angular 22.2, Tilde wie bei den anderen Angular-Paketen. Das Portal nutzt Angular Material ebenfalls. 22.2.6 war am 06.11.2026 die neueste Version. |
 | gridstack | nicht genutzt | 14.1.0 (genau `14.1.0`) | Vorschlag für das Dashboard-Beispiel. Die Version ist ohne `^` festgelegt, weil die Hauptversionen schnell wechseln: 13.0.0 erschien am 19.07.2026, 14.0.0 am 21.09.2026. 14.1.0 erschien laut npm-Registry am 04.11.2026 und war am 06.11.2026 die neueste Version. |
 | Chart.js (`chart.js`) | 4.5.1 | 4.6.1 (`^4.6.1`) | Vorschlag für das Dashboard-Beispiel. Dieselbe Hauptversion wie im Portal. 4.6.1 war am 06.11.2026 die neueste Version. |
 | ng2-charts | 10.0.0 | 11.0.0 (`^11.0.0`) | Vorschlag für das Dashboard-Beispiel. Abweichung: 11.0.0 war am 06.11.2026 die neueste Version und verlangt Angular ab 22.0.0. Version 10.0.0 des Portals verlangt Angular ab 21.0.0. |
-| `@fontsource/roboto` | nicht genutzt | 5.3.0 (`^5.3.0`) | Vorschlag für das Dashboard-Beispiel. Liefert die Schrift Roboto mit der App aus, statt sie von Google Fonts zu laden. 5.3.0 war am 06.11.2026 die neueste Version. |
+| `@fontsource/roboto` | nicht genutzt | 5.3.0 (`^5.3.0`) | Vorschlag für die Demo-App. Liefert die Schrift Roboto mit der App aus, statt sie von Google Fonts zu laden. 5.3.0 war am 06.11.2026 die neueste Version. |
 | fhirclient | nicht genutzt | 3.0.1 | Das Portal nutzt einen eigenen FHIR-Zugang über `HttpClient`. Der Starter nutzt `fhirclient`, weil es ohne eigene Infrastruktur auskommt und später SMART App Launch kann. |
 | Node.js | 22 (`.nvmrc`) | 22 (`.nvmrc`), Docker `node:22.23.4-alpine` | gleiche Hauptversion. Angular 22.2 verlangt Node.js `^22.22.3`, `^24.15.0` oder `>=26.0.0`. 22.23.4 war am 05.11.2026 die neueste 22er-Version. |
 | npm | nicht festgelegt, Lock-Datei Version 3 | 10.9.8 (Feld `packageManager`), Lock-Datei Version 3 | gleiche Version der Lock-Datei |
@@ -1121,7 +1204,7 @@ Die Zeilen für die vorgeschlagenen Pakete des Dashboard-Beispiels stammen vom 0
 
 Der Code steht unter der Apache License 2.0, siehe `LICENSE`.
 Die genutzten Pakete haben eigene Lizenzen, etwa `fhirclient` (Apache-2.0) und `@types/fhir` (MIT).
-Die vorgeschlagenen Pakete des Dashboard-Beispiels stehen unter der MIT-Lizenz: `@angular/material`, `@angular/cdk`, `gridstack`, `chart.js` und `ng2-charts`.
+Die vorgeschlagenen Pakete für Karten und Dashboard-Beispiel stehen unter der MIT-Lizenz: `@angular/material`, `@angular/cdk`, `gridstack`, `chart.js` und `ng2-charts`.
 Das gilt auch für die beiden Pakete, die npm mit ihnen installiert, `@kurkle/color` für `chart.js` und `es-toolkit` für `ng2-charts`.
 Die Schrift Roboto aus `@fontsource/roboto` steht unter der SIL Open Font License 1.1 (OFL-1.1).
 Sie erlaubt, die Schrift zusammen mit Software weiterzugeben, verbietet aber, die Schrift allein zu verkaufen.

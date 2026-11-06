@@ -1,0 +1,18 @@
+/* Field names in the left column, values in the right one.
+   minmax(0, 1fr) lets the value column shrink below its longest word. */
+dl {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 4px 16px;
+  margin: 0;
+}
+
+dt {
+  font-weight: 500;
+}
+
+/* Long values without spaces, such as an OID as identifier, wrap instead of leaving the card. */
+dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}

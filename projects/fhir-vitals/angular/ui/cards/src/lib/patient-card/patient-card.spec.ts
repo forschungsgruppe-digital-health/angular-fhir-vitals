@@ -15,8 +15,10 @@ describe("PatientCard", () => {
     const fixture = TestBed.createComponent(PatientCard);
     fixture.componentRef.setInput("patient", patient);
     await fixture.whenStable();
-    const text = (fixture.nativeElement as HTMLElement).textContent;
+    const page = fixture.nativeElement as HTMLElement;
+    const text = page.textContent;
 
+    expect(page.querySelector("h2")?.textContent).toBe("Patient");
     expect(text).toContain("Herr K.");
     expect(text).toContain("male");
     expect(text).toContain("1959");

@@ -25,6 +25,15 @@ describe("ServerStatus", () => {
     expect(text).toContain("Blutdruck vom Server: 104/66 mm[Hg]");
   });
 
+  it("puts the status into a live region for screen readers", async () => {
+    const fixture = await render({ ...INITIAL_STATE, status: "unreachable" });
+    const live = (fixture.nativeElement as HTMLElement).querySelector(
+      '[role="status"]',
+    );
+
+    expect(live?.textContent).toBe("Status: nicht erreichbar");
+  });
+
   it("shows the error message of a failed run", async () => {
     const fixture = await render({
       ...INITIAL_STATE,
@@ -37,7 +46,7 @@ describe("ServerStatus", () => {
     );
   });
 
-  it("asks the app to reconnect and locks the button while connecting", async () => {
+  it("asks the app to reconnect and ignores clicks while connecting", async () => {
     const fixture = await render({ ...INITIAL_STATE, status: "unreachable" });
     const button = (fixture.nativeElement as HTMLElement).querySelector(
       "button",
@@ -51,8 +60,11 @@ describe("ServerStatus", () => {
       status: "connecting",
     });
     await fixture.whenStable();
+    button.click();
 
     expect(reconnects).toBe(1);
-    expect(button.disabled).toBeTrue();
+    expect(button.getAttribute("aria-disabled")).toBe("true");
+    // Not natively disabled, so the button keeps the keyboard focus.
+    expect(button.disabled).toBeFalse();
   });
 });

@@ -1,0 +1,18 @@
+/* A slightly darker color from the theme sets the toolbar apart from the page.
+   Material components read such CSS variables, called tokens, for their colors. */
+mat-toolbar {
+  --mat-toolbar-container-background-color: var(--mat-sys-surface-container);
+}
+
+/* The toolbar spans the full width, the content below keeps a margin. */
+main {
+  padding: 16px;
+}
+
+/* The cards stand side by side and wrap below each other in narrow windows.
+   min() keeps a card from getting wider than the page on very small screens. */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+  gap: 16px;
+}
