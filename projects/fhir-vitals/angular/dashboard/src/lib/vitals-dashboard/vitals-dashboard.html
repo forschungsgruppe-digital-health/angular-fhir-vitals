@@ -1,0 +1,8 @@
+<gridstack [options]="gridOptions">
+  <gridstack-item [options]="{ x: 0, y: 0, w: 8, h: 4 }">
+    <mat-card appearance="outlined">
+      <h3>Blutdruckverlauf</h3>
+      <lib-blood-pressure-chart [history]="history()" />
+    </mat-card>
+  </gridstack-item>
+</gridstack>

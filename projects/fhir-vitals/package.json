@@ -3,10 +3,38 @@
   "version": "0.0.1",
   "license": "Apache-2.0",
   "peerDependencies": {
+    "@angular/cdk": "^22.2.0",
     "@angular/common": "^22.2.0",
     "@angular/core": "^22.2.0",
+    "@angular/material": "^22.2.0",
     "@types/fhir": "^0.0.44",
-    "fhirclient": "^3.0.1"
+    "chart.js": "^4.6.0",
+    "fhirclient": "^3.0.1",
+    "gridstack": "^14.1.0",
+    "ng2-charts": "^11.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@angular/cdk": {
+      "optional": true
+    },
+    "@angular/common": {
+      "optional": true
+    },
+    "@angular/core": {
+      "optional": true
+    },
+    "@angular/material": {
+      "optional": true
+    },
+    "chart.js": {
+      "optional": true
+    },
+    "gridstack": {
+      "optional": true
+    },
+    "ng2-charts": {
+      "optional": true
+    }
   },
   "dependencies": {
     "tslib": "^2.3.0"

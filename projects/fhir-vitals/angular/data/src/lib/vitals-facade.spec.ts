@@ -5,13 +5,37 @@ import {
 } from "@angular/common/http/testing";
 import { ApplicationRef } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
-import type { FhirResource, Patient } from "fhir/r4";
+import type { Bundle, FhirResource, Observation, Patient } from "fhir/r4";
 import type { FhirServerConnection } from "fhir-vitals/core";
 
 import { CONNECT_TO_SERVER, VitalsFacade } from "./vitals-facade";
 
 describe("VitalsFacade", () => {
   const patient: Patient = { resourceType: "Patient", id: "p1" };
+  const history: Bundle<Observation> = {
+    resourceType: "Bundle",
+    type: "collection",
+    entry: [
+      {
+        resource: {
+          resourceType: "Observation",
+          status: "final",
+          code: { text: "Blutdruck" },
+          effectiveDateTime: "2026-06-01T07:35:00+02:00",
+          component: [
+            {
+              code: { coding: [{ code: "8480-6" }] },
+              valueQuantity: { value: 104 },
+            },
+            {
+              code: { coding: [{ code: "8462-4" }] },
+              valueQuantity: { value: 66 },
+            },
+          ],
+        },
+      },
+    ],
+  };
   const unreachable: FhirServerConnection = {
     isReachable: () => Promise.resolve(false),
     save: <T extends FhirResource>(resource: T) => Promise.resolve(resource),
@@ -36,16 +60,26 @@ describe("VitalsFacade", () => {
 
   afterEach(() => http.verify());
 
+  // Answers the asset requests, which the flow sends one after the other.
+  async function answerAssets(): Promise<void> {
+    http.expectOne("assets/fhir/patient.json").flush(patient);
+    await new Promise((resolve) => setTimeout(resolve));
+    http.expectOne("assets/fhir/blutdruck-verlauf.json").flush(history);
+  }
+
   it("mirrors the state of the core flow as a signal", async () => {
     expect(facade.state().status).toBe("checking");
 
     const running = facade.start(() =>
       Promise.resolve("http://fhir.test/fhir"),
     );
-    http.expectOne("assets/fhir/patient.json").flush(patient);
+    await answerAssets();
     await running;
 
     expect(facade.state().patient).toEqual(patient);
+    expect(facade.state().history).toEqual([
+      { effective: "2026-06-01T07:35:00+02:00", systolic: 104, diastolic: 66 },
+    ]);
     expect(facade.state().status).toBe("unreachable");
   });
 
@@ -55,7 +89,7 @@ describe("VitalsFacade", () => {
     const running = facade.start(
       () => new Promise((resolve) => (answerConfig = () => resolve(null))),
     );
-    http.expectOne("assets/fhir/patient.json").flush(patient);
+    await answerAssets();
     TestBed.inject(ApplicationRef)
       .whenStable()
       .then(() => (stable = true));
@@ -73,7 +107,7 @@ describe("VitalsFacade", () => {
     const running = facade.start(() =>
       Promise.resolve("http://fhir.test/fhir"),
     );
-    http.expectOne("assets/fhir/patient.json").flush(patient);
+    await answerAssets();
     await running;
 
     const reconnecting = facade.reconnect();

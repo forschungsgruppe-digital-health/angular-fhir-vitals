@@ -1,8 +1,9 @@
-import type { FhirResource, Observation, Patient } from "fhir/r4";
+import type { Bundle, FhirResource, Observation, Patient } from "fhir/r4";
 
 import type { FhirServerConnection, ResourceLoader } from "./ports";
 import {
   EXAMPLE_BLOOD_PRESSURE,
+  EXAMPLE_BLOOD_PRESSURE_HISTORY,
   EXAMPLE_PATIENT,
   type VitalsState,
   VitalsSync,
@@ -27,12 +28,41 @@ describe("VitalsSync", () => {
     ],
   };
 
+  const measurement = (effectiveDateTime: string, systolic: number) => ({
+    resource: {
+      ...observation,
+      effectiveDateTime,
+      component: [
+        {
+          code: { coding: [{ code: "8480-6" }] },
+          valueQuantity: { value: systolic },
+        },
+        {
+          code: { coding: [{ code: "8462-4" }] },
+          valueQuantity: { value: 70 },
+        },
+      ],
+    },
+  });
+  // Deliberately out of order: the flow sorts the measurements itself.
+  const history: Bundle = {
+    resourceType: "Bundle",
+    type: "collection",
+    entry: [
+      measurement("2026-06-01T07:35:00+02:00", 104),
+      measurement("2026-05-31T08:10:00+02:00", 109),
+    ],
+  };
+  const resources: Record<string, FhirResource> = {
+    [EXAMPLE_PATIENT]: patient,
+    [EXAMPLE_BLOOD_PRESSURE_HISTORY]: history,
+    [EXAMPLE_BLOOD_PRESSURE]: observation,
+  };
+
   // Plain objects instead of real adapters: the core needs no framework and no server for its tests.
   const loader: ResourceLoader = {
     load: <T extends FhirResource>(path: string) =>
-      Promise.resolve(
-        (path === EXAMPLE_PATIENT ? patient : observation) as unknown as T,
-      ),
+      Promise.resolve(resources[path] as T),
   };
 
   function fakeServer(reachable: boolean): FhirServerConnection {
@@ -169,6 +199,45 @@ describe("VitalsSync", () => {
     expect(seen[0]).toBe("checking");
     expect(seen).toContain("connecting");
     expect(seen[seen.length - 1]).toBe("saved");
+  });
+
+  it("loads the measurement history before reading the server address", async () => {
+    const load = spyOn(loader, "load").and.callThrough();
+    const sync = new VitalsSync(loader, () => fakeServer(true));
+
+    await sync.start(() => {
+      expect(load.calls.allArgs()).toEqual([
+        [EXAMPLE_PATIENT],
+        [EXAMPLE_BLOOD_PRESSURE_HISTORY],
+      ]);
+      return Promise.resolve(null);
+    });
+
+    expect(sync.current.history).toEqual([
+      { effective: "2026-05-31T08:10:00+02:00", systolic: 109, diastolic: 70 },
+      { effective: "2026-06-01T07:35:00+02:00", systolic: 104, diastolic: 70 },
+    ]);
+  });
+
+  it("fails without a history and loads it on the next reconnect", async () => {
+    let fail = true;
+    const flaky: ResourceLoader = {
+      load: <T extends FhirResource>(path: string) =>
+        fail && path === EXAMPLE_BLOOD_PRESSURE_HISTORY
+          ? Promise.reject<T>(new Error("404 Not Found"))
+          : loader.load<T>(path),
+    };
+    const sync = new VitalsSync(flaky, () => fakeServer(true));
+
+    await sync.start(() => Promise.resolve(null));
+    expect(sync.current.status).toBe("failed");
+    expect(sync.current.error).toBe("404 Not Found");
+    expect(sync.current.history).toEqual([]);
+
+    fail = false;
+    await sync.reconnect();
+    expect(sync.current.status).toBe("not-configured");
+    expect(sync.current.history.length).toBe(2);
   });
 
   it("loads the example blood pressure from the assets", async () => {

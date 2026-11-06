@@ -1,0 +1,12 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+/* chart.js measures this box. Without a fixed box the first render can grow beyond the tile. */
+.chart-box {
+  position: relative;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}

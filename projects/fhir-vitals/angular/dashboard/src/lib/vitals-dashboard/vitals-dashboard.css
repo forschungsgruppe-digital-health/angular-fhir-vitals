@@ -1,0 +1,21 @@
+/* gridstack measures the width of the grid, so the host must be a block. */
+:host {
+  display: block;
+}
+
+/* The card fills the tile. It is a flex column, so the chart gets the height below the title. */
+mat-card {
+  height: 100%;
+  padding: 12px 16px;
+}
+
+h3 {
+  margin: 0 0 4px;
+  font: var(--mat-sys-title-medium);
+}
+
+/* min-height: 0 lets the chart shrink to the free height instead of growing the card. */
+lib-blood-pressure-chart {
+  flex: 1;
+  min-height: 0;
+}

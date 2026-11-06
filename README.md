@@ -7,6 +7,9 @@ Startpunkt für den Workshop WW2 (#WW26-MiHUB) der Forschungsgruppe Digital Heal
 Dieses Repository enthält `fhir-vitals`, eine Bibliothek mit wiederverwendbarem Code für das Web-Framework Angular, und die Demo-App `demo-app`, die diese Bibliothek nutzt.
 Die Demo-App zeigt einen synthetischen Patienten und speichert auf Wunsch eine Blutdruckmessung auf einem FHIR-Server, also einem Server für Gesundheitsdaten nach dem Standard HL7 FHIR R4.
 Im Workshop entsteht daraus Schritt für Schritt eine Bibliothek für Vitalparameter, die sich später in ein Patientenportal einbinden lässt.
+Weiter unten zeigt eine Kachel, also ein Rechteck mit Titel und Inhalt, den Blutdruckverlauf aus sieben synthetischen Messungen als Liniendiagramm.
+Sie ist ein minimales Beispiel für das Dashboard, also die Übersicht aus Kacheln, die im Workshop entsteht.
+Die Bibliotheken für das Beispiel sind ein Vorschlag, siehe Abschnitt 10.
 
 ## 2 Voraussetzungen
 
@@ -60,6 +63,9 @@ Die Ausgabe von `npm ci` beschreibt Abschnitt 4.
 Nach `npm start` erscheint `Local: http://localhost:4200/`.
 Danach http://localhost:4200 im Browser öffnen.
 Die Seite zeigt den Patienten „Herr K.“ und den Status „nicht erreichbar“, weil kein FHIR-Server läuft.
+Darunter folgt die Überschrift „Dashboard“ mit einem kurzen Text.
+Er nennt die Kachel ein minimales Beispiel und gridstack, Angular Material und Chart.js einen Vorschlag.
+Danach erscheint die Kachel „Blutdruckverlauf“ mit dem Diagramm der Messungen vom 26.05. bis 01.06.2026.
 `Strg+C` im Terminal beendet den Entwicklungsserver.
 
 ### Variante B: mit Docker, nur die Demo-App
@@ -99,6 +105,7 @@ Ohne `--profile fhir` läuft HAPI weiter, siehe Abschnitt 9.
 
 Alle Befehle im Wurzelverzeichnis des Repositorys ausführen.
 Jeder Befehl in diesen Tabellen ist am 05.11.2026 mit den Versionen aus Abschnitt 14 gelaufen.
+Nach dem Einbau des Dashboard-Beispiels liefen am 06.11.2026 unter macOS erneut: `npm ci`, `npm start`, `npx ng build fhir-vitals`, `npx ng test fhir-vitals --watch=false`, `npm test`, `npm run lint`, `npm run format` und `npm run build`, dazu in einer Kopie des Repositorys der neue Befehl für Komponenten im Dashboard.
 Die Spalte „Was danach zu sehen ist“ gibt die tatsächliche Ausgabe wieder.
 
 ### a) Bibliothek entwickeln
@@ -112,25 +119,33 @@ Der Decorator `@Service()` ist eine Markierung über der Klasse.
 Angular erzeugt einen so markierten Service selbst und gibt ihn an alle Klassen weiter, die ihn brauchen.
 ESLint prüft den Code auf Fehler und Regelverstöße, ohne ihn auszuführen.
 Prettier formatiert den Code einheitlich.
-Die Bibliothek besteht aus vier Einstiegspunkten, also Teilpaketen mit eigenem Importnamen wie `fhir-vitals/core` oder `fhir-vitals/angular/ui`.
+Die Bibliothek besteht aus fünf Einstiegspunkten, also Teilpaketen mit eigenem Importnamen wie `fhir-vitals/core` oder `fhir-vitals/angular/ui`.
 Jeder Einstiegspunkt bildet eine Schicht mit einer festen Aufgabe.
 Abschnitt 5 beschreibt, was in welche Schicht gehört.
+Ein Chunk ist eine JavaScript-Datei, die der Build der Demo-App erzeugt.
+Initial Chunks lädt der Browser sofort beim Start.
+Ein Lazy Chunk kommt erst später dazu, hier mit dem Dashboard.
+Ein Budget in `angular.json` ist eine Obergrenze für die Größe.
+Ab 500 kB für alle Initial Chunks zusammen gibt der Build eine Warnung aus.
+Angular schreibt am Ende des Builds `Application bundle generation complete`.
+Bundle meint dort die gebauten JavaScript-Dateien und nicht ein FHIR-Bundle aus Abschnitt 7.
 
 | Befehl | Wirkung | Wann nötig | Was danach zu sehen ist |
 |---|---|---|---|
-| `npm ci` | installiert alle Pakete genau nach `package-lock.json` und löscht vorher einen vorhandenen Ordner `node_modules` | einmal nach dem Klonen und nach jeder Änderung an `package-lock.json` | Nach einigen Sekunden bis etwa einer Minute erscheint `added … packages`. Die Zahl hängt vom Betriebssystem ab. Im Test waren es 597 unter macOS und 603 unter Linux. Davor stehen Warnungen `npm warn deprecated` zu `inflight`, `rimraf` und `glob`. Sie stammen aus dem Testrunner Karma. Danach folgt `14 moderate severity vulnerabilities`, siehe Abschnitt 9. |
-| `npm start` | baut die Bibliothek einmal und startet die Demo-App mit dem Entwicklungsserver | zum Ausprobieren | fünf Zeilen `Built fhir-vitals…`, eine für das Paket und eine je Einstiegspunkt, danach `Local: http://localhost:4200/`. Im Browser erscheint die Seite „FHIR-Starter“. `Strg+C` beendet den Entwicklungsserver. |
+| `npm ci` | installiert alle Pakete genau nach `package-lock.json` und löscht vorher einen vorhandenen Ordner `node_modules` | einmal nach dem Klonen und nach jeder Änderung an `package-lock.json` | Nach einigen Sekunden bis etwa einer Minute erscheint `added … packages`. Die Zahl hängt vom Betriebssystem ab. Am 06.11.2026 meldete npm unter macOS `added 605 packages, and audited 606 packages in 10s`. Unter Linux meldete der Docker-Build am selben Tag mit derselben `package-lock.json` `added 611 packages in 8s`. Davor stehen Warnungen `npm warn deprecated` zu `inflight`, `rimraf` und `glob`. Sie stammen aus dem Testrunner Karma. Danach folgt `14 moderate severity vulnerabilities`, siehe Abschnitt 9. |
+| `npm start` | baut die Bibliothek einmal und startet die Demo-App mit dem Entwicklungsserver | zum Ausprobieren | sechs Zeilen `Built fhir-vitals…`, eine für das Paket und eine je Einstiegspunkt, danach `Local: http://localhost:4200/`. Im Browser erscheint die Seite „FHIR-Starter“ mit der Kachel „Blutdruckverlauf“. Die Konsole des Browsers meldet dabei `NG0751`, siehe Abschnitt 9. `Strg+C` beendet den Entwicklungsserver. |
 | Terminal 1: `npm run watch:lib` | baut die Bibliothek mit allen Einstiegspunkten bei jeder gespeicherten Änderung neu | beim Arbeiten an der Bibliothek, zusammen mit Terminal 2 | `Compilation complete. Watching for file changes...`. Nach jeder Änderung folgt ein neuer Block mit `Build at: …`. Der Neubau dauerte im Test 0,1 bis 0,2 Sekunden. |
 | Terminal 2: `npm run start:app` | startet nur die Demo-App, ohne die Bibliothek zu bauen | zusammen mit Terminal 1 | `Local: http://localhost:4200/`. Nach einer Änderung in der Bibliothek erscheint `Page reload sent to client(s).`, und der Browser lädt die Seite selbst neu. Vom Speichern bis zum Neuladen verging im Test weniger als eine Sekunde, für Änderungen in `core` ebenso wie in `angular/ui`. |
 | `npx ng generate service <name> --project fhir-vitals` | legt einen Angular-Service in der Angular-Datenschicht `fhir-vitals/angular/data` an | für Logik, die nur Angular braucht, etwa weitere Datenzugriffe mit HttpClient, dem HTTP-Dienst von Angular | Zwei Zeilen `CREATE projects/fhir-vitals/angular/data/src/lib/<name>.ts` und `…/<name>.spec.ts`. Die Klasse trägt den Decorator `@Service()`. Logik, die auch andere UI-Frameworks brauchen, gehört dagegen als Datei ohne Decorator nach `core`, siehe Abschnitt 5. |
 | `npx ng generate component <name> --project fhir-vitals --path projects/fhir-vitals/angular/ui/src/lib` | legt eine Komponente im Einstiegspunkt `fhir-vitals/angular/ui` an | für neue Anzeigen, etwa eine Karte mit Messwerten | Vier Zeilen `CREATE projects/fhir-vitals/angular/ui/src/lib/<name>/<name>.ts`, `.html`, `.css` und `.spec.ts`. Der Selektor beginnt mit `lib-`. Ohne `--path` landet die Komponente in der Angular-Datenschicht, wo sie nicht hingehört. |
+| `npx ng generate component <name> --project fhir-vitals --path projects/fhir-vitals/angular/dashboard/src/lib` | legt eine Komponente im Einstiegspunkt `fhir-vitals/angular/dashboard` an | für weitere Kacheln im Dashboard, siehe Abschnitt 10 | Vier Zeilen `CREATE projects/fhir-vitals/angular/dashboard/src/lib/<name>/<name>.css`, `.spec.ts`, `.ts` und `.html`, jeweils mit der Größe in Bytes. Mit dem Namen `weight-chart` heißt die Klasse `WeightChart` und der Selektor `lib-weight-chart`. |
 | neue Zeile in der Datei `src/public-api.ts` des Einstiegspunkts, zum Beispiel `export * from "./lib/vitals-card/vitals-card";` in `projects/fhir-vitals/angular/ui/src/public-api.ts` | macht den neuen Baustein außerhalb der Bibliothek sichtbar | nach jedem neuen Service, jeder neuen Komponente und jeder neuen Datei in `core` oder `fhir` | Nach dem nächsten Build der Bibliothek klappt in der Demo-App `import { VitalsCard } from "fhir-vitals/angular/ui";`. Ohne diese Zeile meldet der Build `Module '"fhir-vitals/angular/ui"' has no exported member 'VitalsCard'`. |
-| `npx ng build fhir-vitals` | baut das Paket mit allen vier Einstiegspunkten einmal nach `dist/fhir-vitals` | vor `npm run start:app`, wenn `watch:lib` nicht läuft | Fünf Zeilen `Built …` für `fhir-vitals`, `fhir-vitals/core`, `fhir-vitals/fhir`, `fhir-vitals/angular/data` und `fhir-vitals/angular/ui`, dann `Built Angular Package`. Die Reihenfolge ergibt sich aus den Abhängigkeiten: `core` kommt immer vor den Schichten, die es nutzen, sonst kann sie wechseln. Der Ordner `dist/fhir-vitals/fesm2022` enthält je Einstiegspunkt eine Datei `.mjs` und eine `.mjs.map`, etwa `fhir-vitals-core.mjs` und `fhir-vitals-angular-ui.mjs`. |
-| `npx ng test fhir-vitals --watch=false` | testet alle Einstiegspunkte der Bibliothek, direkt aus den Quellen | nach Änderungen an der Bibliothek | `TOTAL: 28 SUCCESS`. Dafür muss die Bibliothek vorher nicht gebaut sein. |
-| `npm test` | baut die Bibliothek und testet dann Bibliothek und Demo-App nacheinander, ohne Watch-Modus | vor jedem Commit | Die fünf Zeilen `Built fhir-vitals…`, dann zwei Blöcke: zuerst `TOTAL: 28 SUCCESS` für die Bibliothek, dann `TOTAL: 1 SUCCESS` für die Demo-App |
+| `npx ng build fhir-vitals` | baut das Paket mit allen fünf Einstiegspunkten einmal nach `dist/fhir-vitals` | vor `npm run start:app`, wenn `watch:lib` nicht läuft | Sechs Zeilen `Built …` für `fhir-vitals`, `fhir-vitals/core`, `fhir-vitals/fhir`, `fhir-vitals/angular/data`, `fhir-vitals/angular/ui` und `fhir-vitals/angular/dashboard`, dann `Built Angular Package`. Die Reihenfolge ergibt sich aus den Abhängigkeiten: `core` kommt immer vor den Schichten, die es nutzen, sonst kann sie wechseln. Der Ordner `dist/fhir-vitals/fesm2022` enthält je Einstiegspunkt eine Datei `.mjs` und eine `.mjs.map`, etwa `fhir-vitals-core.mjs` und `fhir-vitals-angular-ui.mjs`. |
+| `npx ng test fhir-vitals --watch=false` | testet alle Einstiegspunkte der Bibliothek, direkt aus den Quellen | nach Änderungen an der Bibliothek | `TOTAL: 51 SUCCESS`. Dafür muss die Bibliothek vorher nicht gebaut sein. |
+| `npm test` | baut die Bibliothek und testet dann Bibliothek und Demo-App nacheinander, ohne Watch-Modus | vor jedem Commit | Die sechs Zeilen `Built fhir-vitals…`, dann zwei Blöcke: zuerst `TOTAL: 51 SUCCESS` für die Bibliothek, dann `TOTAL: 3 SUCCESS` für die Demo-App. Im zweiten Block stehen vier Warnungen `WARN [web-server]: 404: /base/media/roboto-latin-…`, siehe Abschnitt 9. |
 | `npm run lint` | prüft den Code mit ESLint, auch die Regeln zwischen den Schichten aus Abschnitt 5 | vor jedem Commit | nur die beiden Kopfzeilen `> angular-fhir-vitals@0.0.0 lint` und `> eslint .`. Folgt keine weitere Ausgabe, hat ESLint nichts zu beanstanden. |
 | `npm run format` | formatiert TypeScript, HTML und CSS mit Prettier | vor jedem Commit | eine Zeile je Datei. `(unchanged)` heißt, dass die Datei schon passte. |
-| `npm run build` | baut erst die Bibliothek, dann die Demo-App für die Auslieferung | vor einer Auslieferung ohne Docker | fünf Zeilen `Built fhir-vitals…`, dann `Application bundle generation complete` und `Output location: …/dist/demo-app` |
+| `npm run build` | baut erst die Bibliothek, dann die Demo-App für die Auslieferung | vor einer Auslieferung ohne Docker | sechs Zeilen `Built fhir-vitals…`, dann eine Tabelle `Initial chunk files` mit der Zeile `Initial total` und `260.48 kB`, geschätzt `77.37 kB` bei der Übertragung. Darunter steht `Lazy chunk files` mit der Zeile `fhir-vitals-angular-dashboard` und `277.29 kB`, geschätzt `77.53 kB`. Eine Warnung zum Budget erscheint nicht. Am Ende folgen `Application bundle generation complete` und `Output location: …/dist/demo-app`. |
 
 ### b) Demo-App mit Docker, ohne HAPI FHIR
 
@@ -149,7 +164,7 @@ Der Container liest damit direkt die Datei auf dem eigenen Rechner.
 ### c) Demo-App mit Docker und HAPI FHIR
 
 Eine FHIR-Ressource ist ein Datensatz mit festem Aufbau, etwa `Patient` oder `Observation` für eine Messung.
-Ein Bundle ist eine Ressource, die mehrere Ressourcen bündelt, etwa ein Suchergebnis.
+Ein FHIR-Bundle ist eine Ressource vom Typ `Bundle`, die mehrere Ressourcen bündelt, etwa ein Suchergebnis.
 Sein Feld `total` nennt die Zahl der Treffer.
 
 | Befehl | Wirkung | Wann nötig | Was danach zu sehen ist |
@@ -158,7 +173,7 @@ Sein Feld `total` nennt die Zahl der Treffer.
 | `docker compose --profile fhir logs -f fhir` | zeigt das Protokoll von HAPI und folgt neuen Zeilen | zur Fehlersuche, etwa wenn HAPI nicht startet | Zeilen mit `fhir-1 \|`. Bei jeder Anfrage erscheint eine Zeile `fhirtest.access`. `Strg+C` beendet nur die Anzeige. |
 | `curl http://localhost:8080/fhir/metadata` | fragt die Selbstbeschreibung des Servers ab | um zu prüfen, ob HAPI bereit ist | Sobald HAPI bereit ist, JSON mit `"resourceType": "CapabilityStatement"`. Vorher meldet curl einen Verbindungsfehler. Danach auf der Seite „Erneut verbinden“ klicken. |
 | http://localhost:8080 im Browser öffnen | öffnet die Weboberfläche von HAPI | um Ressourcen auf dem Server anzusehen | die Testoberfläche mit dem Titel „HAPI FHIR“ |
-| `curl "http://localhost:8080/fhir/Observation?subject=Patient/beispiel-01"` | sucht alle Messungen des Beispielpatienten | um das Speichern zu prüfen | ein `Bundle` mit `"total": 1` und der Observation `blutdruck-01` |
+| `curl "http://localhost:8080/fhir/Observation?subject=Patient/beispiel-01"` | sucht alle Messungen des Beispielpatienten | um das Speichern zu prüfen | ein FHIR-Bundle mit `"total": 1` und der Observation `blutdruck-01`. Die sieben Messungen aus `blutdruck-verlauf.json` liegen nur in dieser Beispieldatei der Demo-App und nicht auf dem Server. |
 | `docker compose --profile fhir down` | stoppt und entfernt beide Container. Ohne `--profile fhir` stoppt `docker compose down` nur die Demo-App, und der HAPI-Container läuft weiter. | zum Aufräumen | `Removed` für `fhir-1`, `demo-app-1` und das Netzwerk. Danach läuft kein Container des Projekts mehr. |
 
 Hinweis für Windows: In Windows PowerShell 5.1 ist `curl` ein Alias für `Invoke-WebRequest` und versteht andere Parameter.
@@ -213,12 +228,13 @@ In der Demo-App liegen sie im Ordner `public`.
 angular-fhir-vitals/
 ├── .github/workflows/pages.yml        Workflow: veröffentlicht die Demo-App auf GitHub Pages
 ├── projects/
-│   ├── fhir-vitals/                   Angular-Bibliothek: ein npm-Paket mit vier Einstiegspunkten
-│   │   ├── core/                      "fhir-vitals/core": Ports, Ablauf VitalsSync, Blutdruck-Formatierung
+│   ├── fhir-vitals/                   Angular-Bibliothek: ein npm-Paket mit fünf Einstiegspunkten
+│   │   ├── core/                      "fhir-vitals/core": Ports, Ablauf VitalsSync, Blutdruck und Messverlauf
 │   │   ├── fhir/                      "fhir-vitals/fhir": Adapter mit fhirclient und mit fetch
 │   │   ├── angular/                   alles, was Angular braucht, selbst kein Einstiegspunkt
 │   │   │   ├── data/                  "fhir-vitals/angular/data": Datenschicht mit FhirAssets und VitalsFacade
-│   │   │   └── ui/                    "fhir-vitals/angular/ui": Komponenten PatientCard und ServerStatus
+│   │   │   ├── ui/                    "fhir-vitals/angular/ui": Komponenten PatientCard und ServerStatus
+│   │   │   └── dashboard/             "fhir-vitals/angular/dashboard": minimales Dashboard-Beispiel, eine Kachel
 │   │   ├── src/public-api.ts          leerer Platzhalter für den Paketnamen "fhir-vitals"
 │   │   ├── …/src/public-api.ts        je Einstiegspunkt: was außerhalb sichtbar ist
 │   │   ├── …/src/lib/*.spec.ts        Unit-Tests, neben dem getesteten Code
@@ -228,7 +244,7 @@ angular-fhir-vitals/
 │   │   └── package.json               Name, Version und peerDependencies, gemeinsam für alle Einstiegspunkte
 │   └── demo-app/                      Demo-App
 │       ├── public/config.json         Adresse des FHIR-Servers, wird beim Start gelesen
-│       ├── public/assets/fhir/        Beispieldaten patient.json und blutdruck.json
+│       ├── public/assets/fhir/        Beispieldaten patient.json, blutdruck.json und blutdruck-verlauf.json
 │       ├── src/index.html             HTML-Grundgerüst mit dem Element <app-root>
 │       ├── src/main.ts                Startpunkt von Angular
 │       ├── src/styles.css             die wenigen globalen Styles
@@ -264,17 +280,31 @@ Die Tests der Bibliothek brauchen keinen Build, weil `projects/fhir-vitals/tscon
 **peerDependencies.** peerDependencies sind Pakete, die eine Bibliothek voraussetzt, die aber die einbindende Anwendung selbst installiert.
 So nutzen Bibliothek und Anwendung dieselbe Version.
 Die Bibliothek führt `@angular/core`, `@angular/common`, `fhirclient` und `@types/fhir` als peerDependencies.
-In der `package.json` im Wurzelverzeichnis stehen diese Pakete unter `dependencies`.
+Das Dashboard-Beispiel bringt weitere Pakete mit.
+Sie sind ein Vorschlag und lassen sich austauschen, siehe Abschnitt 10.
+Angular Material ist eine Sammlung fertiger Komponenten wie Karten und Tabellen vom Angular-Team.
+Sie baut auf dem CDK (Component Dev Kit) auf, einem Baukasten für Verhalten wie Menüs und Fokus.
+gridstack ordnet Kacheln in einem Raster aus Spalten und Zeilen an.
+Chart.js zeichnet Diagramme, und ng2-charts bindet Chart.js an Angular an.
+Für diese Vorschläge führt die Bibliothek zusätzlich `@angular/cdk`, `@angular/material`, `chart.js`, `gridstack` und `ng2-charts` als peerDependencies.
+In der `package.json` im Wurzelverzeichnis stehen alle diese Pakete unter `dependencies`, dazu `@fontsource/roboto` für die Schrift der Demo-App.
+
+Seit Version 7 installiert npm peerDependencies automatisch mit.
+Eine App mit dem Framework Vue, die nur `fhir-vitals/core` und `fhir-vitals/fhir` nutzt, bekäme so auch Angular, Angular Material, gridstack und ng2-charts.
+Deshalb markiert das Feld `peerDependenciesMeta` in `projects/fhir-vitals/package.json` alle Angular-Pakete sowie `chart.js`, `gridstack` und `ng2-charts` mit `"optional": true`.
+Optionale peerDependencies installiert npm nicht von selbst.
+Eine Angular-App installiert sie selbst, so wie die Demo-App.
+`fhirclient` und `@types/fhir` bleiben Pflicht, weil `fhir-vitals/fhir` fhirclient importiert und `core` die FHIR-Typen nutzt.
 
 **Schichten der Bibliothek.**
-Die Bibliothek trennt Abläufe, Serverzugriff, Angular-Anbindung und Oberfläche in vier Einstiegspunkte.
+Die Bibliothek trennt Abläufe, Serverzugriff, Angular-Anbindung, Oberfläche und das Dashboard-Beispiel in fünf Einstiegspunkte.
 Jeder Einstiegspunkt bildet eine Schicht mit einer festen Aufgabe.
-Die beiden Schichten, die Angular brauchen, liegen gemeinsam im Ordner `angular/`.
+Die drei Schichten, die Angular brauchen, liegen gemeinsam im Ordner `angular/`.
 `core` und `fhir` daneben bleiben frei von UI-Frameworks.
 Der Ordner `angular/` ist selbst kein Einstiegspunkt, deshalb meldet `import … from "fhir-vitals/angular"` den Fehler `TS2307`.
 Auch `fhir-vitals` allein ist nur ein leerer Platzhalter.
 ng-packagr verlangt ihn für den Paketnamen und zeigt ihn beim Build als `Built fhir-vitals` an.
-Importieren lassen sich nur die vier Einstiegspunkte.
+Importieren lassen sich nur die fünf Einstiegspunkte.
 Der Kern, also `fhir-vitals/core`, enthält die eigentliche Logik.
 Ein Port ist eine Schnittstelle, die beschreibt, was der Kern von außen braucht, etwa das Laden einer Ressource.
 Mit einem Netzwerk-Port hat dieser Begriff nichts zu tun.
@@ -285,18 +315,22 @@ Ein Input ist eine Eigenschaft einer Komponente, die die einbindende Seite setzt
 
 | Einstiegspunkt | Inhalt | darf importieren | darf nicht importieren |
 |---|---|---|---|
-| `fhir-vitals/core` | die Ports `ResourceLoader` und `FhirServerConnection`, der Ablauf `VitalsSync` mit Patient laden, Adresse lesen, verbinden, prüfen, speichern und zurücklesen, dazu `formatBloodPressure` und die LOINC-Codes | FHIR-Typen aus `fhir/r4` | Angular, RxJS, Vue, fhirclient, `fetch` und alle anderen Teile der Bibliothek |
-| `fhir-vitals/fhir` | die Adapter `FhirClientConnection` mit fhirclient und `FetchResourceLoader` mit fetch | `fhir-vitals/core`, fhirclient, FHIR-Typen aus `fhir/r4` | Angular, RxJS, Vue und die übrigen Teile |
-| `fhir-vitals/angular/data` | die Angular-Datenschicht: `FhirAssets` als Adapter mit HttpClient, dem Dienst von Angular für HTTP-Anfragen, und `VitalsFacade`, die den Zustand von `VitalsSync` als Signal anbietet | `fhir-vitals/core`, `fhir-vitals/fhir`, Angular, RxJS, FHIR-Typen aus `fhir/r4` | `fhir-vitals/angular/ui` und fhirclient direkt |
-| `fhir-vitals/angular/ui` | die Komponenten `PatientCard` und `ServerStatus`. Sie bekommen Daten über Inputs und übersetzen die Statuscodes des Kerns in deutsche Texte. | `fhir-vitals/core`, Angular, FHIR-Typen aus `fhir/r4` | die Datenschicht, `fhir-vitals/fhir`, fhirclient, HttpClient und `fetch` |
+| `fhir-vitals/core` | die Ports `ResourceLoader` und `FhirServerConnection`, der Ablauf `VitalsSync` mit Patient und Messverlauf laden, Adresse lesen, verbinden, prüfen, speichern und zurücklesen, dazu `formatBloodPressure`, `bloodPressureHistory` und die LOINC-Codes | FHIR-Typen aus `fhir/r4` | Angular, RxJS, Vue, fhirclient, `fetch`, gridstack, Chart.js, ng2-charts und alle anderen Teile der Bibliothek |
+| `fhir-vitals/fhir` | die Adapter `FhirClientConnection` mit fhirclient und `FetchResourceLoader` mit fetch | `fhir-vitals/core`, fhirclient, FHIR-Typen aus `fhir/r4` | Angular, RxJS, Vue, gridstack, Chart.js, ng2-charts und die übrigen Teile |
+| `fhir-vitals/angular/data` | die Angular-Datenschicht: `FhirAssets` als Adapter mit HttpClient, dem Dienst von Angular für HTTP-Anfragen, und `VitalsFacade`, die den Zustand von `VitalsSync` als Signal anbietet | `fhir-vitals/core`, `fhir-vitals/fhir`, Angular, RxJS, FHIR-Typen aus `fhir/r4` | `fhir-vitals/angular/ui`, `fhir-vitals/angular/dashboard`, fhirclient direkt, gridstack, Chart.js und ng2-charts |
+| `fhir-vitals/angular/ui` | die Komponenten `PatientCard` und `ServerStatus`. Sie bekommen Daten über Inputs und übersetzen die Statuscodes des Kerns in deutsche Texte. | `fhir-vitals/core`, Angular, FHIR-Typen aus `fhir/r4` | die Datenschicht, das Dashboard, `fhir-vitals/fhir`, fhirclient, HttpClient, `fetch`, gridstack, Chart.js und ng2-charts |
+| `fhir-vitals/angular/dashboard` | das minimale Dashboard-Beispiel: `VitalsDashboard` mit einer festen Kachel und `BloodPressureChart` für das Diagramm. Die Messwerte kommen über das Input `history`. | `fhir-vitals/core`, Angular und die vorgeschlagenen Pakete Angular Material, gridstack, Chart.js und ng2-charts | die Datenschicht, die UI, `fhir-vitals/fhir`, fhirclient, HttpClient und `fetch` |
 
-Die Demo-App ist die einzige Stelle, die Datenschicht und Oberfläche kennt.
-Sie verbindet beide.
+Die Demo-App ist die einzige Stelle, die Datenschicht, Oberfläche und Dashboard kennt.
+Sie verbindet sie.
 Die Schichten importieren einander nur über den Paketnamen, etwa `fhir-vitals/core`.
 Ein relativer Pfad in eine andere Schicht scheitert beim Build, meist mit dem Fehler `TS6059`.
 Zeigt er von `core` aus nach oben, etwa nach `angular/data`, meldet ng-packagr stattdessen `Entry point fhir-vitals/core has a circular dependency on itself.`
 `npm run lint` prüft die Spalte „darf nicht importieren“.
-Ein verbotener Import erscheint dann als Fehler mit Begründung, im Kern zum Beispiel `'@angular/core' import is restricted from being used by a pattern. Dieser Teil bleibt frei von UI-Frameworks, damit auch Vue oder andere ihn nutzen können.`
+Ein verbotener Import erscheint dann als Fehler mit Begründung, im Kern zum Beispiel `'@angular/core' import is restricted from being used by a pattern. Dieser Teil bleibt frei von UI-Frameworks, damit auch Vue oder andere ihn nutzen können`.
+Die vorgeschlagenen Pakete gridstack, Chart.js und ng2-charts sind in `core`, `fhir`, `angular/data` und `angular/ui` verboten.
+So bleiben sie im Lazy Chunk des Dashboards.
+Ein Import von `chart.js` in `angular/ui` meldet `'chart.js' import is restricted from being used by a pattern. Diese Pakete gehören nach fhir-vitals/angular/dashboard, damit die App sie erst lädt, wenn das Dashboard erscheint`.
 
 **Andere UI-Frameworks.**
 Vue ist wie Angular ein Framework für Webanwendungen im Browser.
@@ -310,9 +344,111 @@ Eine kleine Vue-App mit genau diesem Aufbau zeigte im Test gegen HAPI Herrn K., 
 Das gebaute JavaScript dieser Vue-App enthielt keinen Code aus Angular.
 Die Vue-App gehört nicht zum Repository.
 Das Build-Werkzeug Vite baute sie und griff dabei über einen Alias direkt auf die Quellen von `core` und `fhir` zu.
-Als verteiltes npm-Paket eignet sich `fhir-vitals` für Vue noch nicht, weil es Angular als peerDependency führt und npm diese mitinstalliert.
-Dafür kommen `core` und `fhir` später in eigene Pakete, und der Ordner `angular/` wird zu einem Paket für Angular.
+Seit die Angular-Pakete optionale peerDependencies sind, eignet sich auch das gebaute npm-Paket für Vue.
+Das zeigte am 06.11.2026 eine zweite Prüfung, ebenfalls außerhalb des Repositorys.
+`npm pack` packt ein Paket in eine Paketdatei `.tgz`, wie sie auch die npm-Registry ausliefert.
+Aus `dist/fhir-vitals` entstand so `fhir-vitals-0.0.1.tgz`, und npm meldete `package size: 19.3 kB` und `total files: 19`.
+Ein neues Projekt installierte sie zusammen mit `vue` und dem Build-Werkzeug esbuild.
+Der Befehl war `npm install --strict-peer-deps`.
+Die Option `--strict-peer-deps` lässt die Installation scheitern, sobald eine peerDependency nicht passt.
+npm meldete `added 32 packages, and audited 33 packages in 1s` und `found 0 vulnerabilities`.
+Einen Ordner `node_modules/@angular` gab es danach nicht, und auch gridstack, Chart.js und ng2-charts fehlten.
+`fhirclient` und `@types/fhir` installierte npm als Pflicht-peerDependencies von selbst.
+Ein kleiner Einstieg in Vue nutzte `VitalsSync`, `bloodPressureHistory`, `FetchResourceLoader` und `connectWithFhirClient`.
+Zustand und Messungen hielt er in je einem `shallowRef()`.
+esbuild baute daraus die Datei `app.js` mit 322,6 kB aus 20 Modulen.
+Das sind die eigene Einstiegsdatei und 19 JavaScript-Dateien aus den Paketen von Vue, aus `fhir-vitals`, `fhirclient` und `js-base64`.
+Sie enthielt kein Modul aus Angular, und die Zeichenfolge `@angular` kam darin nicht vor.
+Diese Prüfung hat die Vue-App nur gebaut und nicht im Browser gestartet.
+Später können `core` und `fhir` trotzdem in eigene Pakete kommen.
 Weil alle Schichten einander schon heute nur über Paketnamen importieren, ändern sich dabei im Code vor allem die Importnamen.
+
+### Das Dashboard-Beispiel
+
+Das Beispiel ist absichtlich klein.
+Es zeigt eine feste Kachel und dient als Startpunkt für das Dashboard, das im Workshop entsteht.
+Die genutzten Bibliotheken sind ein Vorschlag, siehe Abschnitt 10.
+
+**Wo es liegt.**
+Das Beispiel liegt im Einstiegspunkt `fhir-vitals/angular/dashboard`, Ordner `projects/fhir-vitals/angular/dashboard/`.
+Es besteht aus zwei Komponenten.
+`VitalsDashboard` legt mit gridstack ein Raster an und zeigt darin genau eine Kachel.
+Die Kachel ist eine Karte von Angular Material mit der Überschrift „Blutdruckverlauf“.
+Darin zeichnet `BloodPressureChart` den Verlauf mit Chart.js als Liniendiagramm.
+Beide bekommen die Messungen über das Input `history`, die älteste zuerst, so wie `VitalsSync` sie im Zustand unter `history` liefert.
+Die Demo-App bindet das Beispiel in `app.html` mit `<lib-vitals-dashboard [history]="vitals.state().history" />` ein.
+
+**Eigener Einstiegspunkt und `@defer`.**
+ng-packagr baut jeden Einstiegspunkt zu genau einer Datei `.mjs`.
+Eine App kann eine solche Datei nur als Ganzes sofort oder als Ganzes später laden.
+Im eigenen Einstiegspunkt kann die Demo-App das Dashboard mit den vorgeschlagenen Bibliotheken später laden.
+Dafür steht `<lib-vitals-dashboard>` in `app.html` in einem Block `@defer (on viewport)`.
+`@defer` ist ein Block im Template, dessen Inhalt Angular in einen eigenen Lazy Chunk legt.
+Mit `on viewport` lädt der Browser diesen Chunk erst, wenn der Platzhalter des Blocks in den sichtbaren Bereich der Seite kommt.
+Bis dahin zeigt die Seite „Dashboard wird geladen …“.
+Im Build vom 06.11.2026 lagen die Initial Chunks zusammen bei 260,48 kB und der Lazy Chunk `fhir-vitals-angular-dashboard` bei 277,29 kB.
+Die Warngrenze von 500 kB gilt nur für die Initial Chunks.
+In einem Browserfenster von 400 Pixeln Höhe lud der Browser den Lazy Chunk dieses Builds erst, nachdem die Seite bis zum Dashboard gescrollt war.
+Mit `npm start` lädt Angular die Pakete des Dashboards dagegen sofort mit, siehe `NG0751` in Abschnitt 9.
+
+**Eine feste Kachel.**
+Die Einstellungen des Rasters stehen in `gridOptions` in `vitals-dashboard.ts`.
+Das Raster hat 12 Spalten und Zeilen von 80 Pixeln Höhe, mit einem Rand von 8 Pixeln um jede Kachel.
+Die Kachel beginnt in Spalte 0 und Zeile 0, ist 8 Spalten breit und 4 Zeilen hoch.
+Die Option `staticGrid: true` hält sie fest.
+Sie lässt sich deshalb weder verschieben noch in der Größe ändern.
+Ist das Raster höchstens 600 Pixel breit, hat es nur eine Spalte, und die Kachel nimmt die volle Breite ein.
+Das legt der Eintrag `{ w: 600, c: 1 }` unter `columnOpts.breakpoints` fest.
+Wird das Raster danach wieder breiter, ist die Kachel wieder 8 Spalten breit, auch wenn die Seite in einem schmalen Fenster startet.
+Dafür sorgt `layout: "none"` unter `columnOpts`.
+Ohne diese Angabe streckt gridstack die Kachel dann auf alle 12 Spalten.
+Im Test am 06.11.2026 war die Kachel bei einer Fensterbreite von 1024 Pixeln 630 Pixel breit und 320 Pixel hoch.
+Bei 560 Pixeln Fensterbreite war sie mit 496 Pixeln so breit wie das Raster.
+
+**Diagramm.**
+`BloodPressureChart` meldet die nötigen Teile von Chart.js selbst an, über `provideCharts()` unter `providers` der Komponente.
+Deshalb braucht `app.config.ts` keinen Eintrag für Chart.js, und Chart.js bleibt im Lazy Chunk.
+Die Zeitachse ist eine Zahlenachse mit Millisekunden.
+So braucht Chart.js keinen zusätzlichen Adapter für Datumswerte.
+Die Beschriftungen wie `26.05.` kommen von `Intl.DateTimeFormat("de-DE")`.
+Beim Zeigen mit der Maus nennt ein Tooltip, also ein kleines Feld über dem Diagramm, Zeitpunkt und beide Werte.
+Am 29.05. waren das „29.05.2026, 07:35“, „Systolisch: 110 mm[Hg]“ und „Diastolisch: 71 mm[Hg]“.
+
+**Globale Styles.**
+Die Elemente des Rasters, etwa das innere Element jeder Kachel mit der Klasse `grid-stack-item-content`, stehen in den Templates von gridstack und nicht im Template von `VitalsDashboard`.
+Die Styles einer Angular-Komponente gelten aber nur für Elemente aus ihrem eigenen Template.
+Deshalb gehört `gridstack.min.css` zu den globalen Styles der App.
+Die Demo-App lädt in `angular.json` unter `styles` vier Dateien vor ihrer eigenen `styles.css`: `@fontsource/roboto/latin-400.css` und `@fontsource/roboto/latin-500.css` für die Schrift Roboto, `@angular/material/prebuilt-themes/azure-blue.css` und `gridstack/dist/gridstack.min.css`.
+Ein Theme legt Farben, Schriften und Abstände der Material-Komponenten fest.
+`azure-blue.css` ist ein fertiges Theme als CSS-Datei.
+Es nutzt die Schrift Roboto.
+Das Paket `@fontsource/roboto` liefert diese Schrift als Dateien mit der App aus.
+Der Browser lädt sie vom eigenen Server unter `media/` und schickt keine Anfrage an Google Fonts.
+
+**Barrierefreiheit.**
+Ein Screenreader ist ein Programm, das den Inhalt einer Seite vorliest oder in Braille ausgibt.
+Chart.js zeichnet in ein Canvas, eine Zeichenfläche aus Pixeln ohne lesbaren Text.
+Das Canvas hat deshalb das Attribut `role="img"`.
+Es meldet einem Screenreader, dass das Canvas ein Bild ist.
+Die Textalternative dazu steht im Attribut `aria-label`.
+Mit den Daten aus den Assets lautet sie „Blutdruckverlauf: 7 Messungen vom 26.05.2026 bis 01.06.2026, zuletzt 104/66 mm[Hg]“.
+„Systolisch“ ist eine blaue durchgezogene Linie mit runden Punkten, „Diastolisch“ eine orange gestrichelte Linie mit quadratischen Punkten.
+Die beiden Reihen unterscheiden sich so nicht nur durch die Farbe, wie es Kriterium 1.4.1 „Use of Color“ der WCAG 2.2 verlangt.
+Die WCAG (Web Content Accessibility Guidelines) sind die Richtlinien des W3C, des Gremiums für Webstandards, für barrierefreie Webinhalte.
+Die Kachel hat die Überschrift `h3` „Blutdruckverlauf“, unter `h1` „FHIR-Starter“ und `h2` „Dashboard“.
+Ist im Betriebssystem die Einstellung für weniger Bewegung aktiv, zeichnet Chart.js das Diagramm ohne Animation.
+gridstack animiert die Kachel nie, denn `gridOptions` enthält `animate: false`.
+Die Animation von gridstack würde diese Einstellung nicht beachten, denn `gridstack.min.css` berücksichtigt sie nicht.
+Ein Klick auf die Legende blendet keine Reihe aus.
+`BloodPressureChart` schaltet diese Funktion von Chart.js ab, denn mit der Tastatur ließe sie sich nicht bedienen.
+
+**Was das Beispiel bewusst nicht kann.**
+Die Kachel lässt sich nicht verschieben, nicht in der Größe ändern, nicht hinzufügen und nicht entfernen.
+Das Beispiel speichert nichts und bietet keine Bedienung per Tastatur für die Anordnung.
+Die einzelnen Messwerte nennt nur der Tooltip beim Zeigen mit der Maus.
+Die Textalternative nennt nur Anzahl, Zeitraum und letzten Wert.
+Mit Tastatur oder Screenreader lassen sich die übrigen Werte deshalb nicht genau lesen.
+Diese Teile entstehen im Workshop, Hinweise dazu stehen in Abschnitt 10.
 
 ## 6 Wie die Teile zusammenspielen
 
@@ -325,20 +461,24 @@ Gestrichelte Pfeile zeigen Anfragen über das Netz.
 flowchart LR
   Browser["Browser"]
   subgraph App["Demo-App, ausgeliefert von ng serve oder nginx auf Port 4200"]
-    Page["Komponente App: verbindet Datenschicht und UI"]
-    Assets[("Assets: config.json, patient.json, blutdruck.json")]
+    Page["Komponente App: verbindet Datenschicht, UI und Dashboard"]
+    Assets[("Assets: config.json, patient.json, blutdruck.json, blutdruck-verlauf.json")]
   end
   subgraph Lib["Bibliothek fhir-vitals"]
     UI["fhir-vitals/angular/ui: PatientCard, ServerStatus"]
+    DASH["fhir-vitals/angular/dashboard: VitalsDashboard, BloodPressureChart"]
     NG["fhir-vitals/angular/data: VitalsFacade, FhirAssets"]
     FHIR["fhir-vitals/fhir: FhirClientConnection"]
     CORE["fhir-vitals/core: VitalsSync, Ports"]
   end
   HAPI[("HAPI FHIR auf Port 8080, Basis /fhir")]
-  Browser -. "index.html und JavaScript laden" .-> Page
+  Browser -. "index.html und Initial Chunks laden" .-> Page
+  Browser -. "Lazy Chunk laden, wenn das Dashboard sichtbar wird" .-> DASH
   Page --> UI
+  Page -- "nur im @defer-Block" --> DASH
   Page --> NG
   UI --> CORE
+  DASH --> CORE
   NG --> CORE
   NG --> FHIR
   FHIR --> CORE
@@ -355,7 +495,7 @@ HAPI erlaubt in der Voreinstellung des Images alle Ursprünge, auch `http://loca
 
 ## 7 Die Beispieldaten und ihre Codes
 
-Beide Dateien liegen unter `projects/demo-app/public/assets/fhir/` und sind im Browser als `assets/fhir/…` erreichbar.
+Alle drei Dateien liegen unter `projects/demo-app/public/assets/fhir/` und sind im Browser als `assets/fhir/…` erreichbar.
 Sie sind synthetisch und passen zum Beispiel „Herr K.“ aus dem Workshop.
 Den Typ einer FHIR-Ressource nennt ihr Feld `resourceType`.
 
@@ -382,10 +522,39 @@ Ein Profil legt fest, welche Felder und Codes eine Ressource für einen bestimmt
 Ein Terminologieserver kennt Codesysteme wie LOINC und prüft Codes und Anzeigenamen.
 Die Anzeigenamen der drei LOINC-Codes stimmen mit den Angaben des Terminologieservers tx.fhir.org überein.
 
+**`blutdruck-verlauf.json`** ist ein [FHIR-Bundle](https://hl7.org/fhir/R4/bundle.html), also eine Ressource vom Typ `Bundle`.
+Sie sammelt andere Ressourcen in der Liste `entry`.
+Mit den JavaScript-Dateien aus dem Build hat dieses Bundle nichts zu tun.
+Das Feld `type` hat den Wert `collection`.
+Eine `collection` ist eine reine Sammlung ohne Auftrag an einen Server.
+Ein Suchergebnis vom Server hat dagegen den Typ `searchset`.
+`bloodPressureHistory()` in `fhir-vitals/core` liest beide Typen gleich und sortiert die Messungen nach der Zeit, die älteste zuerst.
+Das Bundle enthält sieben Observations von Herrn K., aufgebaut wie `blutdruck.json`, mit denselben Codes und derselben Einheit.
+Die letzte ist identisch mit `blutdruck.json`.
+So endet das Diagramm mit demselben Wert, den die Seite als „Blutdruck vom Server“ zeigt.
+
+| ID | `effectiveDateTime` | systolisch | diastolisch |
+|---|---|---|---|
+| `blutdruck-verlauf-01` | `2026-05-26T07:40:00+02:00` | 112 | 72 |
+| `blutdruck-verlauf-02` | `2026-05-27T07:30:00+02:00` | 108 | 70 |
+| `blutdruck-verlauf-03` | `2026-05-28T07:45:00+02:00` | 115 | 74 |
+| `blutdruck-verlauf-04` | `2026-05-29T07:35:00+02:00` | 110 | 71 |
+| `blutdruck-verlauf-05` | `2026-05-30T08:05:00+02:00` | 106 | 68 |
+| `blutdruck-verlauf-06` | `2026-05-31T08:10:00+02:00` | 109 | 69 |
+| `blutdruck-01` | `2026-06-01T07:35:00+02:00` | 104 | 66 |
+
+Jeder Eintrag hat neben `resource` ein Feld `fullUrl`, etwa `https://example.org/fhir/Observation/blutdruck-verlauf-01`.
+`fullUrl` nennt die vollständige Adresse der Ressource im Eintrag.
+`example.org` ist eine Adresse für Beispiele und kein echter FHIR-Server.
+Ohne `fullUrl` meldete `$validate` (siehe unten) 28 Fehler, etwa `Bundle entry missing fullUrl`.
+
 Die FHIR-Operation `$validate` prüft eine Ressource gegen den Standard und gegen ihre Profile.
-Auf dem lokalen HAPI FHIR 8.12.0 ergab sie am 05.11.2026 für beide Dateien keine Fehler.
+Auf dem lokalen HAPI FHIR 8.12.0 ergab sie am 05.11.2026 für `patient.json` und `blutdruck.json` keine Fehler.
 Es gab nur Warnungen: LOINC ist auf dem lokalen Server unbekannt, und beiden Ressourcen fehlt eine Narrative, also ein lesbarer Text im Feld `text`.
 Das gilt auch bei der Prüfung der Observation gegen das Blutdruckprofil.
+Am 06.11.2026 ergab `$validate` auf demselben Server auch für jede der sieben Observations aus `blutdruck-verlauf.json` keine Fehler.
+Jede hatte vier Warnungen: drei zu den unbekannten LOINC-Codes und eine zur fehlenden Narrative.
+Für das ganze FHIR-Bundle gab es ebenfalls keine Fehler und 28 Warnungen, 21 zu LOINC und 7 zur Narrative.
 
 **Prüfen in Visual Studio Code.**
 Ein JSON-Schema beschreibt, welche Felder und Werte eine JSON-Datei haben darf.
@@ -394,7 +563,7 @@ Die Datei `.vscode/settings.json` ordnet es allen JSON-Dateien unter `projects/*
 Visual Studio Code prüft diese Dateien damit schon beim Tippen und schlägt Feldnamen und erlaubte Werte vor.
 Ein Verstoß erscheint als Warnung, also mit gelber Wellenlinie und in der Ansicht „Probleme“ (englisch „Problems“).
 Steht in `patient.json` bei `gender` zum Beispiel der Wert `mann`, lautet die Meldung `Value is not accepted. Valid values: "male", "female", "other", "unknown".`
-Für die beiden Beispieldateien gibt es keine Meldung.
+Für die drei Beispieldateien gibt es keine Meldung.
 VS Code lädt das Schema beim ersten Öffnen einer solchen Datei von hl7.org.
 Dafür muss der Ordner als vertrauenswürdig gelten.
 VS Code öffnet einen neuen Ordner zunächst im eingeschränkten Modus, englisch Restricted Mode, und zeigt oben einen Hinweis mit dem Link „Manage“.
@@ -415,17 +584,19 @@ Diese Angaben stammen aus dem Quelltext der Erweiterung, die Erweiterung selbst 
 
 ## 8 Was beim Start passiert
 
-1. Der Browser lädt `index.html` und das JavaScript der Demo-App vom Entwicklungsserver oder von nginx.
+1. Der Browser lädt `index.html` und das JavaScript der Demo-App vom Entwicklungsserver oder von nginx. Im Build für die Auslieferung sind das die Initial Chunks, noch ohne das Dashboard.
 2. `main.ts` startet Angular mit den Einstellungen aus `app.config.ts`. Dort schaltet `provideZoneChangeDetection()` die Änderungserkennung mit zone.js ein. Die Änderungserkennung prüft nach Ereignissen wie Klicks oder Serverantworten, ob sich die Seite ändern muss. zone.js meldet Angular diese Ereignisse. `provideHttpClient(withFetch())` richtet HTTP-Anfragen mit der Fetch-API des Browsers ein.
 3. Die Komponente `App` holt sich die `VitalsFacade` aus der Angular-Datenschicht `fhir-vitals/angular/data`. Die Facade erzeugt den Ablauf `VitalsSync` aus `fhir-vitals/core` und gibt ihm zwei Adapter mit: `FhirAssets` zum Laden der Assets und `connectWithFhirClient` aus `fhir-vitals/fhir` für den Server.
 4. `App` ruft `start()` der Facade auf und übergibt eine Funktion, die `config.json` liest. `VitalsSync` liest die Datei beim Start und nicht beim Build, damit sie sich ohne Neubau des Images ändern lässt.
 5. `VitalsSync` lädt `assets/fhir/patient.json`. Die Komponente `PatientCard` zeigt Name, Geschlecht, Geburtsdatum und Kennung. Fehlt ein Feld, steht dort „–“.
-6. `VitalsSync` liest danach über die übergebene Funktion die Adresse des Servers. Ist `fhirBaseUrl` leer oder `null`, meldet er den Status `not-configured`, und die Komponente `ServerStatus` zeigt „nicht konfiguriert“. Der Ablauf endet dann hier.
-7. `VitalsSync` erzeugt mit `connectWithFhirClient` eine `FhirClientConnection`. `isReachable()` fragt `metadata` ab. Antwortet der Server nicht, zeigt die Seite „nicht erreichbar“ und bleibt trotzdem vollständig bedienbar.
-8. `VitalsSync` lädt `assets/fhir/blutdruck.json` und ruft `seed()` auf. `seed()` schreibt erst den Patienten und dann die Observation per PUT unter ihrer festen ID. Die Reihenfolge ist nötig, weil HAPI prüft, ob der Verweis `subject` auf einen vorhandenen Patienten zeigt.
-9. `VitalsSync` liest die Observation `Observation/blutdruck-01` vom Server zurück. Erst danach zeigt die Seite „verbunden, Patient und Blutdruck gespeichert“ und „Blutdruck vom Server: 104/66 mm[Hg]“. Geht dabei etwas schief, zeigt der Status die Fehlermeldung.
-10. Bei jeder Änderung meldet `VitalsSync` den neuen Zustand an alle, die ihn mit `subscribe()` abonniert haben. Die Facade legt ihn in ein Signal, und die Komponenten `PatientCard` und `ServerStatus` zeigen ihn an. Keine der beiden kennt fhirclient oder HttpClient.
-11. „Erneut verbinden“ ruft über `reconnect()` die Prüfung der Adresse aus Schritt 6 und die Schritte 7 bis 9 noch einmal auf. `config.json` liest es dabei nicht neu. Ist schon das Laden in Schritt 5 oder 6 gescheitert, versucht es auch dieses noch einmal. Bis ein Lauf zu Ende ist, ist der Knopf gesperrt. Ein zweiter Aufruf während eines Laufs schließt sich diesem Lauf an, statt einen eigenen zu starten. Ein PUT mit gleichem Inhalt legt weder eine neue Ressource noch eine neue Version an. Nach mehreren Starts gibt es deshalb weiterhin genau eine Observation mit `versionId` 1.
+6. `VitalsSync` lädt das FHIR-Bundle `assets/fhir/blutdruck-verlauf.json`. `bloodPressureHistory()` macht daraus eine Liste von Messpunkten mit Zeitpunkt, systolischem und diastolischem Wert, die älteste zuerst. Der Zustand führt sie unter `history`.
+7. `VitalsSync` liest danach über die übergebene Funktion die Adresse des Servers. Ist `fhirBaseUrl` leer oder `null`, meldet er den Status `not-configured`, und die Komponente `ServerStatus` zeigt „nicht konfiguriert“. Der Ablauf endet dann hier.
+8. `VitalsSync` erzeugt mit `connectWithFhirClient` eine `FhirClientConnection`. `isReachable()` fragt `metadata` ab. Antwortet der Server nicht, zeigt die Seite „nicht erreichbar“ und bleibt trotzdem vollständig bedienbar. Auch die Kachel zeigt ihre Messungen, denn sie stammen aus den Assets.
+9. `VitalsSync` lädt `assets/fhir/blutdruck.json` und ruft `seed()` auf. `seed()` schreibt erst den Patienten und dann die Observation per PUT unter ihrer festen ID. Die Reihenfolge ist nötig, weil HAPI prüft, ob der Verweis `subject` auf einen vorhandenen Patienten zeigt. Die sieben Messungen des Verlaufs schreibt `seed()` nicht auf den Server.
+10. `VitalsSync` liest die Observation `Observation/blutdruck-01` vom Server zurück. Erst danach zeigt die Seite „verbunden, Patient und Blutdruck gespeichert“ und „Blutdruck vom Server: 104/66 mm[Hg]“. Geht dabei etwas schief, zeigt der Status die Fehlermeldung.
+11. Bei jeder Änderung meldet `VitalsSync` den neuen Zustand an alle, die ihn mit `subscribe()` abonniert haben. Die Facade legt ihn in ein Signal, und die Komponenten `PatientCard` und `ServerStatus` zeigen ihn an. Keine der beiden kennt fhirclient oder HttpClient.
+12. „Erneut verbinden“ ruft über `reconnect()` die Prüfung der Adresse aus Schritt 7 und die Schritte 8 bis 10 noch einmal auf. `config.json` liest es dabei nicht neu. Ist schon das Laden in den Schritten 5 bis 7 gescheitert, versucht es auch dieses noch einmal. Bis ein Lauf zu Ende ist, ist der Knopf gesperrt. Ein zweiter Aufruf während eines Laufs schließt sich diesem Lauf an, statt einen eigenen zu starten. Ein PUT mit gleichem Inhalt legt weder eine neue Ressource noch eine neue Version an. Nach mehreren Starts gibt es deshalb weiterhin genau eine Observation mit `versionId` 1.
+13. Unter der Überschrift „Dashboard“ steht der Block `@defer (on viewport)`. Zuerst zeigt er „Dashboard wird geladen …“. Sobald dieser Text in den sichtbaren Bereich kommt, lädt der Browser im Build für die Auslieferung den Lazy Chunk `fhir-vitals-angular-dashboard` mit den vorgeschlagenen Bibliotheken gridstack, Chart.js und Angular Material. Danach erscheint `VitalsDashboard` mit der Kachel „Blutdruckverlauf“. Das Diagramm zeigt die Messungen aus Schritt 6, sobald `VitalsSync` sie geladen hat. Dieser Schritt hängt nicht vom FHIR-Server ab.
 
 ## 9 Typische Probleme
 
@@ -449,7 +620,7 @@ Sobald JSON zurückkommt, auf der Seite „Erneut verbinden“ klicken.
 Die Zeile `Started Application in … seconds` markiert das Ende.
 
 **Bibliothek nicht gebaut.**
-`npm run start:app` oder `npx ng build demo-app` melden `Could not resolve "fhir-vitals/angular/data"` und `Could not resolve "fhir-vitals/angular/ui"`.
+`npm run start:app` oder `npx ng build demo-app` melden `Could not resolve "fhir-vitals/angular/data"`, `Could not resolve "fhir-vitals/angular/dashboard"` und `Could not resolve "fhir-vitals/angular/ui"`.
 Der Ordner `dist/fhir-vitals` fehlt dann.
 `npx ng build fhir-vitals` oder `npm run watch:lib` ausführen, oder gleich `npm start` nutzen.
 
@@ -467,7 +638,8 @@ Erst `docker compose --profile fhir down` stoppt beide.
 
 **ESLint meldet `… import is restricted from being used by a pattern`.**
 Ein Import verletzt eine Regel zwischen den Schichten aus Abschnitt 5.
-Die Meldung nennt den Grund, etwa `Die UI spricht nicht selbst mit Servern.`
+Die Meldung nennt den Grund, etwa `Die UI spricht nicht selbst mit Servern`.
+Dasselbe gilt für Importe der vorgeschlagenen Pakete gridstack, Chart.js oder ng2-charts in `core`, `fhir`, `angular/data` oder `angular/ui`.
 Den Code in die passende Schicht verschieben.
 Eine Komponente bekommt Daten dann über ein Input, und die Demo-App holt sie über die Facade.
 Danach zeigt `npm run lint` nur noch die beiden Kopfzeilen.
@@ -502,6 +674,32 @@ HAPI läuft hier ohne eigene Datenbank und hält die Daten im Arbeitsspeicher.
 Nach jedem Neustart des Containers ist der Server leer.
 Die Demo-App schreibt die Beispieldaten beim nächsten Start oder nach „Erneut verbinden“ neu.
 
+**Die Karte füllt die Kachel nicht aus.**
+Dann fehlt `gridstack/dist/gridstack.min.css` der vorgeschlagenen Bibliothek gridstack unter `styles` in `angular.json`.
+In einem Build ohne diese Datei war die Kachel am 06.11.2026 bei 1024 Pixeln Fensterbreite zwar 320 Pixel hoch.
+Die Karte darin war aber nur 204 Pixel hoch und das Diagramm nur 150 Pixel.
+Mit der Datei füllt die Karte die Kachel bis auf den Rand von 8 Pixeln aus, und das Diagramm ist 250 Pixel hoch.
+Die Zeile wieder eintragen, wie in Abschnitt 5 unter „Globale Styles“ beschrieben.
+Danach den Entwicklungsserver oder den Build neu starten.
+
+**Statt der Kachel steht nur „Dashboard wird geladen …“.**
+`@defer (on viewport)` lädt das Dashboard erst, wenn dieser Text sichtbar wird.
+Auf kleinen Bildschirmen bis zur Überschrift „Dashboard“ scrollen.
+Danach erscheint die Kachel.
+
+**Konsole meldet `NG0751` bei `npm start`.**
+Die Konsole des Browsers zeigt ``NG0751: Angular has detected that this application contains `@defer` blocks and the hot module replacement (HMR) mode is enabled. All `@defer` block dependencies will be loaded eagerly.``
+HMR (Hot Module Replacement) tauscht geänderte Teile der App im Browser aus, ohne die ganze Seite neu zu laden.
+Der Entwicklungsserver nutzt es, und dabei lädt Angular die Pakete des Dashboards sofort mit.
+Die Meldung ist harmlos.
+Der Build mit `npm run build`, den auch das Docker-Image nutzt, lädt das Dashboard erst später.
+
+**`npm test` meldet `WARN [web-server]: 404: /base/media/roboto-latin-…`.**
+Die Tests der Demo-App nutzen die globalen Styles aus `angular.json`, auch die vorgeschlagene Schrift Roboto aus `@fontsource/roboto`.
+Der Testrunner Karma liefert die Schriftdateien im Test aber nicht aus.
+Daher kommen vier Warnungen für `roboto-latin-400-normal` und `roboto-latin-500-normal`, je als `.woff2` und `.woff`.
+Die Tests laufen trotzdem durch und enden mit `TOTAL: 3 SUCCESS`.
+
 ## 10 Weiterarbeiten in WW2
 
 Die Bibliothek ist absichtlich klein.
@@ -521,6 +719,54 @@ Weitere Schritte im Workshop:
 - `core` und `fhir` in eigene npm-Pakete auslagern, sobald eine andere Oberfläche sie als Paket installieren soll
 - für Daten, die einen Neustart überleben, HAPI mit PostgreSQL betreiben. Die passende `compose.yaml` steht im Workshop-Material auf Folie 80.
 - später die Anmeldung über [SMART App Launch](https://hl7.org/fhir/smart-app-launch/) ergänzen. Das Paket `fhirclient` unterstützt diesen Ablauf mit OAuth 2.0, einem Standard für die Freigabe von Zugriffen.
+
+### Vorschlag: Bibliotheken für das Dashboard
+
+Das Dashboard-Beispiel aus Abschnitt 5 nutzt Angular Material mit CDK, gridstack, Chart.js mit ng2-charts und die Schrift Roboto aus `@fontsource/roboto`.
+Diese Bibliotheken sind ein Vorschlag.
+Sie sind installiert, damit das Beispiel läuft.
+Im Workshop lassen sie sich durch andere ersetzen.
+Stand der Angaben: 06.11.2026.
+Versionen stammen von der npm-Registry, Lizenzen aus den Lizenzdateien der Pakete.
+
+| Paket | Version | Lizenz | Aufgabe im Beispiel | Warum vorgeschlagen | Grenzen |
+|---|---|---|---|---|---|
+| Angular Material und CDK (`@angular/material`, `@angular/cdk`) | 22.2.6 | MIT | Karte um die Kachel, fertiges Theme `azure-blue.css` | Das Patientenportal nutzt Angular Material ebenfalls. Es kommt vom Angular-Team und passt zu Angular 22.2. | Nur für Angular, denn beide Pakete setzen `@angular/core` voraus. Eine Oberfläche mit Vue kann sie nicht nutzen. Das Beispiel nutzt nur die Karte und ein fertiges Theme. |
+| gridstack | 14.1.0 | MIT | Raster mit 12 Spalten, darin eine feste Kachel | Es bringt eigene Anbindungen für Angular, React und Vue mit, etwa `gridstack/dist/angular` und `gridstack/dist/vue`. Eine Oberfläche mit Vue kann deshalb dieselbe Bibliothek nutzen. | Kacheln lassen sich nicht per Tastatur verschieben. gridstack wertet Tasten nur während eines Zugs mit der Maus aus, etwa `Esc` zum Abbrechen. Es setzt keine Attribute wie `aria-label`, die einem Screenreader Rolle oder Zustand mitteilen. Die Hauptversionen wechseln schnell. Laut npm-Registry erschien 13.0.0 am 19.07.2026 und 14.0.0 am 21.09.2026. Deshalb ist die Version genau festgelegt. |
+| Chart.js mit ng2-charts (`chart.js`, `ng2-charts`) | 4.6.1 und 11.0.0 | MIT | Liniendiagramm in der Kachel | Das Patientenportal nutzt dieselben beiden Pakete. | Chart.js zeichnet in ein Canvas. Jedes Diagramm braucht deshalb eine eigene Textalternative für Screenreader. |
+| `@fontsource/roboto` | 5.3.0 | OFL-1.1 | Schrift Roboto für das Theme und die Demo-App | Die Schrift kommt vom eigenen Server statt von Google Fonts. So geht beim Seitenaufruf keine Anfrage an Google. | Eingebunden ist nur die Teilmenge `latin` in den Schriftstärken 400 und 500, also normal und mittel. |
+
+**Alternativen mit freier Lizenz.**
+
+- angular-gridster2 22.0.0 (MIT) ist ein Raster nur für Angular. Eine Oberfläche mit Vue könnte es nicht nutzen.
+- Apache ECharts 6.1.0 (Apache-2.0) mit ngx-echarts 22.0.0 (MIT) zeichnet Diagramme wie Chart.js. ngx-echarts verlangt Angular ab 22.0.0.
+
+**Wegen der Lizenz nicht geeignet.**
+
+- PrimeNG 22 verlangt laut seiner Datei `LICENSE.md` einen Lizenzschlüssel, geprüft mit Version 22.1.4. Die kostenlose Community License schließt laut primeui.dev Universitäten und andere Bildungseinrichtungen als Organisation aus.
+- Highcharts steht unter einer eigenen Lizenz der Firma Highsoft, dem Standard License Agreement, und nicht unter einer freien Lizenz wie MIT.
+- Die kommerziellen Komponentensammlungen Kendo UI for Angular und Syncfusion verlangen einen Lizenzschlüssel. Die kostenlose Community License von Syncfusion schließt Organisationen aus, die sich aus Steuern finanzieren.
+
+**Eine Bibliothek ersetzen.**
+Die Schritte am Beispiel von gridstack:
+
+1. Das Paket mit `npm uninstall gridstack` entfernen. In einer Kopie des Repositorys meldete npm am 06.11.2026 `removed 1 package, and audited 605 packages in 2s`. Danach brach `npx ng build fhir-vitals` mit `error TS2307: Cannot find module 'gridstack' or its corresponding type declarations.` in `vitals-dashboard.ts` ab. Die Meldungen zeigen so die Stellen, die sich ändern müssen.
+2. Das neue Paket mit `npm install <paket>` installieren. npm meldet dann eine Zeile `added … packages`.
+3. In `angular.json` unter `styles` die Zeile `gridstack/dist/gridstack.min.css` entfernen und, falls nötig, die CSS-Datei des neuen Pakets eintragen.
+4. In `projects/fhir-vitals/package.json` die peerDependency und ihren Eintrag unter `peerDependenciesMeta` auf das neue Paket ändern.
+5. In `eslint.config.js` das Muster `dashboardPackages` anpassen. Dann meldet `npm run lint` einen Import des neuen Pakets in `core`, `fhir`, `angular/data` oder `angular/ui` als Fehler.
+6. Die Komponenten in `projects/fhir-vitals/angular/dashboard/src/lib` umbauen, dazu ihre Tests.
+7. `npm run lint` und `npm test` ausführen. Die erwartete Ausgabe beschreibt Abschnitt 4.
+
+**Ideen für das Dashboard im Workshop.**
+Diese Punkte sind Hinweise und keine fertige Lösung.
+
+- Kacheln verschiebbar und in der Größe änderbar machen. In gridstack schaltet `staticGrid: false` das Ziehen mit der Maus wieder ein.
+- weitere Kachelarten ergänzen, etwa einen Pulsverlauf oder die letzte Messung in großen Ziffern. Neue Komponenten wie in Abschnitt 4 mit `--path projects/fhir-vitals/angular/dashboard/src/lib` anlegen.
+- das Layout, also die Anordnung der Kacheln mit Spalte, Zeile, Breite und Höhe, als JSON in `core` beschreiben. Zum Speichern einen Port in `core` und einen Adapter in `fhir` ergänzen, etwa für den Speicher des Browsers oder einen Server. So kann auch eine Oberfläche mit Vue dasselbe Layout nutzen.
+- die Messwerte zusätzlich als Tabelle zeigen. Ein Screenreader kann eine Tabelle Zelle für Zelle vorlesen. Die Tabelle ergänzt so die Textalternative des Diagramms.
+- eine Bedienung ohne Ziehen anbieten, etwa Knöpfe „Nach links“ oder „Breiter“ an jeder Kachel. Kriterium 2.5.7 „Dragging Movements“ der WCAG 2.2 verlangt für jede Funktion mit Ziehen einen Weg ohne Ziehen, etwa durch einfaches Klicken. Knöpfe funktionieren außerdem mit der Tastatur.
+- schmale Fenster beachten. In der Ansicht mit einer Spalte meldet gridstack Positionen für eine Spalte. Im Test am 06.11.2026 hatte die Kachel bei 560 Pixeln Fensterbreite in gridstack die Breite 1 statt 8. Solche Positionen dürfen ein gespeichertes Layout mit 12 Spalten nicht überschreiben.
 
 ## 11 Sprachmodelle im Studium
 
@@ -607,10 +853,33 @@ Regeln für die Nutzung:
 | Validator | ein Programm, das eine FHIR-Ressource gegen den Standard, ihre Profile und die Codesysteme prüft |
 | GitHub Pages | ein Dienst von GitHub, der statische Webseiten aus einem Repository veröffentlicht |
 | CORS | eine Regel im Browser. Eine Seite darf Antworten von einem anderen Ursprung, etwa einem anderen Port, nur lesen, wenn der Server das erlaubt. Vor Anfragen wie PUT fragt der Browser den Server vorher um Erlaubnis. |
+| Dashboard | eine Übersicht aus Kacheln. Der Starter enthält nur ein minimales Beispiel mit einer festen Kachel. Das eigentliche Dashboard entsteht im Workshop. |
+| Kachel | ein Rechteck im Dashboard mit Titel und Inhalt, hier „Blutdruckverlauf“ |
+| Raster | die Einteilung des Dashboards in Spalten und Zeilen, hier 12 Spalten und Zeilen von 80 Pixeln Höhe. Im Beispiel verwaltet es die vorgeschlagene Bibliothek gridstack. |
+| Layout | die Anordnung der Kacheln mit Spalte, Zeile, Breite und Höhe. Das Beispiel hat nur eine feste Kachel und speichert kein Layout. |
+| FHIR-Bundle | eine FHIR-Ressource vom Typ `Bundle`, die andere Ressourcen in der Liste `entry` sammelt. Der Typ `collection` ist eine reine Sammlung, der Typ `searchset` ein Suchergebnis. Nicht zu verwechseln mit den JavaScript-Dateien aus dem Build. |
+| Chunk | eine JavaScript-Datei aus dem Build der App. Initial Chunks lädt der Browser sofort, ein Lazy Chunk kommt später dazu. |
+| Budget | eine Obergrenze für die Größe des Builds in `angular.json`. Ab 500 kB für alle Initial Chunks warnt der Build. |
+| `@defer` | ein Block im Template, dessen Inhalt Angular in einen Lazy Chunk legt und erst später lädt, hier sobald der Platzhalter sichtbar wird |
+| HMR | Hot Module Replacement. Der Entwicklungsserver tauscht geänderte Teile der App im Browser aus, ohne die ganze Seite neu zu laden. |
+| Angular Material | eine Sammlung fertiger Komponenten wie Karten und Tabellen vom Angular-Team. Sie baut auf dem CDK (Component Dev Kit) auf. Im Beispiel ein Vorschlag. |
+| Theme | Farben, Schriften und Abstände der Material-Komponenten, hier das fertige Theme `azure-blue.css` |
+| gridstack | eine Bibliothek, die Kacheln in einem Raster anordnet. Sie kann Kacheln auch verschiebbar machen, das Beispiel nutzt das nicht. Im Beispiel ein Vorschlag. |
+| Chart.js, ng2-charts | Chart.js zeichnet Diagramme, ng2-charts bindet Chart.js an Angular an. Im Beispiel ein Vorschlag. |
+| optionale peerDependency | eine peerDependency, die das Feld `peerDependenciesMeta` mit `"optional": true` markiert. npm installiert sie nicht von selbst. |
+| Paketdatei | eine Datei `.tgz`, die `npm pack` aus einem Paket erzeugt. Sie lässt sich wie ein Paket aus der npm-Registry installieren. |
+| Modul | eine einzelne JavaScript-Datei mit eigenen Importen und Exporten |
+| esbuild | ein Build-Werkzeug, das JavaScript- und TypeScript-Dateien mit ihren Importen zu einer Datei zusammenfasst |
+| Screenreader | ein Programm, das den Inhalt einer Seite vorliest oder in Braille ausgibt |
+| Canvas | eine Zeichenfläche aus Pixeln im Browser. Im Beispiel zeichnet die vorgeschlagene Bibliothek Chart.js dort das Diagramm. Ein Screenreader kann den Inhalt nicht lesen. |
+| Textalternative | ein Text, der einen nicht lesbaren Inhalt wie ein Diagramm für Screenreader beschreibt, hier im Attribut `aria-label` |
+| Tooltip | ein kleines Feld, das beim Zeigen mit der Maus Werte oder Hinweise anzeigt |
+| WCAG | die Web Content Accessibility Guidelines des W3C, des Gremiums für Webstandards. Sie sind Richtlinien für barrierefreie Webinhalte. |
 
 ## 13 Links
 
 Stand aller Links: 05.11.2026.
+Die Links zum FHIR-Bundle und zu `$validate` und die vier Gruppen „Dashboard-Beispiel: vorgeschlagene Bibliotheken“, „Barrierefreiheit“, „npm-Paket und Vue“ und „Alternativen und ihre Lizenzen“ sind vom 06.11.2026.
 
 **Angular und Werkzeuge**
 
@@ -647,6 +916,8 @@ Stand aller Links: 05.11.2026.
 - Vital Signs: https://hl7.org/fhir/R4/observation-vitalsigns.html
 - Profil Blutdruck: https://hl7.org/fhir/R4/bp.html
 - Profile in FHIR: https://hl7.org/fhir/R4/profiling.html
+- Ressource Bundle: https://hl7.org/fhir/R4/bundle.html
+- Operation `$validate`: https://hl7.org/fhir/R4/resource-operation-validate.html
 - @types/fhir: https://www.npmjs.com/package/@types/fhir
 - fhirclient: https://docs.smarthealthit.org/client-js/ und https://github.com/smart-on-fhir/client-js
 - SMART App Launch: https://hl7.org/fhir/smart-app-launch/
@@ -682,6 +953,48 @@ Stand aller Links: 05.11.2026.
 - JSON-Schema von FHIR R4 (Download-Seite): https://hl7.org/fhir/R4/downloads.html
 - Erweiterung FHIR tools: https://marketplace.visualstudio.com/items?itemName=Yannick-Lagger.vscode-fhir-tools und https://github.com/laggery/vscode-fhir-tools
 
+**Dashboard-Beispiel: vorgeschlagene Bibliotheken**
+
+- gridstack: https://gridstackjs.com und https://github.com/gridstack/gridstack.js
+- Angular-Anbindung von gridstack: https://github.com/gridstack/gridstack.js/tree/master/angular
+- Chart.js: https://www.chartjs.org/docs/latest/
+- Chart.js, Teile einzeln anmelden: https://www.chartjs.org/docs/latest/getting-started/integration.html
+- Chart.js und Barrierefreiheit: https://www.chartjs.org/docs/latest/general/accessibility.html
+- ng2-charts: https://github.com/valor-software/ng2-charts
+- Angular Material: https://material.angular.dev
+- Themes für Angular Material: https://material.angular.dev/guide/theming
+- Karte von Angular Material: https://material.angular.dev/components/card/overview
+- Fontsource Roboto: https://fontsource.org/fonts/roboto
+- Fontsource installieren: https://fontsource.org/docs/getting-started/install
+- `@defer`: https://angular.dev/guide/templates/defer
+- Fehler `NG0751`: https://angular.dev/errors/NG0751
+
+**Barrierefreiheit**
+
+- WCAG 1.4.1 „Use of Color“: https://www.w3.org/WAI/WCAG22/Understanding/use-of-color.html
+- WCAG 2.5.7 „Dragging Movements“: https://www.w3.org/WAI/WCAG22/Understanding/dragging-movements.html
+- `prefers-reduced-motion`: https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/At-rules/@media/prefers-reduced-motion
+
+**npm-Paket und Vue**
+
+- `peerDependenciesMeta`: https://docs.npmjs.com/cli/v10/configuring-npm/package-json#peerdependenciesmeta
+- `strict-peer-deps`: https://docs.npmjs.com/cli/v10/using-npm/config#strict-peer-deps
+- `npm pack`: https://docs.npmjs.com/cli/v10/commands/npm-pack
+- `npm uninstall`: https://docs.npmjs.com/cli/v10/commands/npm-uninstall
+- Vue: https://vuejs.org
+- esbuild: https://esbuild.github.io
+
+**Alternativen und ihre Lizenzen**
+
+- angular-gridster2: https://github.com/tiberiuzuld/angular-gridster2
+- Apache ECharts: https://echarts.apache.org
+- ngx-echarts: https://github.com/xieziyu/ngx-echarts
+- PrimeUI Community License: https://primeui.dev/licenses/community
+- Lizenz von Highcharts: https://www.highcharts.com/license
+- Lizenzschlüssel für Kendo UI for Angular: https://www.telerik.com/kendo-angular-ui/components/licensing
+- Lizenzschlüssel für Syncfusion: https://ej2.syncfusion.com/angular/documentation/licensing/overview
+- Community License von Syncfusion: https://www.syncfusion.com/products/communitylicense
+
 **Sprachmodelle im Studium**
 
 - Chat AI: https://chat-ai.academiccloud.de, https://academiccloud.de/services/chatai/, https://docs.hpc.gwdg.de/services/ai-services/chat-ai/index.html, https://datenschutz.gwdg.de/services/chatai
@@ -694,6 +1007,7 @@ Gemeint ist das Repository `cross-hub-patientportal`, Ordner `apps/frontend`, St
 Die Spalte „Portal“ nennt die installierten Paketversionen aus dessen `package-lock.json`.
 Node.js, nginx und HAPI FHIR stammen aus `.nvmrc` und den Dockerfiles des Portals.
 Die Versionen des Starters stammen von der npm-Registry, von nodejs.org und von Docker Hub, Stand 05.11.2026.
+Die Zeilen für die vorgeschlagenen Pakete des Dashboard-Beispiels stammen vom 06.11.2026, auch die Spalte „Portal“.
 
 | Paket | Portal | Starter | Begründung |
 |---|---|---|---|
@@ -708,6 +1022,11 @@ Die Versionen des Starters stammen von der npm-Registry, von nodejs.org und von 
 | ESLint | ESLint 9.39.4, angular-eslint 22.0.0, typescript-eslint 8 | ESLint 10.14.0, angular-eslint 22.0.0, typescript-eslint 8.72.1 | Abweichung. Das ESLint-Team pflegt ESLint 9 seit dem 06.08.2026 nicht mehr. Die Regeln entsprechen denen des Portals. |
 | Prettier | 3.9.4 ohne eigene Einstellungen | 3.9.10 mit Standardwerten | wie im Portal: doppelte Anführungszeichen, 80 Zeichen je Zeile. Der Bereich `^3.9.4` entspricht dem Portal. Installiert ist der neuere Patch 3.9.10. |
 | @types/fhir | 0.0.44 | 0.0.44 | gleich |
+| Angular Material und CDK (`@angular/material`, `@angular/cdk`) | 22.0.3 | 22.2.6 (`~22.2.6`) | Vorschlag für das Dashboard-Beispiel. Passend zu Angular 22.2, Tilde wie bei den anderen Angular-Paketen. Das Portal nutzt Angular Material ebenfalls. 22.2.6 war am 06.11.2026 die neueste Version. |
+| gridstack | nicht genutzt | 14.1.0 (genau `14.1.0`) | Vorschlag für das Dashboard-Beispiel. Die Version ist ohne `^` festgelegt, weil die Hauptversionen schnell wechseln: 13.0.0 erschien am 19.07.2026, 14.0.0 am 21.09.2026. 14.1.0 erschien laut npm-Registry am 04.11.2026 und war am 06.11.2026 die neueste Version. |
+| Chart.js (`chart.js`) | 4.5.1 | 4.6.1 (`^4.6.1`) | Vorschlag für das Dashboard-Beispiel. Dieselbe Hauptversion wie im Portal. 4.6.1 war am 06.11.2026 die neueste Version. |
+| ng2-charts | 10.0.0 | 11.0.0 (`^11.0.0`) | Vorschlag für das Dashboard-Beispiel. Abweichung: 11.0.0 war am 06.11.2026 die neueste Version und verlangt Angular ab 22.0.0. Version 10.0.0 des Portals verlangt Angular ab 21.0.0. |
+| `@fontsource/roboto` | nicht genutzt | 5.3.0 (`^5.3.0`) | Vorschlag für das Dashboard-Beispiel. Liefert die Schrift Roboto mit der App aus, statt sie von Google Fonts zu laden. 5.3.0 war am 06.11.2026 die neueste Version. |
 | fhirclient | nicht genutzt | 3.0.1 | Das Portal nutzt einen eigenen FHIR-Zugang über `HttpClient`. Der Starter nutzt `fhirclient`, weil es ohne eigene Infrastruktur auskommt und später SMART App Launch kann. |
 | Node.js | 22 (`.nvmrc`) | 22 (`.nvmrc`), Docker `node:22.23.4-alpine` | gleiche Hauptversion. Angular 22.2 verlangt Node.js `^22.22.3`, `^24.15.0` oder `>=26.0.0`. 22.23.4 war am 05.11.2026 die neueste 22er-Version. |
 | npm | nicht festgelegt, Lock-Datei Version 3 | 10.9.8 (Feld `packageManager`), Lock-Datei Version 3 | gleiche Version der Lock-Datei |
@@ -718,6 +1037,11 @@ Die Versionen des Starters stammen von der npm-Registry, von nodejs.org und von 
 
 Der Code steht unter der Apache License 2.0, siehe `LICENSE`.
 Die genutzten Pakete haben eigene Lizenzen, etwa `fhirclient` (Apache-2.0) und `@types/fhir` (MIT).
+Die vorgeschlagenen Pakete des Dashboard-Beispiels stehen unter der MIT-Lizenz: `@angular/material`, `@angular/cdk`, `gridstack`, `chart.js` und `ng2-charts`.
+Das gilt auch für die beiden Pakete, die npm mit ihnen installiert, `@kurkle/color` für `chart.js` und `es-toolkit` für `ng2-charts`.
+Die Schrift Roboto aus `@fontsource/roboto` steht unter der SIL Open Font License 1.1 (OFL-1.1).
+Sie erlaubt, die Schrift zusammen mit Software weiterzugeben, verbietet aber, die Schrift allein zu verkaufen.
+Den Lizenztext enthält die Datei `node_modules/@fontsource/roboto/LICENSE`.
 
 Alle Daten in diesem Repository sind synthetisch.
 Es enthält keine echten Patientendaten.

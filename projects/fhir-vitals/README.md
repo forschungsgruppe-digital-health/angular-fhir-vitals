@@ -2,18 +2,45 @@
 
 Angular-Bibliothek für Vitalparameter über HL7 FHIR R4.
 
-Sie besteht aus vier Einstiegspunkten, also Teilpaketen mit eigenem Importnamen:
+Sie besteht aus fünf Einstiegspunkten, also Teilpaketen mit eigenem Importnamen:
 
-- `fhir-vitals/core` enthält den Ablauf `VitalsSync` und die Ports, ohne Angular und ohne Serverzugriff. Ein Port ist eine Schnittstelle, die beschreibt, was der Ablauf von außen braucht.
+- `fhir-vitals/core` enthält den Ablauf `VitalsSync` und die Ports, ohne Angular und ohne Serverzugriff. Ein Port ist eine Schnittstelle, die beschreibt, was der Ablauf von außen braucht. `bloodPressureHistory()` macht aus einem FHIR-Bundle, also einer Sammlung von FHIR-Ressourcen, eine Liste von Blutdruckmessungen.
 - `fhir-vitals/fhir` enthält Adapter für diese Ports mit fhirclient und mit fetch, ebenfalls ohne Angular. Ein Adapter setzt einen Port mit einer bestimmten Technik um.
 - `fhir-vitals/angular/data` ist die Angular-Datenschicht mit `FhirAssets` und `VitalsFacade`. Die Facade ist ein einfacher Zugang für Komponenten. Sie bietet den Zustand des Ablaufs als Signal an, also als Wert, dessen Änderungen Angular verfolgt.
 - `fhir-vitals/angular/ui` enthält die Komponenten `PatientCard` und `ServerStatus`. Sie bekommen ihre Daten über Inputs, also über Eigenschaften, die die einbindende Seite setzt.
+- `fhir-vitals/angular/dashboard` ist ein minimales Dashboard-Beispiel. `VitalsDashboard` zeigt eine feste Kachel, also ein Rechteck mit Titel und Inhalt, mit dem Blutdruckverlauf aus `BloodPressureChart`. Die Messwerte kommen über das Input `history`. Das Beispiel nutzt gridstack für das Raster, Chart.js über ng2-charts für das Diagramm und Angular Material für die Karte. Diese Bibliotheken sind ein Vorschlag und lassen sich austauschen.
 
 Der Paketname `fhir-vitals` allein ist ein leerer Platzhalter, und `fhir-vitals/angular` ist kein Einstiegspunkt.
 
-Andere UI-Frameworks wie Vue können den Code von `fhir-vitals/core` und `fhir-vitals/fhir` nutzen.
-Als npm-Paket bringt `fhir-vitals` aber noch Angular als peerDependency mit.
+## peerDependencies
+
 Eine peerDependency ist ein Paket, das die Bibliothek voraussetzt, das aber die einbindende Anwendung selbst installiert.
+Pflicht sind `fhirclient` und `@types/fhir`.
+Optional sind `@angular/core`, `@angular/common`, `@angular/cdk`, `@angular/material`, `chart.js`, `gridstack` und `ng2-charts`.
+npm installiert optionale peerDependencies nicht von selbst.
+Eine App mit Vue, einem anderen Framework für Webanwendungen, die nur `fhir-vitals/core` und `fhir-vitals/fhir` nutzt, bekommt deshalb weder Angular noch die vorgeschlagenen Bibliotheken des Dashboards.
+Eine Angular-App installiert für `angular/data` und `angular/ui` die Angular-Pakete selbst.
+Für `angular/dashboard` kommen `@angular/cdk`, `@angular/material`, `chart.js`, `gridstack` und `ng2-charts` dazu.
+
+## Globale Styles für das Dashboard-Beispiel
+
+gridstack braucht eigene Styles für Elemente, für die die Styles einer Komponente nicht gelten.
+Angular Material braucht ein Theme, also Farben, Schriften und Abstände für seine Komponenten.
+In einer Angular-App stehen beide unter `styles` in `angular.json`.
+Die Demo-App nutzt diese Einträge:
+
+```json
+"styles": [
+  "@fontsource/roboto/latin-400.css",
+  "@fontsource/roboto/latin-500.css",
+  "@angular/material/prebuilt-themes/azure-blue.css",
+  "gridstack/dist/gridstack.min.css",
+  "projects/demo-app/src/styles.css"
+]
+```
+
+Ohne `gridstack/dist/gridstack.min.css` füllt die Karte die Kachel nicht aus.
+Die ebenfalls vorgeschlagene Schrift Roboto kommt aus dem Paket `@fontsource/roboto` vom eigenen Server statt von Google Fonts.
 
 Aufbau, Regeln zwischen den Schichten, Befehle und Hintergründe stehen im [README des Repositorys](https://github.com/forschungsgruppe-digital-health/angular-fhir-vitals#readme).
 

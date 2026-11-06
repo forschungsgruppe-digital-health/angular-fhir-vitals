@@ -7,7 +7,13 @@ const prettier = require("eslint-config-prettier");
 
 // Layer rules of the library. Each folder may import only what its block allows.
 // A later block for the same files would replace these options, so the folders never overlap.
-const entryPoints = ["core", "fhir", "angular/data", "angular/ui"];
+const entryPoints = [
+  "core",
+  "fhir",
+  "angular/data",
+  "angular/ui",
+  "angular/dashboard",
+];
 const entryPointsOnly = [
   {
     regex: `^fhir-vitals(/(?!(${entryPoints.join("|")})$)|$)`,
@@ -16,11 +22,17 @@ const entryPointsOnly = [
       .join(", ")}.`,
   },
   {
-    regex: "^(\\.{1,2}/)+(.*/)?(core|fhir|data|ui)/src(/|$)",
+    regex: "^(\\.{1,2}/)+(.*/)?(core|fhir|data|ui|dashboard)/src(/|$)",
     message:
       "Andere Schichten über ihren Paketnamen importieren, nie über einen relativen Pfad.",
   },
 ];
+// gridstack, Chart.js and ng2-charts stay in their own entry point, so they never load with the rest.
+const dashboardPackages = {
+  regex: "^(gridstack|chart\\.js|ng2-charts)(/|$)",
+  message:
+    "Diese Pakete gehören nach fhir-vitals/angular/dashboard, damit die App sie erst lädt, wenn das Dashboard erscheint.",
+};
 const frameworkFree = {
   regex: "^(@angular/|rxjs(/|$)|zone\\.js(/|$)|vue$|@vue/)",
   message:
@@ -83,21 +95,31 @@ module.exports = defineConfig(
     },
   },
   // core: domain, ports and flows. Plain TypeScript without frameworks and without server access.
-  layer("core", frameworkFree, {
-    regex: "^(fhirclient|fhir-vitals)(/|$)",
-    message:
-      "core hängt von keinem anderen Teil ab und spricht nicht selbst mit Servern.",
-  }),
+  layer(
+    "core",
+    frameworkFree,
+    {
+      regex: "^(fhirclient|fhir-vitals)(/|$)",
+      message:
+        "core hängt von keinem anderen Teil ab und spricht nicht selbst mit Servern.",
+    },
+    dashboardPackages,
+  ),
   // fhir: adapters for the ports of core, also without frameworks.
-  layer("fhir", frameworkFree, {
-    regex: "^fhir-vitals/(fhir|angular/.+)$",
-    message: "Die Adapter kennen nur fhir-vitals/core.",
-  }),
+  layer(
+    "fhir",
+    frameworkFree,
+    {
+      regex: "^fhir-vitals/(fhir|angular/.+)$",
+      message: "Die Adapter kennen nur fhir-vitals/core.",
+    },
+    dashboardPackages,
+  ),
   // angular/data: the Angular data layer. It uses core and the adapters, but never the UI.
   layer(
     "angular/data",
     {
-      regex: "^fhir-vitals/angular/(data|ui)$",
+      regex: "^fhir-vitals/angular/(data|ui|dashboard)$",
       message:
         "Die Datenschicht kennt die UI nicht. Innerhalb der eigenen Schicht relativ importieren.",
     },
@@ -105,12 +127,13 @@ module.exports = defineConfig(
       regex: "^fhirclient(/|$)",
       message: "Serverzugriff nur über die Adapter in fhir-vitals/fhir.",
     },
+    dashboardPackages,
   ),
   // angular/ui: Angular components. They get data through inputs and never load it themselves.
   layer(
     "angular/ui",
     {
-      regex: "^fhir-vitals/(fhir|angular/(data|ui))$",
+      regex: "^fhir-vitals/(fhir|angular/(data|ui|dashboard))$",
       message:
         "Die UI importiert nur fhir-vitals/core. Daten kommen über Inputs, verbunden wird in der App.",
     },
@@ -118,12 +141,28 @@ module.exports = defineConfig(
       regex: "^(fhirclient|@angular/common/http)(/|$)",
       message: "Die UI spricht nicht selbst mit Servern.",
     },
+    dashboardPackages,
   ),
-  // core and the UI never talk to servers, not even through browser globals.
+  // angular/dashboard: the minimal dashboard example with gridstack, Chart.js and Angular Material.
+  // Like the UI it gets its data through inputs.
+  layer(
+    "angular/dashboard",
+    {
+      regex: "^fhir-vitals/(fhir|angular/(data|ui|dashboard))$",
+      message:
+        "Das Dashboard importiert nur fhir-vitals/core. Daten kommen über Inputs. Innerhalb der eigenen Schicht relativ importieren.",
+    },
+    {
+      regex: "^(fhirclient|@angular/common/http)(/|$)",
+      message: "Das Dashboard spricht nicht selbst mit Servern.",
+    },
+  ),
+  // core, the UI and the dashboard never talk to servers, not even through browser globals.
   {
     files: [
       "projects/fhir-vitals/core/**/*.ts",
       "projects/fhir-vitals/angular/ui/**/*.ts",
+      "projects/fhir-vitals/angular/dashboard/**/*.ts",
     ],
     rules: {
       "no-restricted-globals": [

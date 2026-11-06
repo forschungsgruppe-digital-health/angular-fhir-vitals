@@ -1,6 +1,10 @@
-import type { Observation, Patient } from "fhir/r4";
+import type { Bundle, Observation, Patient } from "fhir/r4";
 
-import { formatBloodPressure } from "./blood-pressure";
+import {
+  type BloodPressurePoint,
+  bloodPressureHistory,
+  formatBloodPressure,
+} from "./blood-pressure";
 import type {
   ConnectToServer,
   FhirServerConnection,
@@ -9,6 +13,8 @@ import type {
 
 export const EXAMPLE_PATIENT = "assets/fhir/patient.json";
 export const EXAMPLE_BLOOD_PRESSURE = "assets/fhir/blutdruck.json";
+export const EXAMPLE_BLOOD_PRESSURE_HISTORY =
+  "assets/fhir/blutdruck-verlauf.json";
 
 // Codes instead of texts, so every UI can choose its own wording and language.
 export type ConnectionStatus =
@@ -23,6 +29,8 @@ export interface VitalsState {
   readonly patient: Patient | null;
   readonly status: ConnectionStatus;
   readonly bloodPressure: string | null;
+  // Measurements for charts and tables, oldest first.
+  readonly history: readonly BloodPressurePoint[];
   readonly error: string | null;
 }
 
@@ -30,6 +38,7 @@ export const INITIAL_STATE: VitalsState = {
   patient: null,
   status: "checking",
   bloodPressure: null,
+  history: [],
   error: null,
 };
 
@@ -87,7 +96,7 @@ export class VitalsSync {
     await this.sync();
   }
 
-  // Loads patient and server address. If that fails, the next reconnect() tries again.
+  // Loads patient, measurement history and server address. If that fails, the next reconnect() tries again.
   private async prepare(): Promise<boolean> {
     if (!this.readBaseUrl) {
       return false;
@@ -97,6 +106,10 @@ export class VitalsSync {
       this.update({
         patient: await this.loader.load<Patient>(EXAMPLE_PATIENT),
       });
+      const bundle = await this.loader.load<Bundle>(
+        EXAMPLE_BLOOD_PRESSURE_HISTORY,
+      );
+      this.update({ history: bloodPressureHistory(bundle) });
       this.baseUrl = await this.readBaseUrl();
     } catch (error) {
       this.update({ status: "failed", error: errorMessage(error) });

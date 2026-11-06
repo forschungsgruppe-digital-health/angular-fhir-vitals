@@ -5,3 +5,14 @@
 
 <h2>FHIR-Server</h2>
 <lib-server-status [state]="vitals.state()" (reconnect)="vitals.reconnect()" />
+
+<h2>Dashboard</h2>
+<p>
+  Minimales Beispiel mit einer festen Kachel. gridstack, Angular Material und
+  Chart.js sind ein Vorschlag und lassen sich austauschen.
+</p>
+@defer (on viewport) {
+  <lib-vitals-dashboard [history]="vitals.state().history" />
+} @placeholder {
+  <p>Dashboard wird geladen …</p>
+}

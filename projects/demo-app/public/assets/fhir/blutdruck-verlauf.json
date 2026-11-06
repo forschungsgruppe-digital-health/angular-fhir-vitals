@@ -1,0 +1,280 @@
+{
+  "resourceType": "Bundle",
+  "id": "blutdruck-verlauf",
+  "type": "collection",
+  "entry": [
+    {
+      "fullUrl": "https://example.org/fhir/Observation/blutdruck-verlauf-01",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "blutdruck-verlauf-01",
+        "meta": { "profile": ["http://hl7.org/fhir/StructureDefinition/bp"] },
+        "status": "final",
+        "category": [{
+          "coding": [{
+            "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+            "code": "vital-signs",
+            "display": "Vital Signs"
+          }]
+        }],
+        "code": {
+          "coding": [{ "system": "http://loinc.org", "code": "85354-9", "display": "Blood pressure panel with all children optional" }],
+          "text": "Blutdruck"
+        },
+        "subject": { "reference": "Patient/beispiel-01" },
+        "effectiveDateTime": "2026-05-26T07:40:00+02:00",
+        "performer": [{ "reference": "Patient/beispiel-01" }],
+        "component": [
+          {
+            "code": {
+              "coding": [{ "system": "http://loinc.org", "code": "8480-6", "display": "Systolic blood pressure" }],
+              "text": "systolisch"
+            },
+            "valueQuantity": { "value": 112, "unit": "mmHg", "system": "http://unitsofmeasure.org", "code": "mm[Hg]" }
+          },
+          {
+            "code": {
+              "coding": [{ "system": "http://loinc.org", "code": "8462-4", "display": "Diastolic blood pressure" }],
+              "text": "diastolisch"
+            },
+            "valueQuantity": { "value": 72, "unit": "mmHg", "system": "http://unitsofmeasure.org", "code": "mm[Hg]" }
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "https://example.org/fhir/Observation/blutdruck-verlauf-02",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "blutdruck-verlauf-02",
+        "meta": { "profile": ["http://hl7.org/fhir/StructureDefinition/bp"] },
+        "status": "final",
+        "category": [{
+          "coding": [{
+            "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+            "code": "vital-signs",
+            "display": "Vital Signs"
+          }]
+        }],
+        "code": {
+          "coding": [{ "system": "http://loinc.org", "code": "85354-9", "display": "Blood pressure panel with all children optional" }],
+          "text": "Blutdruck"
+        },
+        "subject": { "reference": "Patient/beispiel-01" },
+        "effectiveDateTime": "2026-05-27T07:30:00+02:00",
+        "performer": [{ "reference": "Patient/beispiel-01" }],
+        "component": [
+          {
+            "code": {
+              "coding": [{ "system": "http://loinc.org", "code": "8480-6", "display": "Systolic blood pressure" }],
+              "text": "systolisch"
+            },
+            "valueQuantity": { "value": 108, "unit": "mmHg", "system": "http://unitsofmeasure.org", "code": "mm[Hg]" }
+          },
+          {
+            "code": {
+              "coding": [{ "system": "http://loinc.org", "code": "8462-4", "display": "Diastolic blood pressure" }],
+              "text": "diastolisch"
+            },
+            "valueQuantity": { "value": 70, "unit": "mmHg", "system": "http://unitsofmeasure.org", "code": "mm[Hg]" }
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "https://example.org/fhir/Observation/blutdruck-verlauf-03",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "blutdruck-verlauf-03",
+        "meta": { "profile": ["http://hl7.org/fhir/StructureDefinition/bp"] },
+        "status": "final",
+        "category": [{
+          "coding": [{
+            "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+            "code": "vital-signs",
+            "display": "Vital Signs"
+          }]
+        }],
+        "code": {
+          "coding": [{ "system": "http://loinc.org", "code": "85354-9", "display": "Blood pressure panel with all children optional" }],
+          "text": "Blutdruck"
+        },
+        "subject": { "reference": "Patient/beispiel-01" },
+        "effectiveDateTime": "2026-05-28T07:45:00+02:00",
+        "performer": [{ "reference": "Patient/beispiel-01" }],
+        "component": [
+          {
+            "code": {
+              "coding": [{ "system": "http://loinc.org", "code": "8480-6", "display": "Systolic blood pressure" }],
+              "text": "systolisch"
+            },
+            "valueQuantity": { "value": 115, "unit": "mmHg", "system": "http://unitsofmeasure.org", "code": "mm[Hg]" }
+          },
+          {
+            "code": {
+              "coding": [{ "system": "http://loinc.org", "code": "8462-4", "display": "Diastolic blood pressure" }],
+              "text": "diastolisch"
+            },
+            "valueQuantity": { "value": 74, "unit": "mmHg", "system": "http://unitsofmeasure.org", "code": "mm[Hg]" }
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "https://example.org/fhir/Observation/blutdruck-verlauf-04",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "blutdruck-verlauf-04",
+        "meta": { "profile": ["http://hl7.org/fhir/StructureDefinition/bp"] },
+        "status": "final",
+        "category": [{
+          "coding": [{
+            "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+            "code": "vital-signs",
+            "display": "Vital Signs"
+          }]
+        }],
+        "code": {
+          "coding": [{ "system": "http://loinc.org", "code": "85354-9", "display": "Blood pressure panel with all children optional" }],
+          "text": "Blutdruck"
+        },
+        "subject": { "reference": "Patient/beispiel-01" },
+        "effectiveDateTime": "2026-05-29T07:35:00+02:00",
+        "performer": [{ "reference": "Patient/beispiel-01" }],
+        "component": [
+          {
+            "code": {
+              "coding": [{ "system": "http://loinc.org", "code": "8480-6", "display": "Systolic blood pressure" }],
+              "text": "systolisch"
+            },
+            "valueQuantity": { "value": 110, "unit": "mmHg", "system": "http://unitsofmeasure.org", "code": "mm[Hg]" }
+          },
+          {
+            "code": {
+              "coding": [{ "system": "http://loinc.org", "code": "8462-4", "display": "Diastolic blood pressure" }],
+              "text": "diastolisch"
+            },
+            "valueQuantity": { "value": 71, "unit": "mmHg", "system": "http://unitsofmeasure.org", "code": "mm[Hg]" }
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "https://example.org/fhir/Observation/blutdruck-verlauf-05",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "blutdruck-verlauf-05",
+        "meta": { "profile": ["http://hl7.org/fhir/StructureDefinition/bp"] },
+        "status": "final",
+        "category": [{
+          "coding": [{
+            "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+            "code": "vital-signs",
+            "display": "Vital Signs"
+          }]
+        }],
+        "code": {
+          "coding": [{ "system": "http://loinc.org", "code": "85354-9", "display": "Blood pressure panel with all children optional" }],
+          "text": "Blutdruck"
+        },
+        "subject": { "reference": "Patient/beispiel-01" },
+        "effectiveDateTime": "2026-05-30T08:05:00+02:00",
+        "performer": [{ "reference": "Patient/beispiel-01" }],
+        "component": [
+          {
+            "code": {
+              "coding": [{ "system": "http://loinc.org", "code": "8480-6", "display": "Systolic blood pressure" }],
+              "text": "systolisch"
+            },
+            "valueQuantity": { "value": 106, "unit": "mmHg", "system": "http://unitsofmeasure.org", "code": "mm[Hg]" }
+          },
+          {
+            "code": {
+              "coding": [{ "system": "http://loinc.org", "code": "8462-4", "display": "Diastolic blood pressure" }],
+              "text": "diastolisch"
+            },
+            "valueQuantity": { "value": 68, "unit": "mmHg", "system": "http://unitsofmeasure.org", "code": "mm[Hg]" }
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "https://example.org/fhir/Observation/blutdruck-verlauf-06",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "blutdruck-verlauf-06",
+        "meta": { "profile": ["http://hl7.org/fhir/StructureDefinition/bp"] },
+        "status": "final",
+        "category": [{
+          "coding": [{
+            "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+            "code": "vital-signs",
+            "display": "Vital Signs"
+          }]
+        }],
+        "code": {
+          "coding": [{ "system": "http://loinc.org", "code": "85354-9", "display": "Blood pressure panel with all children optional" }],
+          "text": "Blutdruck"
+        },
+        "subject": { "reference": "Patient/beispiel-01" },
+        "effectiveDateTime": "2026-05-31T08:10:00+02:00",
+        "performer": [{ "reference": "Patient/beispiel-01" }],
+        "component": [
+          {
+            "code": {
+              "coding": [{ "system": "http://loinc.org", "code": "8480-6", "display": "Systolic blood pressure" }],
+              "text": "systolisch"
+            },
+            "valueQuantity": { "value": 109, "unit": "mmHg", "system": "http://unitsofmeasure.org", "code": "mm[Hg]" }
+          },
+          {
+            "code": {
+              "coding": [{ "system": "http://loinc.org", "code": "8462-4", "display": "Diastolic blood pressure" }],
+              "text": "diastolisch"
+            },
+            "valueQuantity": { "value": 69, "unit": "mmHg", "system": "http://unitsofmeasure.org", "code": "mm[Hg]" }
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "https://example.org/fhir/Observation/blutdruck-01",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "blutdruck-01",
+        "meta": { "profile": ["http://hl7.org/fhir/StructureDefinition/bp"] },
+        "status": "final",
+        "category": [{
+          "coding": [{
+            "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+            "code": "vital-signs",
+            "display": "Vital Signs"
+          }]
+        }],
+        "code": {
+          "coding": [{ "system": "http://loinc.org", "code": "85354-9", "display": "Blood pressure panel with all children optional" }],
+          "text": "Blutdruck"
+        },
+        "subject": { "reference": "Patient/beispiel-01" },
+        "effectiveDateTime": "2026-06-01T07:35:00+02:00",
+        "performer": [{ "reference": "Patient/beispiel-01" }],
+        "component": [
+          {
+            "code": {
+              "coding": [{ "system": "http://loinc.org", "code": "8480-6", "display": "Systolic blood pressure" }],
+              "text": "systolisch"
+            },
+            "valueQuantity": { "value": 104, "unit": "mmHg", "system": "http://unitsofmeasure.org", "code": "mm[Hg]" }
+          },
+          {
+            "code": {
+              "coding": [{ "system": "http://loinc.org", "code": "8462-4", "display": "Diastolic blood pressure" }],
+              "text": "diastolisch"
+            },
+            "valueQuantity": { "value": 66, "unit": "mmHg", "system": "http://unitsofmeasure.org", "code": "mm[Hg]" }
+          }
+        ]
+      }
+    }
+  ]
+}
