@@ -15,7 +15,7 @@ Sie enthält eine Kennung `4711`, den Namen „Herr K.“, das Geschlecht `male`
 Sie folgt dem [Blutdruckprofil](https://hl7.org/fhir/R4/bp.html) aus FHIR R4.
 Ein Profil legt fest, welche Felder und Codes eine Ressource für einen bestimmten Zweck haben muss.
 Ein Code ist hier eine feste Kennung aus einem Codesystem, etwa `8480-6` für den systolischen Wert, und hat mit Programmcode nichts zu tun.
-Mit dem Profil in Compose aus [README, Abschnitt 3](../../README.md#3-schnellstart) hat der Begriff Profil nichts zu tun.
+Mit dem Profil in Compose aus [README, Abschnitt 3.6](../../README.md#36-ausblick-auf-das-nächste-semester) hat der Begriff Profil nichts zu tun.
 
 | Feld | Wert | Bedeutung |
 |---|---|---|
@@ -81,7 +81,8 @@ Steht in `patient.json` bei `gender` zum Beispiel der Wert `mann`, lautet die Me
 Für die drei Beispieldateien gibt es keine Meldung.
 VS Code lädt das Schema beim ersten Öffnen einer solchen Datei von hl7.org.
 Dafür muss der Ordner als vertrauenswürdig gelten.
-VS Code öffnet einen neuen Ordner zunächst im eingeschränkten Modus, englisch Restricted Mode, und zeigt oben einen Hinweis mit dem Link „Manage“.
+Laut VS Code erscheint beim ersten Öffnen eines Ordners die Frage, ob die Autoren der Dateien vertrauenswürdig sind, siehe [README, Abschnitt 3.3](../../README.md#33-demo-app-weiterentwickeln-im-dev-container).
+Ohne dieses Vertrauen öffnet VS Code den Ordner im eingeschränkten Modus, englisch Restricted Mode, und zeigt oben einen Hinweis mit dem Link „Manage“.
 In diesem Modus prüft VS Code die FHIR-Dateien nicht gegen das Schema, und die Erweiterung FHIR tools bleibt abgeschaltet.
 „Manage“ klicken und im folgenden Fenster „Trust“ wählen.
 Danach verschwindet der Hinweis, und die Prüfung beginnt.
@@ -101,7 +102,7 @@ Die Erweiterung selbst lief für diese Dokumentation nicht.
 ## Dev-Container und Werkzeuge
 
 **Dev-Container.**
-`.devcontainer/devcontainer.json` beschreibt den Dev-Container aus Variante D in [README, Abschnitt 3](../../README.md#3-schnellstart).
+`.devcontainer/devcontainer.json` beschreibt den Dev-Container aus [README, Abschnitt 3.3](../../README.md#33-demo-app-weiterentwickeln-im-dev-container).
 Sein Image entsteht aus `.devcontainer/Dockerfile`.
 Mit dem `Dockerfile` im Wurzelverzeichnis hat es nichts zu tun, denn dieses baut das Image der Demo-App mit nginx für die Auslieferung.
 Das Image des Dev-Containers beruht auf `mcr.microsoft.com/devcontainers/javascript-node` mit Node.js 22.
@@ -112,6 +113,10 @@ Ohne weitere Einstellung bricht Chromium im Container deshalb mit `No usable san
 Die Datei `/etc/chromium.d/no-sandbox` im Image schaltet die Sandbox ab.
 Karma öffnet in diesem Browser nur die Tests des Projekts.
 `CHROME_BIN` nennt Karma den Pfad zu Chromium.
+Im Image steht `localhost` zuerst für die IPv6-Adresse `::1`.
+Der Entwicklungsserver lauschte deshalb nur unter `[::1]:4200`, und die Weiterleitung von VS Code erreichte ihn nicht.
+`NODE_OPTIONS=--dns-result-order=ipv4first` lässt Node.js die IPv4-Adresse `127.0.0.1` wählen.
+`npm start` zeigt deshalb im Container `Local: http://127.0.0.1:4200/`.
 
 Der Ordner `node_modules` liegt im Dev-Container in einem eigenen Volume, also einem Speicherbereich, den Docker selbst verwaltet und in den Container einbindet.
 So ersetzen die Pakete für Linux nie die Pakete des eigenen Rechners.
@@ -133,8 +138,10 @@ Nur im Container ist die Erweiterung Prettier sicher installiert.
 VS Code leitet Port 4200 an den eigenen Rechner weiter.
 Port 9876 von Karma braucht nur der Browser im Container.
 Deshalb leitet VS Code ihn nicht von selbst weiter.
-Diese Angaben zu VS Code stammen aus der Dokumentation von VS Code und der Spezifikation von `devcontainer.json`.
-Ein Test in VS Code selbst fehlt noch.
+Am 17.11.2026 lief der Dev-Container unter macOS in VS Code 1.141.1 mit der Erweiterung Dev Containers 0.473.0.
+VS Code installierte dabei alle sechs Erweiterungen im Container und leitete Port 4200 weiter.
+Dass Prettier beim Speichern formatiert und VS Code Port 9876 nicht weiterleitet, stammt aus der Dokumentation von VS Code und der Spezifikation von `devcontainer.json`.
+Ein Test unter Windows und Linux fehlt noch.
 
 **Zeilenenden.**
 Das Zeilenende ist das unsichtbare Zeichen am Ende jeder Zeile einer Textdatei.

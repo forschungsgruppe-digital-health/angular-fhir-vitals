@@ -5,6 +5,10 @@ Teil der [Architektur von fhir-vitals](README.md).
 | Begriff | Erklärung |
 |---|---|
 | Angular | ein Framework für Webanwendungen, die im Browser laufen |
+| Angular CLI | das Kommandozeilenwerkzeug `ng` von Angular. Es legt Projekte und Bausteine an, baut sie und startet Tests. |
+| TypeScript | eine Erweiterung von JavaScript um Typen. Angular-Code ist in TypeScript geschrieben. |
+| Build | übersetzt den TypeScript-Code in JavaScript-Dateien für den Browser und legt sie im Ordner `dist` ab |
+| Unit-Test | ein automatischer Test für eine einzelne Klasse oder Funktion, ohne die ganze App zu starten |
 | Asset | eine statische Datei, die die App unverändert ausliefert, etwa JSON oder Bilder aus dem Ordner `public` |
 | Bibliothek | ein Angular-Projekt mit wiederverwendbaren Services und Komponenten, das andere Anwendungen als Paket einbinden |
 | Komponente | ein Baustein der Oberfläche aus TypeScript-Klasse, HTML-Template und CSS |
@@ -42,6 +46,9 @@ Teil der [Architektur von fhir-vitals](README.md).
 | Patientenportal | eine Anwendung der Forschungsgruppe im Repository `cross-hub-patientportal`. Nach seinem Frontend richten sich die Versionen des Starters, siehe [Kapitel 2](02-randbedingungen.md). |
 | Container | ein laufender, abgeschotteter Prozess mit eigenem Dateisystem, gestartet aus einem Image |
 | Image | eine Vorlage für Container mit Betriebssystemteilen, Programmen und Dateien |
+| Docker | ein Werkzeug, das Programme aus Images in Containern startet. Unter Windows und macOS gehört es zu Docker Desktop. |
+| Docker Compose | startet mehrere Container gemeinsam nach der Beschreibung in `compose.yaml` |
+| nginx | ein Webserver. Im Image der Demo-App liefert er die gebauten Dateien aus. |
 | Volume | ein Speicherbereich, den Docker selbst verwaltet und in Container einbindet. Compose führt Volumes und Bind-Mounts unter dem Schlüssel `volumes`. |
 | Bind-Mount | eine Datei oder ein Ordner des eigenen Rechners, den Docker in einen Container einbindet. `compose.yaml` bindet so `config.json` ein. |
 | HAPI FHIR | ein FHIR-Server. Compose startet ihn mit `--profile fhir` in einem Container auf Port 8080. Das Softwareprojekt arbeitet erst im nächsten Semester damit. |
@@ -49,20 +56,29 @@ Teil der [Architektur von fhir-vitals](README.md).
 | Port | eine Nummer, unter der ein Programm auf einem Rechner erreichbar ist, etwa 4200 für die Demo-App und 8080 für HAPI |
 | Port-Weiterleitung | macht einen Port eines Containers auf dem eigenen Rechner erreichbar, etwa Port 80 von nginx als Port 4200 oder Port 4200 des Dev-Containers |
 | localhost | der Name, unter dem ein Rechner sich selbst erreicht. Im Dev-Container meint `localhost` den Container und nicht den eigenen Rechner. |
+| IPv4, IPv6 | zwei Arten von Adressen im Internet. `127.0.0.1` ist die IPv4-Adresse und `::1` die IPv6-Adresse für den eigenen Rechner. |
 | Dev-Container | ein Container, in dem die ganze Entwicklungsumgebung läuft. Visual Studio Code öffnet den Projektordner darin. Die Beschreibung steht in `.devcontainer/devcontainer.json`. |
 | Erweiterung | ein Zusatzprogramm für Visual Studio Code, etwa für Angular, ESLint oder FHIR |
 | Befehlspalette | die Eingabezeile für alle Befehle von VS Code. `F1` oder `Strg+Umschalt+P` öffnet sie, unter macOS `Cmd+Umschalt+P`. |
+| Statusleiste | die schmale Leiste am unteren Rand von VS Code. Links zeigt sie etwa „Dev Container: angular-fhir-vitals“ und rechts die Glocke für Hinweise. |
+| Terminal | ein Programm, das Befehle in Textform entgegennimmt, etwa die App Terminal unter macOS oder Ubuntu unter Windows |
 | Sandbox | ein Schutz von Chromium, der Webseiten vom übrigen System abschottet. Im Dev-Container ist sie abgeschaltet. Karma öffnet dort nur die Tests des Projekts. |
 | WSL 2 | das Windows Subsystem for Linux. Es führt Linux-Systeme wie Ubuntu unter Windows aus. Docker Desktop nutzt es unter Windows. |
 | Zeilenende | das unsichtbare Zeichen am Ende jeder Zeile einer Textdatei. Linux und macOS nutzen LF (Line Feed). Windows nutzt CRLF (Carriage Return und Line Feed). |
 | Umgebungsvariable | ein benannter Wert, den das Betriebssystem oder das Terminal an jedes gestartete Programm weitergibt, etwa `CHROME_BIN` für Karma |
 | Basis-Image | das fertige Image, auf dem ein eigenes Image aufbaut. In `.devcontainer/Dockerfile` nennt die Zeile `FROM` das Basis-Image. |
 | root | der Administrator eines Linux-Systems mit allen Rechten |
+| Node.js | eine Laufzeitumgebung für JavaScript außerhalb des Browsers. Sie führt die Angular CLI, den Build und die Tests aus. |
+| npm | der Paketmanager von Node.js. Er installiert Pakete aus der npm-Registry in den Ordner `node_modules`. |
+| `package-lock.json` | hält die genauen Versionen aller Pakete fest. `npm ci` installiert genau diese Versionen. |
 | npm-Skript | ein Eintrag unter `scripts` in `package.json`, etwa `lint`. `npm run lint` startet ihn. Für `npm start` und `npm test` genügt der Name ohne `run`. |
 | npx | startet ein Programm aus den installierten Paketen, etwa mit `npx ng` die Angular CLI aus `node_modules` |
 | Karma | der Testrunner, also das Programm, das die Unit-Tests im Browser startet |
 | Jasmine | die Bibliothek für die Unit-Tests. Sie liefert etwa `describe`, `it` und `expect`. |
+| ESLint | prüft den Code auf Fehler und Regelverstöße, ohne ihn auszuführen. Hier prüft es auch die Regeln zwischen den Schichten. |
+| Prettier | formatiert den Code einheitlich |
 | Template | das HTML einer Komponente mit Platzhaltern für ihre Daten |
+| Selektor | der Name des HTML-Elements, mit dem eine Seite eine Komponente einbindet, etwa `<lib-vitals-card>` |
 | RxJS | eine Bibliothek für Datenströme. Angular nutzt sie etwa für die Antworten von HttpClient. |
 | fhirclient | eine JavaScript-Bibliothek für den Zugriff auf FHIR-Server, hier im Adapter `FhirClientConnection` |
 | fetch | die eingebaute Funktion des Browsers für HTTP-Anfragen |
@@ -78,6 +94,8 @@ Teil der [Architektur von fhir-vitals](README.md).
 | Workflow | ein automatischer Ablauf aus Jobs und Schritten, beschrieben in einer YAML-Datei unter `.github/workflows/`. Jede Ausführung heißt Lauf. |
 | Job | eine Folge von Schritten in einem Workflow, die GitHub auf einem eigenen Rechner ausführt |
 | Commit | ein gespeicherter Stand des Codes in der Versionsverwaltung Git |
+| Repository | ein Projektordner mit seiner ganzen Geschichte in Git |
+| Klonen | lädt eine Kopie eines Repositorys mit `git clone` auf den eigenen Rechner |
 | Push | lädt neue Commits vom eigenen Rechner zu GitHub hoch |
 | Branch | ein Entwicklungszweig in Git. `main` ist der Hauptzweig dieses Repositorys. |
 | Restricted Mode | der eingeschränkte Modus von VS Code für Ordner, denen noch nicht vertraut wird. Erweiterungen und das Laden von Schemas sind dann abgeschaltet. |
@@ -89,7 +107,7 @@ Teil der [Architektur von fhir-vitals](README.md).
 | Raster | die Einteilung des Dashboards in Spalten und Zeilen, hier 12 Spalten und Zeilen von 80 Pixeln Höhe. Im Beispiel verwaltet es die vorgeschlagene Bibliothek gridstack. |
 | Layout | die Anordnung der Kacheln mit Spalte, Zeile, Breite und Höhe. Das Beispiel hat nur eine feste Kachel und speichert kein Layout. |
 | FHIR-Bundle | eine FHIR-Ressource vom Typ `Bundle`, die andere Ressourcen in der Liste `entry` sammelt. Der Typ `collection` ist eine reine Sammlung, der Typ `searchset` ein Suchergebnis. Nicht zu verwechseln mit den JavaScript-Dateien aus dem Build. |
-| Chunk | eine JavaScript-Datei aus dem Build der App. Initial Chunks lädt der Browser sofort, ein Lazy Chunk kommt später dazu. |
+| Chunk | eine JavaScript-Datei aus dem Build der App. Initial Chunks lädt der Browser sofort. Ein Lazy Chunk kommt später dazu. |
 | Budget | eine Obergrenze für die Größe des Builds in `angular.json`. Ab 500 kB für alle Initial Chunks warnt der Build. |
 | `@defer` | ein Block im Template, dessen Inhalt Angular in einen Lazy Chunk legt und erst später lädt, hier sobald der Platzhalter sichtbar wird |
 | HMR | Hot Module Replacement. Der Entwicklungsserver tauscht geänderte Teile der App im Browser aus, ohne die ganze Seite neu zu laden. |
@@ -106,8 +124,8 @@ Teil der [Architektur von fhir-vitals](README.md).
 | aria-disabled | ein Attribut, das einem Screenreader meldet, dass ein Element gesperrt ist. Anders als beim Attribut `disabled` behält das Element dabei den Fokus. |
 | Live-Region | ein Bereich der Seite, dessen neuen Inhalt ein Screenreader von selbst vorliest, ohne den Fokus zu verschieben. Hier der Status mit `role="status"`. |
 | Landmarke | ein Bereich der Seite wie `<header>` oder `<main>`, zu dem ein Screenreader direkt springen kann |
-| gridstack | eine Bibliothek, die Kacheln in einem Raster anordnet. Sie kann Kacheln auch verschiebbar machen, das Beispiel nutzt das nicht. Im Beispiel ein Vorschlag. |
-| Chart.js, ng2-charts | Chart.js zeichnet Diagramme, ng2-charts bindet Chart.js an Angular an. Im Beispiel ein Vorschlag. |
+| gridstack | eine Bibliothek, die Kacheln in einem Raster anordnet. Sie kann Kacheln auch verschiebbar machen. Das Beispiel nutzt das nicht. Im Beispiel ein Vorschlag. |
+| Chart.js, ng2-charts | Chart.js zeichnet Diagramme. ng2-charts bindet Chart.js an Angular an. Im Beispiel ein Vorschlag. |
 | optionale peerDependency | eine peerDependency, die das Feld `peerDependenciesMeta` mit `"optional": true` markiert. npm installiert sie nicht von selbst. |
 | Paketdatei | eine Datei `.tgz`, die `npm pack` aus einem Paket erzeugt. Sie lässt sich wie ein Paket aus der npm-Registry installieren. |
 | Modul | eine einzelne JavaScript-Datei mit eigenen Importen und Exporten |

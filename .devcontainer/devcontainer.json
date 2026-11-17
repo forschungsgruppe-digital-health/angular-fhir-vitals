@@ -16,7 +16,10 @@
   "postCreateCommand": "sudo chown node node_modules && npm ci",
   "containerEnv": {
     // Karma starts this browser for "npm test" and "ng test".
-    "CHROME_BIN": "/usr/bin/chromium"
+    "CHROME_BIN": "/usr/bin/chromium",
+    // In this image "localhost" resolves to ::1 first, so the development server would listen on [::1]:4200 only.
+    // VS Code forwards port 4200 to 127.0.0.1, so Node.js prefers IPv4 and the server listens on 127.0.0.1:4200.
+    "NODE_OPTIONS": "--dns-result-order=ipv4first"
   },
   // The development server of "npm start" listens on port 4200 in the container. VS Code forwards it to the host.
   "forwardPorts": [4200],

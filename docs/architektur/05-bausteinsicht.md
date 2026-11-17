@@ -311,7 +311,7 @@ Bis dahin zeigt die Seite „Dashboard wird geladen …“.
 Der Lazy Chunk bringt gridstack, Chart.js und ng2-charts mit.
 Den Code der Karte von Angular Material lädt der Browser dagegen schon mit den Initial Chunks, weil die Karten „Patient“ und „FHIR-Server“ ihn sofort brauchen.
 Im Build für die Auslieferung lud der Browser den Lazy Chunk in einem Fenster von 400 Pixeln Höhe erst, nachdem die Seite bis zum Dashboard gescrollt war.
-Mit `npm start` lädt Angular die Pakete des Dashboards dagegen sofort mit, siehe `NG0751` in [README, Abschnitt 5](../../README.md#5-typische-probleme).
+Mit `npm start` lädt Angular die Pakete des Dashboards dagegen sofort mit, siehe `NG0751` in [README, Abschnitt 5.2](../../README.md#was-bedeutet-ng0751-in-der-konsole-des-browsers).
 Der Block `@defer` ist nicht der Grund für den eigenen Einstiegspunkt.
 Die Trennung gilt auch ohne ihn.
 
@@ -373,7 +373,7 @@ Die einzelnen Messwerte nennt nur der Tooltip beim Zeigen mit der Maus.
 Die Textalternative nennt nur Anzahl, Zeitraum und letzten Wert.
 Mit Tastatur oder Screenreader lassen sich die übrigen Werte deshalb nicht genau lesen.
 Diese Teile entstehen im nächsten Semester des Softwareprojekts.
-Hinweise dazu stehen in [README, Abschnitt 6](../../README.md#6-weiterarbeiten-in-ww2).
+Hinweise dazu stehen in [README, Abschnitt 3.6](../../README.md#36-ausblick-auf-das-nächste-semester).
 
 ## Wie die Teile zusammenspielen
 
