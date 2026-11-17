@@ -51,6 +51,6 @@ Ohne `gridstack/dist/gridstack.min.css` füllt die Karte die Kachel nicht aus.
 Die ebenfalls vorgeschlagene Schrift Roboto kommt aus dem Paket `@fontsource/roboto` vom eigenen Server statt von Google Fonts.
 
 Befehle stehen im [README des Repositorys](https://github.com/forschungsgruppe-digital-health/angular-fhir-vitals#readme).
-Aufbau, Regeln zwischen den Schichten und Hintergründe beschreibt die [Architektur](https://github.com/forschungsgruppe-digital-health/angular-fhir-vitals/blob/main/docs/architektur.md).
+Aufbau, Regeln zwischen den Schichten und Hintergründe beschreibt die [Architektur](https://github.com/forschungsgruppe-digital-health/angular-fhir-vitals/blob/main/docs/architektur/README.md).
 
 Lizenz: Apache-2.0. Alle Beispieldaten sind synthetisch.

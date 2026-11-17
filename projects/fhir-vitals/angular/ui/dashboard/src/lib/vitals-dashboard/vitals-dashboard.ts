@@ -10,8 +10,8 @@ import {
 import { BloodPressureChart } from "../blood-pressure-chart/blood-pressure-chart";
 
 // Minimal example: one fixed tile in a gridstack grid. Moving, resizing, adding, removing and saving
-// tiles, and operating them by keyboard, are left to the workshop. gridstack, Angular Material and
-// Chart.js are a suggestion and can be replaced.
+// tiles, and operating them by keyboard, are left to the software project. gridstack, Angular
+// Material and Chart.js are a suggestion and can be replaced.
 @Component({
   selector: "lib-vitals-dashboard",
   imports: [

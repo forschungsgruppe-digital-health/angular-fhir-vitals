@@ -1,23 +1,29 @@
 # FHIR-Starter: Angular-Bibliothek für Vitalparameter
 
-Startpunkt für den Workshop WW2 (#WW26-MiHUB) der Forschungsgruppe Digital Health an der TU Dresden.
+Startpunkt für das Softwareprojekt #WW26-MiHUB der Forschungsgruppe Digital Health an der TU Dresden im Semester WW2.
 
 ## 1 Worum es geht
 
 Dieses Repository enthält `fhir-vitals`, eine Bibliothek mit wiederverwendbarem Code für das Web-Framework Angular, und die Demo-App `demo-app`, die diese Bibliothek nutzt.
 Die Demo-App zeigt einen synthetischen, also erfundenen Patienten und speichert auf Wunsch eine Blutdruckmessung auf einem FHIR-Server, also einem Server für Gesundheitsdaten nach dem Standard HL7 FHIR R4.
-Im Workshop entsteht daraus Schritt für Schritt eine Bibliothek für Vitalparameter, die sich später in ein Patientenportal einbinden lässt.
+Eine FHIR-Ressource ist ein Datensatz mit festem Aufbau, etwa `Patient` oder `Observation` für eine Messung.
 Weiter unten zeigt eine Kachel, also ein Rechteck mit Titel und Inhalt, den Blutdruckverlauf aus sieben synthetischen Messungen als Liniendiagramm.
-Sie ist ein minimales Beispiel für das Dashboard, also die Übersicht aus Kacheln, die im Workshop entsteht.
-Die Bibliotheken für die Oberfläche sind ein Vorschlag, siehe [Architektur, Kapitel 9](docs/architektur.md#9-architekturentscheidungen).
-Einen groben Einstieg in HL7 FHIR und die genutzten Technologien gibt der Vortrag [„Technologiestack“](https://datashare.tu-dresden.de/s/bdotfGe69FRNRZe) aus dem Workshop.
-Der Link läuft zu einem festen Datum ab.
+Sie ist ein minimales Beispiel für das Dashboard, also die Übersicht aus Kacheln, die im Softwareprojekt entsteht.
+Die Bibliotheken für die Oberfläche sind ein Vorschlag, siehe [Architektur, Kapitel 9](docs/architektur/09-architekturentscheidungen.md).
+Einen groben Einstieg in HL7 FHIR und die genutzten Technologien gibt der Vortrag „Technologiestack“ aus dem Softwareprojekt.
+Den Link zum Vortrag verschickt die Betreuung per E-Mail.
 
-Die Datei [`docs/architektur.md`](docs/architektur.md) beschreibt die Architektur nach arc42, einer Vorlage für Architekturdokumentation mit festen Kapiteln.
-Dort stehen die Versionen, die Architektur im Überblick, der Aufbau des Repositorys mit dem Zusammenspiel der Teile, der Ablauf beim Start, die Beispieldaten, der Vorschlag für die Bibliotheken und das [Glossar](docs/architektur.md#12-glossar).
-Verweise wie „Architektur, Kapitel 5“ führen in `docs/architektur.md`.
+In diesem Semester stehen der Einstieg und das Kennenlernen der Technologien im Vordergrund.
+Erst im nächsten Semester kommen der FHIR-Server HAPI FHIR und das Backend dazu.
+Das Backend umfasst die Teile einer Anwendung, die auf einem Server laufen und nicht im Browser.
+Die Teile zu HAPI FHIR in diesem README und in der Architektur sind deshalb ein Ausblick und lassen sich in diesem Semester überspringen.
+
+Der Ordner [`docs/architektur`](docs/architektur/README.md) beschreibt die Architektur nach arc42, einer Vorlage für Architekturdokumentation mit festen Kapiteln.
+Jedes Kapitel steht dort in einer eigenen Datei.
+Dort stehen die Versionen, die Architektur im Überblick, der Aufbau des Repositorys mit dem Zusammenspiel der Teile, der Ablauf beim Start, die Beispieldaten, der Vorschlag für die Bibliotheken und das [Glossar](docs/architektur/12-glossar.md).
+Verweise wie „Architektur, Kapitel 5“ führen in diesen Ordner.
 Zum Starten genügen die Abschnitte 2 und 3 dieses README.
-Zum Verstehen des Codes dienen danach Abschnitt 4 und die Kapitel [4](docs/architektur.md#4-lösungsstrategie), [5](docs/architektur.md#5-bausteinsicht) und [6](docs/architektur.md#6-laufzeitsicht) der Architektur.
+Zum Verstehen des Codes dienen danach Abschnitt 4 und die Kapitel [4](docs/architektur/04-loesungsstrategie.md), [5](docs/architektur/05-bausteinsicht.md) und [6](docs/architektur/06-laufzeitsicht.md) der Architektur.
 Abschnitt 4 erklärt Begriffe wie Einstiegspunkt, Komponente und Chunk, die diese Kapitel voraussetzen.
 Abschnitt 5 dient zum Nachschlagen.
 
@@ -54,8 +60,8 @@ Unter Windows kommt WSL 2 dazu, mit dem Windows Linux ausführt, siehe Variante 
 | [Git](https://git-scm.com) | aktuelle Version | lädt das Repository herunter |
 | [Docker Desktop](https://docs.docker.com/desktop/) oder [Docker Engine](https://docs.docker.com/engine/install/) mit Compose | geprüft mit Docker 29.9.2 und Compose 5.6.1. Der Dev-Container lief mit Docker 29.9.3. | startet Demo-App und FHIR-Server in Containern und führt den Dev-Container aus |
 | Google Chrome oder Chromium | aktuelle Version | führt die Unit-Tests aus, ohne ein Fenster zu öffnen. Für Chromium die Umgebungsvariable `CHROME_BIN` setzen, also einen benannten Wert, den das Terminal an jedes gestartete Programm weitergibt, siehe Abschnitt 5. Der Dev-Container bringt Chromium mit und setzt `CHROME_BIN` selbst. |
-| Java, JRE oder JDK (optional) | 17 oder neuer, aufrufbar als `java` | nur für die Prüfung mit der Erweiterung FHIR tools, siehe [Architektur, Kapitel 8](docs/architektur.md#die-beispieldaten-und-ihre-codes) unter „Prüfen in Visual Studio Code“. `java -version` zeigt die installierte Version, zum Beispiel `openjdk version "25.0.2"`. Der Dev-Container bringt Java 21 mit. |
-| [Visual Studio Code](https://code.visualstudio.com) (optional) | aktuelle Version | Editor. Beim Öffnen des Ordners schlägt er sieben Erweiterungen vor: Angular Language Service für Vorschläge und Fehlermeldungen in den HTML-Dateien dieses Repositorys, ESLint und Prettier für Prüfung und Format des Codes, EditorConfig für die Einstellungen aus `.editorconfig`, Markdown Preview Mermaid Support für das Diagramm in [Architektur, Kapitel 5](docs/architektur.md#wie-die-teile-zusammenspielen), FHIR tools für die Prüfung von FHIR-Ressourcen und Dev Containers für Variante D. Mermaid ist eine Textsprache für Diagramme. VS Code prüft außerdem die FHIR-Beispieldateien beim Tippen. Einen neuen Ordner öffnet VS Code zunächst im eingeschränkten Modus. Darin bleiben diese Prüfung und Erweiterungen wie FHIR tools abgeschaltet, bis der Ordner als vertrauenswürdig gilt, siehe [Architektur, Kapitel 8](docs/architektur.md#die-beispieldaten-und-ihre-codes) unter „Prüfen in Visual Studio Code“. |
+| Java, JRE oder JDK (optional) | 17 oder neuer, aufrufbar als `java` | nur für die Prüfung mit der Erweiterung FHIR tools, siehe [Architektur, Kapitel 8](docs/architektur/08-querschnittliche-konzepte.md#die-beispieldaten-und-ihre-codes) unter „Prüfen in Visual Studio Code“. `java -version` zeigt die installierte Version, zum Beispiel `openjdk version "25.0.2"`. Der Dev-Container bringt Java 21 mit. |
+| [Visual Studio Code](https://code.visualstudio.com) (optional) | aktuelle Version | Editor. Beim Öffnen des Ordners schlägt er sieben Erweiterungen vor: Angular Language Service für Vorschläge und Fehlermeldungen in den HTML-Dateien dieses Repositorys, ESLint und Prettier für Prüfung und Format des Codes, EditorConfig für die Einstellungen aus `.editorconfig`, Markdown Preview Mermaid Support für das Diagramm in [Architektur, Kapitel 5](docs/architektur/05-bausteinsicht.md#wie-die-teile-zusammenspielen), FHIR tools für die Prüfung von FHIR-Ressourcen und Dev Containers für Variante D. Mermaid ist eine Textsprache für Diagramme. VS Code prüft außerdem die FHIR-Beispieldateien beim Tippen. Einen neuen Ordner öffnet VS Code zunächst im eingeschränkten Modus. Darin bleiben diese Prüfung und Erweiterungen wie FHIR tools abgeschaltet, bis der Ordner als vertrauenswürdig gilt, siehe [Architektur, Kapitel 8](docs/architektur/08-querschnittliche-konzepte.md#die-beispieldaten-und-ihre-codes) unter „Prüfen in Visual Studio Code“. |
 | Erweiterung [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) für Visual Studio Code (optional) | aktuelle Version | öffnet das Projekt im Dev-Container, siehe Variante D in Abschnitt 3 |
 
 Die installierte Node.js-Version zeigt `node -v`, zum Beispiel `v22.22.3`.
@@ -120,6 +126,7 @@ Danach zeigt http://localhost:4200 dasselbe wie in Variante A.
 
 ### Variante C: mit Docker und dem FHIR-Server HAPI FHIR
 
+Diese Variante gehört zum nächsten Semester, siehe Abschnitt 1.
 In `compose.yaml` gehört der Dienst `fhir` zum Compose-Profil `fhir`.
 Compose startet und stoppt ihn nur, wenn der Befehl `--profile fhir` enthält.
 
@@ -153,7 +160,7 @@ Wie VS Code einen Ordner aus WSL 2 im Dev-Container öffnet, beschreibt die [Dok
 Ein Test unter Windows fehlt für dieses README noch.
 
 1. Den Ordner `angular-fhir-vitals` in VS Code öffnen.
-2. Mit `F1` oder `Strg+Umschalt+P`, unter macOS `Cmd+Umschalt+P`, die Befehlspalette öffnen, also die Eingabezeile für alle Befehle von VS Code. Dort `Dev Containers: Reopen in Container` wählen. Laut Dokumentation fragt VS Code vor dem Neuladen des Fensters, ob der Ordner vertrauenswürdig ist. Was ohne dieses Vertrauen abgeschaltet bleibt, beschreibt [Architektur, Kapitel 8](docs/architektur.md#die-beispieldaten-und-ihre-codes) unter „Prüfen in Visual Studio Code“.
+2. Mit `F1` oder `Strg+Umschalt+P`, unter macOS `Cmd+Umschalt+P`, die Befehlspalette öffnen, also die Eingabezeile für alle Befehle von VS Code. Dort `Dev Containers: Reopen in Container` wählen. Laut Dokumentation fragt VS Code vor dem Neuladen des Fensters, ob der Ordner vertrauenswürdig ist. Was ohne dieses Vertrauen abgeschaltet bleibt, beschreibt [Architektur, Kapitel 8](docs/architektur/08-querschnittliche-konzepte.md#die-beispieldaten-und-ihre-codes) unter „Prüfen in Visual Studio Code“.
 3. Beim ersten Mal baut Docker das Image aus `.devcontainer/Dockerfile`. Dafür lädt Docker zuerst das Basis-Image, also das fertige Image, auf dem dieses Image aufbaut. Danach lädt Docker Chromium und Java. Dann führt der Container `npm ci` von selbst aus. Im Test dauerte das ein bis drei Minuten. Die Ausgabe enthielt `added 611 packages, and audited 612 packages in 2m` und `9 moderate severity vulnerabilities`, siehe Abschnitt 5. Erst nach dem Ende dieser Ausgabe mit Schritt 4 weitermachen.
 4. Im Terminal von VS Code `npm start` ausführen. Dieses Terminal läuft im Container. Es zeigt dieselben sechs Zeilen `Built fhir-vitals…` und `Local: http://localhost:4200/` wie in Variante A. Nach dem Speichern einer Änderung baut der Entwicklungsserver neu. Bei einer Änderung in `app.html` meldete er im Test `Component update sent to client(s).`
 5. http://localhost:4200 im Browser des eigenen Rechners öffnen. Laut Dokumentation leitet VS Code Port 4200 des Containers an den eigenen Rechner weiter. Erwartet wird dieselbe Seite wie in Variante A. Die Ansicht „Ports“ von VS Code zeigt unter „Forwarded Address“, wohin VS Code den Port weiterleitet.
@@ -163,7 +170,9 @@ Dort meldet `docker compose` nur `docker: command not found`.
 Befehle mit `docker compose` deshalb in einem zweiten Terminal des eigenen Rechners im Ordner `angular-fhir-vitals` ausführen.
 Unter macOS ist das die App Terminal.
 Unter Windows ist es das Terminal von Ubuntu in WSL 2.
-Laufen dort noch die Varianten B oder C, sie zuerst mit `docker compose --profile fhir down` beenden, siehe Abschnitt 5.
+
+Dieser Absatz zu HAPI FHIR gehört zum nächsten Semester, siehe Abschnitt 1.
+Laufen auf dem eigenen Rechner noch die Varianten B oder C, sie zuerst mit `docker compose --profile fhir down` beenden, siehe Abschnitt 5.
 Danach startet `docker compose --profile fhir up -d fhir` nur HAPI FHIR im Hintergrund, ohne die Demo-App mit nginx.
 Compose meldet `Container angular-fhir-vitals-fhir-1 Started`.
 Wie in Variante C ist HAPI nach etwa 40 Sekunden bereit.
@@ -175,7 +184,7 @@ Ein Test der Demo-App aus dem Dev-Container zusammen mit HAPI im Browser fehlt n
 
 Nach einer Änderung an `package-lock.json` im Terminal von VS Code erneut `npm ci` ausführen.
 Nach einer Änderung im Ordner `.devcontainer` baut `Dev Containers: Rebuild Container` aus der Befehlspalette den Container neu.
-Hintergründe zum Dev-Container, etwa zum Ordner `node_modules` unter Linux und WSL 2, stehen in [Architektur, Kapitel 8](docs/architektur.md#dev-container-und-werkzeuge) unter „Dev-Container und Werkzeuge“.
+Hintergründe zum Dev-Container, etwa zum Ordner `node_modules` unter Linux und WSL 2, stehen in [Architektur, Kapitel 8](docs/architektur/08-querschnittliche-konzepte.md#dev-container-und-werkzeuge) unter „Dev-Container und Werkzeuge“.
 
 ## 4 Befehle
 
@@ -184,7 +193,7 @@ Alle Befehle im Wurzelverzeichnis des Repositorys ausführen.
 Für `npm start` und `npm test` genügt der Name ohne `run`.
 `npx` startet ein Programm aus den installierten Paketen, etwa mit `npx ng` die Angular CLI.
 Bei Variante D gehören die Befehle mit `docker` ins Terminal des eigenen Rechners, siehe Abschnitt 3.
-Jeder Befehl in diesen Tabellen ist am 05.11.2026 mit den Versionen aus [Architektur, Kapitel 2](docs/architektur.md#2-randbedingungen) gelaufen.
+Jeder Befehl in diesen Tabellen ist am 05.11.2026 mit den Versionen aus [Architektur, Kapitel 2](docs/architektur/02-randbedingungen.md) gelaufen.
 Nach dem Einbau des Dashboard-Beispiels liefen am 06.11.2026 unter macOS erneut: `npm ci`, `npm start`, `npx ng build fhir-vitals`, `npx ng test fhir-vitals --watch=false`, `npm test`, `npm run lint`, `npm run format` und `npm run build`, dazu in einer Kopie des Repositorys der neue Befehl für Komponenten im Dashboard.
 Nach dem Umzug der Komponenten nach `angular/ui/cards` und `angular/ui/dashboard` liefen am selben Tag erneut: `npx ng build fhir-vitals`, `npx ng test fhir-vitals --watch=false`, `npm test`, `npm run lint`, `npm run format` und `npm run build`.
 In einer Kopie des Repositorys liefen dazu `npm start`, beide Befehle für neue Komponenten, der Befehl für UI-Services und der Build mit und ohne die neue Zeile in `public-api.ts`.
@@ -211,14 +220,15 @@ Karma ist der Testrunner, also das Programm, das die Unit-Tests im Browser start
 Die Tests selbst nutzen die Bibliothek Jasmine.
 Die Bibliothek besteht aus fünf Einstiegspunkten, also Teilpaketen mit eigenem Importnamen wie `fhir-vitals/core` oder `fhir-vitals/angular/ui/cards`.
 Jeder Einstiegspunkt gehört zu einer Schicht mit einer festen Aufgabe.
-[Architektur, Kapitel 5](docs/architektur.md#5-bausteinsicht) beschreibt, was in welche Schicht gehört.
+[Architektur, Kapitel 5](docs/architektur/05-bausteinsicht.md) beschreibt, was in welche Schicht gehört.
 Ein Chunk ist eine JavaScript-Datei, die der Build der Demo-App erzeugt.
 Initial Chunks lädt der Browser sofort beim Start.
 Ein Lazy Chunk kommt erst später dazu, hier mit dem Dashboard.
 Ein Budget in `angular.json` ist eine Obergrenze für die Größe.
 Ab 500 kB für alle Initial Chunks zusammen gibt der Build eine Warnung aus.
+Ein FHIR-Bundle ist eine Ressource vom Typ `Bundle`, die mehrere Ressourcen bündelt, etwa ein Suchergebnis.
 Angular schreibt am Ende des Builds `Application bundle generation complete`.
-Bundle meint dort die gebauten JavaScript-Dateien und nicht ein FHIR-Bundle aus [Architektur, Kapitel 8](docs/architektur.md#die-beispieldaten-und-ihre-codes).
+Bundle meint dort die gebauten JavaScript-Dateien und nicht ein FHIR-Bundle aus [Architektur, Kapitel 8](docs/architektur/08-querschnittliche-konzepte.md#die-beispieldaten-und-ihre-codes).
 
 | Befehl | Wirkung | Wann nötig | Was danach zu sehen ist |
 |---|---|---|---|
@@ -229,7 +239,7 @@ Bundle meint dort die gebauten JavaScript-Dateien und nicht ein FHIR-Bundle aus 
 | `npx ng build fhir-vitals` | baut das Paket mit allen fünf Einstiegspunkten einmal nach `dist/fhir-vitals` | vor `npm run start:app`, wenn `watch:lib` nicht läuft | Sechs Zeilen `Built …` für `fhir-vitals`, `fhir-vitals/core`, `fhir-vitals/fhir`, `fhir-vitals/angular/data`, `fhir-vitals/angular/ui/cards` und `fhir-vitals/angular/ui/dashboard`, dann `Built Angular Package`. Die Reihenfolge ergibt sich aus den Abhängigkeiten: `core` kommt immer vor den Schichten, die es nutzen, sonst kann sie wechseln. Der Ordner `dist/fhir-vitals/fesm2022` enthält je Einstiegspunkt eine Datei `.mjs` und eine `.mjs.map`, etwa `fhir-vitals-core.mjs` und `fhir-vitals-angular-ui-cards.mjs`. |
 | `npx ng test fhir-vitals --watch=false` | testet alle Einstiegspunkte der Bibliothek, direkt aus den Quellen | nach Änderungen an der Bibliothek | `TOTAL: 52 SUCCESS`. Dafür muss die Bibliothek vorher nicht gebaut sein. |
 | `npm test` | baut die Bibliothek und testet dann Bibliothek und Demo-App nacheinander, ohne Watch-Modus | vor jedem Commit | Die sechs Zeilen `Built fhir-vitals…`, dann zwei Blöcke: zuerst `TOTAL: 52 SUCCESS` für die Bibliothek, dann `TOTAL: 3 SUCCESS` für die Demo-App. Im zweiten Block stehen vier Warnungen `WARN [web-server]: 404: /base/media/roboto-latin-…`, siehe Abschnitt 5. |
-| `npm run lint` | prüft den Code mit ESLint, auch die Regeln zwischen den Schichten aus [Architektur, Kapitel 5](docs/architektur.md#5-bausteinsicht) | vor jedem Commit | nur die beiden Kopfzeilen `> angular-fhir-vitals@0.0.0 lint` und `> eslint .`. Folgt keine weitere Ausgabe, hat ESLint nichts zu beanstanden. |
+| `npm run lint` | prüft den Code mit ESLint, auch die Regeln zwischen den Schichten aus [Architektur, Kapitel 5](docs/architektur/05-bausteinsicht.md) | vor jedem Commit | nur die beiden Kopfzeilen `> angular-fhir-vitals@0.0.0 lint` und `> eslint .`. Folgt keine weitere Ausgabe, hat ESLint nichts zu beanstanden. |
 | `npm run format` | formatiert TypeScript, HTML und CSS mit Prettier | vor jedem Commit | eine Zeile je Datei. `(unchanged)` heißt, dass die Datei schon passte. |
 | `npm run build` | baut erst die Bibliothek, dann die Demo-App für die Auslieferung | vor einer Auslieferung ohne Docker | sechs Zeilen `Built fhir-vitals…`, dann eine Tabelle `Initial chunk files` mit der Zeile `Initial total` und `329.44 kB`, geschätzt `89.83 kB` bei der Übertragung. Darunter steht `Lazy chunk files` mit der Zeile `fhir-vitals-angular-ui-dashboard` und `271.24 kB`, geschätzt `76.38 kB`. Eine Warnung zum Budget erscheint nicht. Am Ende folgen `Application bundle generation complete` und `Output location: …/dist/demo-app`. |
 
@@ -246,8 +256,8 @@ Für die Bibliothek zeigt `sourceRoot` auf `projects/fhir-vitals/angular/data/sr
 
 | Befehl | Wirkung | Wann nötig | Was danach zu sehen ist |
 |---|---|---|---|
-| `npx ng generate service <name> --project fhir-vitals` | legt einen Angular-Service in der Angular-Datenschicht `fhir-vitals/angular/data` an | für Services, die Daten laden oder den Zustand der Daten halten, etwa weitere Datenzugriffe mit HttpClient, dem HTTP-Dienst von Angular | Zwei Zeilen `CREATE projects/fhir-vitals/angular/data/src/lib/<name>.ts` und `…/<name>.spec.ts`. Die Klasse trägt den Decorator `@Service()`. Logik, die auch andere UI-Frameworks brauchen, gehört dagegen als Datei ohne Decorator nach `core`, siehe [Architektur, Kapitel 5](docs/architektur.md#5-bausteinsicht). |
-| `npx ng generate service <name> --project fhir-vitals --path projects/fhir-vitals/angular/ui/cards/src/lib` | legt einen UI-Service, also einen Service nur für die Oberfläche, im Einstiegspunkt `fhir-vitals/angular/ui/cards` an | für Logik der Oberfläche, etwa zum Öffnen eines Dialogs, siehe [Architektur, Kapitel 5](docs/architektur.md#5-bausteinsicht) | Zwei Zeilen `CREATE projects/fhir-vitals/angular/ui/cards/src/lib/<name>.spec.ts` und `…/<name>.ts`, jeweils mit der Größe in Bytes. Mit dem Namen `dialog-opener` heißt die Klasse `DialogOpener` und trägt ebenfalls `@Service()`. |
+| `npx ng generate service <name> --project fhir-vitals` | legt einen Angular-Service in der Angular-Datenschicht `fhir-vitals/angular/data` an | für Services, die Daten laden oder den Zustand der Daten halten, etwa weitere Datenzugriffe mit HttpClient, dem HTTP-Dienst von Angular | Zwei Zeilen `CREATE projects/fhir-vitals/angular/data/src/lib/<name>.ts` und `…/<name>.spec.ts`. Die Klasse trägt den Decorator `@Service()`. Logik, die auch andere UI-Frameworks brauchen, gehört dagegen als Datei ohne Decorator nach `core`, siehe [Architektur, Kapitel 5](docs/architektur/05-bausteinsicht.md). |
+| `npx ng generate service <name> --project fhir-vitals --path projects/fhir-vitals/angular/ui/cards/src/lib` | legt einen UI-Service, also einen Service nur für die Oberfläche, im Einstiegspunkt `fhir-vitals/angular/ui/cards` an | für Logik der Oberfläche, etwa zum Öffnen eines Dialogs, siehe [Architektur, Kapitel 5](docs/architektur/05-bausteinsicht.md) | Zwei Zeilen `CREATE projects/fhir-vitals/angular/ui/cards/src/lib/<name>.spec.ts` und `…/<name>.ts`, jeweils mit der Größe in Bytes. Mit dem Namen `dialog-opener` heißt die Klasse `DialogOpener` und trägt ebenfalls `@Service()`. |
 | `npx ng generate component <name> --project fhir-vitals --path projects/fhir-vitals/angular/ui/cards/src/lib` | legt eine Komponente im Einstiegspunkt `fhir-vitals/angular/ui/cards` an | für neue Anzeigen, etwa eine Karte mit Messwerten | Vier Zeilen `CREATE projects/fhir-vitals/angular/ui/cards/src/lib/<name>/<name>.css`, `.spec.ts`, `.ts` und `.html`, jeweils mit der Größe in Bytes. Mit dem Namen `vitals-card` heißt die Klasse `VitalsCard` und der Selektor `lib-vitals-card`. Ohne `--path` landet die Komponente in der Angular-Datenschicht, wo sie nicht hingehört. |
 | `npx ng generate component <name> --project fhir-vitals --path projects/fhir-vitals/angular/ui/dashboard/src/lib` | legt eine Komponente im Einstiegspunkt `fhir-vitals/angular/ui/dashboard` an | für weitere Kacheln im Dashboard, siehe Abschnitt 6 | Vier Zeilen `CREATE projects/fhir-vitals/angular/ui/dashboard/src/lib/<name>/<name>.css`, `.spec.ts`, `.ts` und `.html`, jeweils mit der Größe in Bytes. Mit dem Namen `weight-chart` heißt die Klasse `WeightChart` und der Selektor `lib-weight-chart`. |
 | neue Zeile in der Datei `src/public-api.ts` des Einstiegspunkts, zum Beispiel `export * from "./lib/vitals-card/vitals-card";` in `projects/fhir-vitals/angular/ui/cards/src/public-api.ts` | macht den neuen Baustein außerhalb der Bibliothek sichtbar | nach jedem neuen Service, jeder neuen Komponente und jeder neuen Datei in `core` oder `fhir` | Nach dem nächsten Build der Bibliothek klappt in der Demo-App `import { VitalsCard } from "fhir-vitals/angular/ui/cards";`. Ohne diese Zeile meldet der Build `TS2305: Module '"fhir-vitals/angular/ui/cards"' has no exported member 'VitalsCard'.` |
@@ -268,9 +278,8 @@ Der Container liest damit direkt die Datei auf dem eigenen Rechner.
 
 ### c) Demo-App mit Docker und HAPI FHIR
 
-Eine FHIR-Ressource ist ein Datensatz mit festem Aufbau, etwa `Patient` oder `Observation` für eine Messung.
-Ein FHIR-Bundle ist eine Ressource vom Typ `Bundle`, die mehrere Ressourcen bündelt, etwa ein Suchergebnis.
-Sein Feld `total` nennt die Zahl der Treffer.
+Dieser Teil gehört zum nächsten Semester, siehe Abschnitt 1.
+Das Feld `total` eines FHIR-Bundles nennt die Zahl der Treffer.
 
 | Befehl | Wirkung | Wann nötig | Was danach zu sehen ist |
 |---|---|---|---|
@@ -287,6 +296,8 @@ PowerShell 7 definiert diesen Alias nicht mehr.
 
 ### d) Demo-App auf GitHub Pages
 
+Dieser Teil betrifft nur die Betreuung, denn sie pflegt das Repository auf GitHub.
+In diesem Semester arbeiten die Studierenden in einer Kopie des Repositorys auf dem eigenen Rechner und laden nichts zu GitHub hoch.
 GitHub Pages veröffentlicht statische Webseiten direkt aus einem Repository.
 Statische Webseiten bestehen aus fertigen Dateien wie HTML, JavaScript und JSON, die der Server unverändert ausliefert.
 GitHub Actions führt Workflows aus, also automatische Abläufe, die eine YAML-Datei im Repository beschreibt.
@@ -325,13 +336,15 @@ Sonst den Workflow wie in der Tabelle unten von Hand starten.
 
 ## 5 Typische Probleme
 
+Alle Hinweise zu HAPI FHIR und zu Port 8080 gehören zum nächsten Semester, siehe Abschnitt 1.
+
 **Port belegt.**
 Docker meldet `Bind for 127.0.0.1:8080 failed: port is already allocated`.
 Der Entwicklungsserver meldet `Port 4200 is already in use. Use '--port' to specify a different port.`
 Ein anderes Programm oder ein anderer Container nutzt dann den Port.
 `docker ps` zeigt laufende Container und ihre Ports.
-Unter macOS und Linux zeigt `lsof -i :8080` das Programm hinter dem Port.
-Unter Windows zeigt `netstat -ano | findstr :8080` in der letzten Spalte die Prozessnummer.
+Unter macOS und Linux zeigt `lsof -i :<port>` das Programm hinter dem Port, etwa `lsof -i :4200`.
+Unter Windows zeigt `netstat -ano | findstr :<port>` in der letzten Spalte die Prozessnummer.
 `tasklist /fi "PID eq <nummer>"` nennt dazu das Programm.
 Das andere Programm beenden oder den Container mit `docker stop <name>` anhalten.
 `docker stop` gibt danach den Namen des Containers aus.
@@ -370,7 +383,7 @@ Der HAPI-Container läuft weiter, und Docker meldet beim Netzwerk `Resource is s
 Erst `docker compose --profile fhir down` stoppt beide.
 
 **ESLint meldet `… import is restricted from being used by a pattern`.**
-Ein Import verletzt eine Regel zwischen den Schichten aus [Architektur, Kapitel 5](docs/architektur.md#5-bausteinsicht).
+Ein Import verletzt eine Regel zwischen den Schichten aus [Architektur, Kapitel 5](docs/architektur/05-bausteinsicht.md).
 Die Meldung nennt den Grund, etwa `Die UI spricht nicht selbst mit Servern`.
 Dasselbe gilt für Importe der vorgeschlagenen Pakete gridstack, Chart.js oder ng2-charts außerhalb von `angular/ui/dashboard`.
 Den Code in die passende Schicht oder das passende Feature verschieben.
@@ -425,7 +438,9 @@ Docker meldet danach `Container angular-fhir-vitals-demo-app-1 Started`, und die
 **Warnungen bei `npm ci`.**
 Die Warnungen `npm warn deprecated` zu `inflight`, `rimraf` und `glob` stammen aus Karma 6.4.4.
 Das Karma-Projekt entwickelt Karma nicht mehr weiter.
-Das Patientenportal nutzt Karma trotzdem als Testrunner, deshalb auch dieser Starter.
+Das Patientenportal ist eine Anwendung der Forschungsgruppe.
+Es nutzt Karma trotzdem als Testrunner.
+Der Starter folgt ihm darin.
 Die Meldung `… moderate severity vulnerabilities` betrifft das Paket `minimatch` in der ESLint-Kette.
 Am 17.11.2026 waren es 9 Meldungen.
 Beides betrifft nur Entwicklungswerkzeuge und nicht den Code, der im Browser läuft.
@@ -433,7 +448,7 @@ Beides betrifft nur Entwicklungswerkzeuge und nicht den Code, der im Browser lä
 Am 17.11.2026 schlug npm außerdem `npm audit fix` ohne `--force` vor.
 Ein Probelauf mit `npm audit fix --dry-run` zeigte neuere Patches für die ESLint-Kette, etwa `add minimatch 11.0.9`.
 `npm audit fix` ohne `--dry-run` ändert damit `package-lock.json`.
-Solche Änderungen gehören in einen eigenen Commit, den alle anderen mit `npm ci` übernehmen.
+Solche Änderungen gehören in einen eigenen Commit.
 
 **Daten auf HAPI sind nach einem Neustart weg.**
 HAPI läuft hier ohne eigene Datenbank und hält die Daten im Arbeitsspeicher.
@@ -445,7 +460,7 @@ Dann fehlt `gridstack/dist/gridstack.min.css` der vorgeschlagenen Bibliothek gri
 In einem Build ohne diese Datei war die Kachel am 06.11.2026 bei 1024 Pixeln Fensterbreite zwar 320 Pixel hoch.
 Die Karte darin war aber nur 204 Pixel hoch und das Diagramm nur 150 Pixel.
 Mit der Datei füllt die Karte die Kachel bis auf den Rand von 8 Pixeln aus, und das Diagramm ist 250 Pixel hoch.
-Die Zeile wieder eintragen, wie in [Architektur, Kapitel 5](docs/architektur.md#5-bausteinsicht) unter „Globale Styles“ beschrieben.
+Die Zeile wieder eintragen, wie in [Architektur, Kapitel 5](docs/architektur/05-bausteinsicht.md) unter „Globale Styles“ beschrieben.
 Danach den Entwicklungsserver oder den Build neu starten.
 
 **Statt der Kachel steht nur „Dashboard wird geladen …“.**
@@ -469,25 +484,28 @@ Die Tests laufen trotzdem durch und enden mit `TOTAL: 3 SUCCESS`.
 
 ## 6 Weiterarbeiten in WW2
 
-[Architektur, Kapitel 4](docs/architektur.md#4-lösungsstrategie) fasst die Architektur zusammen, an der sich die Weiterarbeit orientiert.
-Die vorgeschlagenen Bibliotheken und ihre Alternativen beschreibt [Architektur, Kapitel 9](docs/architektur.md#9-architekturentscheidungen).
+[Architektur, Kapitel 4](docs/architektur/04-loesungsstrategie.md) fasst die Architektur zusammen, an der sich die Weiterarbeit orientiert.
+Die vorgeschlagenen Bibliotheken und ihre Alternativen beschreibt [Architektur, Kapitel 9](docs/architektur/09-architekturentscheidungen.md).
 
-Weitere Schritte im Workshop:
+Weitere Schritte in diesem Semester:
 
 - weitere Vitalparameter aus der [Vital-Signs-Übersicht](https://hl7.org/fhir/R4/observation-vitalsigns.html) ergänzen. Dazu kommen Codes und Formatierung nach `core`, eigene Beispieldateien unter `public/assets/fhir/` und eine Komponente in ein UI-Feature wie `angular/ui/cards`.
-- für neue Ressourcen IDs mit mindestens einem Buchstaben wählen, etwa `puls-01`. HAPI lehnt in der Voreinstellung ein PUT mit rein numerischer ID ab.
-- neue Komponenten mit `--path projects/fhir-vitals/angular/ui/cards/src/lib` anlegen und in `angular/ui/cards/src/public-api.ts` exportieren. Für ein neues Feature gelten die Schritte aus [Architektur, Kapitel 5](docs/architektur.md#5-bausteinsicht) unter „Ein neues UI-Feature anlegen“.
-- eine zweite Oberfläche mit Vue oder einem anderen Framework auf `fhir-vitals/core` und `fhir-vitals/fhir` aufbauen, siehe [Architektur, Kapitel 5](docs/architektur.md#5-bausteinsicht)
+- neue Komponenten mit `--path projects/fhir-vitals/angular/ui/cards/src/lib` anlegen und in `angular/ui/cards/src/public-api.ts` exportieren. Für ein neues Feature gelten die Schritte aus [Architektur, Kapitel 5](docs/architektur/05-bausteinsicht.md) unter „Ein neues UI-Feature anlegen“.
+- eine zweite Oberfläche mit Vue oder einem anderen Framework auf `fhir-vitals/core` und `fhir-vitals/fhir` aufbauen, siehe [Architektur, Kapitel 5](docs/architektur/05-bausteinsicht.md)
 - `core` und `fhir` in eigene npm-Pakete auslagern, sobald eine andere Oberfläche sie als Paket installieren soll
-- für Daten, die einen Neustart überleben, HAPI mit PostgreSQL betreiben. Folie 80 des Vortrags [„Technologiestack“](https://datashare.tu-dresden.de/s/bdotfGe69FRNRZe) zeigt die passende `compose.yaml`. Die Foliennummer steht unten auf der Folie und weicht von der Seitenzahl im PDF ab. Die Datei liegt hinter demselben Link im Ordner „Material Technologiestack/Beispiele“.
-- später die Anmeldung über [SMART App Launch](https://hl7.org/fhir/smart-app-launch/) ergänzen. Das Paket `fhirclient` unterstützt diesen Ablauf mit OAuth 2.0, einem Standard für die Freigabe von Zugriffen.
 
-**Ideen für das Dashboard im Workshop.**
+Weitere Schritte im nächsten Semester mit HAPI FHIR und dem Backend:
+
+- für neue Ressourcen IDs mit mindestens einem Buchstaben wählen, etwa `puls-01`. HAPI lehnt in der Voreinstellung ein PUT mit rein numerischer ID ab.
+- für Daten, die einen Neustart überleben, HAPI mit PostgreSQL betreiben. Folie 80 des Vortrags „Technologiestack“ zeigt die passende `compose.yaml`. Die Foliennummer steht unten auf der Folie und weicht von der Seitenzahl im PDF ab. Die Datei liegt hinter dem Link zum Vortrag im Ordner „Material Technologiestack/Beispiele“.
+- optional und frühestens im nächsten Semester die Anmeldung über [SMART App Launch](https://hl7.org/fhir/smart-app-launch/) ergänzen. Das Paket `fhirclient` unterstützt diesen Ablauf mit OAuth 2.0, einem Standard für die Freigabe von Zugriffen.
+
+**Ideen für das Dashboard im nächsten Semester.**
 Diese Punkte sind Hinweise und keine fertige Lösung.
 
 - Kacheln verschiebbar und in der Größe änderbar machen. In gridstack schaltet `staticGrid: false` das Ziehen mit der Maus wieder ein.
 - weitere Kachelarten ergänzen, etwa einen Pulsverlauf oder die letzte Messung in großen Ziffern. Neue Komponenten wie in Abschnitt 4 mit `--path projects/fhir-vitals/angular/ui/dashboard/src/lib` anlegen.
-- das Layout, also die Anordnung der Kacheln mit Spalte, Zeile, Breite und Höhe, als JSON in `core` beschreiben. Zum Speichern einen Port in `core` und einen Adapter in `fhir` ergänzen, etwa für den Speicher des Browsers oder einen Server. Port meint hier eine Schnittstelle, die beschreibt, was der Ablauf in `core` von außen braucht, und nicht die Nummer aus Abschnitt 3. Ein Adapter setzt einen Port mit einer bestimmten Technik um, siehe [Architektur, Kapitel 4](docs/architektur.md#4-lösungsstrategie). So kann auch eine Oberfläche mit Vue dasselbe Layout nutzen.
+- das Layout, also die Anordnung der Kacheln mit Spalte, Zeile, Breite und Höhe, als JSON in `core` beschreiben. Zum Speichern einen Port in `core` und einen Adapter in `fhir` ergänzen, etwa für den Speicher des Browsers oder einen Server. Port meint hier eine Schnittstelle, die beschreibt, was der Ablauf in `core` von außen braucht, und nicht die Nummer aus Abschnitt 3. Ein Adapter setzt einen Port mit einer bestimmten Technik um, siehe [Architektur, Kapitel 4](docs/architektur/04-loesungsstrategie.md). So kann auch eine Oberfläche mit Vue dasselbe Layout nutzen.
 - die Messwerte zusätzlich als Tabelle zeigen. Ein Screenreader, also ein Programm, das den Inhalt einer Seite vorliest, kann eine Tabelle Zelle für Zelle vorlesen. Die Tabelle ergänzt so die Textalternative des Diagramms, also den Text, der das Diagramm für Screenreader beschreibt.
 - eine Bedienung ohne Ziehen anbieten, etwa Knöpfe „Nach links“ oder „Breiter“ an jeder Kachel. Die WCAG (Web Content Accessibility Guidelines) sind die Richtlinien des W3C, des Gremiums für Webstandards, für barrierefreie Webinhalte. Kriterium 2.5.7 „Dragging Movements“ der WCAG 2.2 verlangt für jede Funktion mit Ziehen einen Weg ohne Ziehen, etwa durch einfaches Klicken. Knöpfe funktionieren außerdem mit der Tastatur.
 - schmale Fenster beachten. In der Ansicht mit einer Spalte meldet gridstack Positionen für eine Spalte. Im Test am 06.11.2026 hatte die Kachel bei 560 Pixeln Fensterbreite in gridstack die Breite 1 statt 8. Solche Positionen dürfen ein gespeichertes Layout mit 12 Spalten nicht überschreiben.
@@ -506,7 +524,7 @@ Laut GWDG speichert der Dienst bei den selbst betriebenen Modellen keine Chatver
 Der Verlauf bleibt im eigenen Browser.
 Anfragen an die OpenAI-Modelle leitet die GWDG laut Datenschutzhinweis an Microsoft (Azure) weiter.
 Die externen Modelle stehen außerdem nur bestimmten Einrichtungen offen.
-Für Arbeiten im Workshop deshalb die selbst betriebenen Modelle nutzen.
+Für Arbeiten im Softwareprojekt deshalb die selbst betriebenen Modelle nutzen.
 Quellen: [Dienstbeschreibung](https://academiccloud.de/services/chatai/), [Dokumentation](https://docs.hpc.gwdg.de/services/ai-services/chat-ai/index.html), [Datenschutz](https://datenschutz.gwdg.de/services/chatai).
 
 **TUD:AI, die LLM-Dienste von ScaDS.AI Dresden/Leipzig.**
@@ -516,7 +534,7 @@ Die Programmierschnittstelle, kurz API, ist kompatibel zur OpenAI-API und hat di
 Die [Dokumentation](https://llm.scads.ai/docs/) beschreibt Chat und API.
 Der Dienst steht allen offen, die der TU Dresden oder ScaDS.AI Dresden/Leipzig angehören.
 Für den Chat ist ein ZIH-Konto der TU Dresden nötig.
-Für den Workshop gibt die Betreuung an der TU Dresden Zugang über ein Funktionslogin.
+Für das Softwareprojekt gibt die Betreuung an der TU Dresden Zugang über ein Funktionslogin.
 Bei Bedarf bei der Betreuung melden.
 Laut Nutzungsrichtlinie gehören keine Daten in den Dienst, deren Schutzbedarf über „normal“ hinausgeht.
 Laut Datenschutzerklärung speichert die API weder Anfragen noch Antworten, wohl aber Metadaten zu jeder Anfrage.
@@ -536,11 +554,7 @@ Regeln für die Nutzung:
 
 Stand aller Links: 05.11.2026.
 Die Links zum FHIR-Bundle und zu `$validate` und die vier Gruppen „Karten und Dashboard: vorgeschlagene Bibliotheken“, „Barrierefreiheit“, „npm-Paket und Vue“ und „Alternativen und ihre Lizenzen“ sind vom 06.11.2026.
-Die Gruppen „Workshop“ und „Dev-Container und Editor“ und der Link zu arc42 sind vom 17.11.2026.
-
-**Workshop**
-
-- Vortrag „Technologiestack“, mit Ablaufdatum: https://datashare.tu-dresden.de/s/bdotfGe69FRNRZe
+Die Gruppe „Dev-Container und Editor“ und der Link zu arc42 sind vom 17.11.2026.
 
 **Angular und Werkzeuge**
 

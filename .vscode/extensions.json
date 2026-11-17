@@ -7,7 +7,7 @@
     "esbenp.prettier-vscode",
     // Applies .editorconfig, for example LF line endings and two spaces.
     "editorconfig.editorconfig",
-    // Shows the Mermaid diagram in docs/architektur.md in the Markdown preview.
+    // Shows the Mermaid diagram in docs/architektur/05-bausteinsicht.md in the Markdown preview.
     "bierner.markdown-mermaid",
     // Validates FHIR resources with the official HL7 validator (needs Java 17+ on PATH).
     "Yannick-Lagger.vscode-fhir-tools",
