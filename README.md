@@ -25,19 +25,28 @@ Ein Container ist ein abgeschotteter Prozess mit eigenem Dateisystem.
 Er entsteht aus einem Image, einer Vorlage mit Betriebssystemteilen, Programmen und Dateien.
 Docker Compose startet mehrere Container gemeinsam nach der Beschreibung in `compose.yaml`.
 
+Ein Dev-Container ist ein Container, in dem die ganze Entwicklungsumgebung läuft.
+Der Editor Visual Studio Code, kurz VS Code, öffnet den Projektordner darin und nutzt die Programme im Container.
+Die Beschreibung steht im Ordner `.devcontainer`.
+Mit dem Dev-Container genügen auf dem eigenen Rechner Git, Docker und VS Code mit der Erweiterung Dev Containers.
+Unter Windows kommt WSL 2 dazu, mit dem Windows Linux ausführt, siehe Variante D in Abschnitt 3.
+
 | Werkzeug | Version | Wozu |
 |---|---|---|
-| [Node.js](https://nodejs.org) | 22 ab 22.22.3, 24 ab 24.15.0 oder 26. Geprüft mit 22.22.3, das Docker-Image nutzt 22.23.4. | führt die Angular CLI, den Build und die Tests aus. Die Datei `.nvmrc` nennt die Hauptversion 22 für den Versionsmanager [nvm](https://github.com/nvm-sh/nvm). |
-| npm | kommt mit Node.js, geprüft mit 10.9.8 | installiert die Pakete, also fremde Programmbibliotheken aus der npm-Registry |
+| [Node.js](https://nodejs.org) | 22 ab 22.22.3, 24 ab 24.15.0 oder 26. Geprüft mit 22.22.3. Das Docker-Image nutzt 22.23.4 und der Dev-Container 22.23.5. | führt die Angular CLI, den Build und die Tests aus. Die Datei `.nvmrc` nennt die Hauptversion 22 für den Versionsmanager [nvm](https://github.com/nvm-sh/nvm). |
+| npm | kommt mit Node.js, geprüft mit 10.9.8. Der Dev-Container nutzt 10.9.9. | installiert die Pakete, also fremde Programmbibliotheken aus der npm-Registry |
 | [Git](https://git-scm.com) | aktuelle Version | lädt das Repository herunter |
-| [Docker Desktop](https://docs.docker.com/desktop/) oder [Docker Engine](https://docs.docker.com/engine/install/) mit Compose | geprüft mit Docker 29.9.2 und Compose 5.6.1 | startet Demo-App und FHIR-Server in Containern |
-| Google Chrome oder Chromium | aktuelle Version | führt die Unit-Tests aus, ohne ein Fenster zu öffnen |
-| Java, JRE oder JDK (optional) | 17 oder neuer, aufrufbar als `java` | nur für die Prüfung mit der Erweiterung FHIR tools, siehe Abschnitt 7. `java -version` zeigt die installierte Version, zum Beispiel `openjdk version "25.0.2"`. |
-| [Visual Studio Code](https://code.visualstudio.com) (optional) | aktuelle Version | Editor. Beim Öffnen des Ordners schlägt er die Erweiterungen Angular Language Service und FHIR tools vor. Er prüft außerdem die FHIR-Beispieldateien beim Tippen, siehe Abschnitt 7. |
+| [Docker Desktop](https://docs.docker.com/desktop/) oder [Docker Engine](https://docs.docker.com/engine/install/) mit Compose | geprüft mit Docker 29.9.2 und Compose 5.6.1. Der Dev-Container lief mit Docker 29.9.3. | startet Demo-App und FHIR-Server in Containern und führt den Dev-Container aus |
+| Google Chrome oder Chromium | aktuelle Version | führt die Unit-Tests aus, ohne ein Fenster zu öffnen. Für Chromium die Umgebungsvariable `CHROME_BIN` setzen, also einen benannten Wert, den das Terminal an jedes gestartete Programm weitergibt, siehe Abschnitt 9. Der Dev-Container bringt Chromium mit und setzt `CHROME_BIN` selbst. |
+| Java, JRE oder JDK (optional) | 17 oder neuer, aufrufbar als `java` | nur für die Prüfung mit der Erweiterung FHIR tools, siehe Abschnitt 7. `java -version` zeigt die installierte Version, zum Beispiel `openjdk version "25.0.2"`. Der Dev-Container bringt Java 21 mit. |
+| [Visual Studio Code](https://code.visualstudio.com) (optional) | aktuelle Version | Editor. Beim Öffnen des Ordners schlägt er sieben Erweiterungen vor: Angular Language Service für Vorschläge und Fehlermeldungen in den HTML-Templates von Angular, ESLint und Prettier für Prüfung und Format des Codes, EditorConfig für die Einstellungen aus `.editorconfig`, Markdown Preview Mermaid Support für das Diagramm in Abschnitt 6, FHIR tools für die Prüfung von FHIR-Ressourcen und Dev Containers für Variante D. Mermaid ist eine Textsprache für Diagramme. Er prüft außerdem die FHIR-Beispieldateien beim Tippen, siehe Abschnitt 7. |
+| Erweiterung [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) für Visual Studio Code (optional) | aktuelle Version | öffnet das Projekt im Dev-Container, siehe Variante D in Abschnitt 3 |
 
 Die installierte Node.js-Version zeigt `node -v`, zum Beispiel `v22.22.3`.
 
 ## 3 Schnellstart
+
+Unter Windows für Variante D das Repository nicht hier klonen, sondern wie in Variante D beschrieben in WSL 2.
 
 Zuerst das Repository klonen und in den Ordner wechseln:
 
@@ -62,6 +71,7 @@ npm start
 Die Ausgabe von `npm ci` beschreibt Abschnitt 4.
 Nach `npm start` erscheint `Local: http://localhost:4200/`.
 Danach http://localhost:4200 im Browser öffnen.
+`localhost` ist der Name, unter dem ein Rechner sich selbst erreicht.
 Oben steht eine Toolbar, also eine Leiste über die ganze Breite, mit dem Titel „FHIR-Starter“.
 Darunter nennt ein kurzer Text Angular Material, gridstack und Chart.js einen Vorschlag, der sich austauschen lässt.
 Es folgen zwei Karten, also umrandete Kästen mit Überschrift und Inhalt.
@@ -106,15 +116,62 @@ Zum Beenden in einem zweiten Terminal `docker compose --profile fhir down` ausf�
 Docker meldet dann für beide Container `Removed`.
 Ohne `--profile fhir` läuft HAPI weiter, siehe Abschnitt 9.
 
+### Variante D: im Dev-Container mit Visual Studio Code
+
+Der Dev-Container bringt Node.js 22, Chromium für die Unit-Tests und Java für die Erweiterung FHIR tools mit.
+Auf dem eigenen Rechner sind Git, Docker und VS Code mit der Erweiterung Dev Containers nötig.
+Docker muss dabei laufen, unter macOS und Windows also Docker Desktop.
+
+WSL 2 (Windows Subsystem for Linux) führt Linux unter Windows aus.
+Unter Windows kommt WSL 2 mit einem Linux-System wie Ubuntu dazu.
+Das Repository dort im Linux-Heimatordner `~` klonen und nicht unter `/mnt/c`, denn das gehört zum Dateisystem von Windows.
+Laut Docker ist der Zugriff auf Dateien im Linux-Dateisystem deutlich schneller.
+Nur dort erhalten Linux-Container außerdem Meldungen über Dateien, die Programme unter Windows ändern.
+Wie VS Code einen Ordner aus WSL 2 im Dev-Container öffnet, beschreibt die [Dokumentation von VS Code](https://code.visualstudio.com/docs/devcontainers/containers#_open-a-wsl-2-folder-in-a-container-on-windows).
+Ein Test unter Windows fehlt für dieses README noch.
+
+1. Den Ordner `angular-fhir-vitals` in VS Code öffnen.
+2. Mit `F1` oder `Strg+Umschalt+P`, unter macOS `Cmd+Umschalt+P`, die Befehlspalette öffnen, also die Eingabezeile für alle Befehle von VS Code. Dort `Dev Containers: Reopen in Container` wählen. Laut Dokumentation fragt VS Code vor dem Neuladen des Fensters, ob der Ordner vertrauenswürdig ist. Was ohne dieses Vertrauen abgeschaltet bleibt, beschreibt Abschnitt 7.
+3. Beim ersten Mal baut Docker das Image aus `.devcontainer/Dockerfile`. Dafür lädt Docker zuerst das Basis-Image, also das fertige Image, auf dem dieses Image aufbaut. Danach lädt Docker Chromium und Java. Dann führt der Container `npm ci` von selbst aus. Im Test dauerte das ein bis drei Minuten. Die Ausgabe enthielt `added 611 packages, and audited 612 packages in 2m` und `9 moderate severity vulnerabilities`, siehe Abschnitt 9. Erst nach dem Ende dieser Ausgabe mit Schritt 4 weitermachen.
+4. Im Terminal von VS Code `npm start` ausführen. Dieses Terminal läuft im Container. Es zeigt dieselben sechs Zeilen `Built fhir-vitals…` und `Local: http://localhost:4200/` wie in Variante A. Nach dem Speichern einer Änderung baut der Entwicklungsserver neu. Bei einer Änderung in `app.html` meldete er im Test `Component update sent to client(s).`
+5. http://localhost:4200 im Browser des eigenen Rechners öffnen. Laut Dokumentation leitet VS Code Port 4200 des Containers an den eigenen Rechner weiter. Erwartet wird dieselbe Seite wie in Variante A. Die Ansicht „Ports“ von VS Code zeigt unter „Forwarded Address“, wohin VS Code den Port weiterleitet.
+
+Im Container gibt es kein Docker.
+Dort meldet `docker compose` nur `docker: command not found`.
+Befehle mit `docker compose` deshalb in einem zweiten Terminal des eigenen Rechners im Ordner `angular-fhir-vitals` ausführen.
+Unter macOS ist das die App Terminal.
+Unter Windows ist es das Terminal von Ubuntu in WSL 2.
+Laufen dort noch die Varianten B oder C, sie zuerst mit `docker compose --profile fhir down` beenden, siehe Abschnitt 9.
+Danach startet `docker compose --profile fhir up -d fhir` nur HAPI FHIR im Hintergrund, ohne die Demo-App mit nginx.
+Compose meldet `Container angular-fhir-vitals-fhir-1 Started`.
+Wie in Variante C ist HAPI nach etwa 40 Sekunden bereit.
+Danach auf der Seite „Erneut verbinden“ klicken.
+Erwartet wird dieselbe Meldung wie in Variante C.
+Die Demo-App erreicht HAPI unter http://localhost:8080, denn der Browser läuft auf dem eigenen Rechner und nicht im Container.
+Ein Test der Demo-App aus dem Dev-Container zusammen mit HAPI im Browser fehlt noch.
+`docker compose --profile fhir down` stoppt HAPI wieder und meldet `Container angular-fhir-vitals-fhir-1 Removed`.
+
+Nach einer Änderung an `package-lock.json` im Terminal von VS Code erneut `npm ci` ausführen.
+Nach einer Änderung im Ordner `.devcontainer` baut `Dev Containers: Rebuild Container` aus der Befehlspalette den Container neu.
+
 ## 4 Befehle
 
 Alle Befehle im Wurzelverzeichnis des Repositorys ausführen.
+Bei Variante D gehören die Befehle mit `docker` ins Terminal des eigenen Rechners, siehe Abschnitt 3.
 Jeder Befehl in diesen Tabellen ist am 05.11.2026 mit den Versionen aus Abschnitt 14 gelaufen.
 Nach dem Einbau des Dashboard-Beispiels liefen am 06.11.2026 unter macOS erneut: `npm ci`, `npm start`, `npx ng build fhir-vitals`, `npx ng test fhir-vitals --watch=false`, `npm test`, `npm run lint`, `npm run format` und `npm run build`, dazu in einer Kopie des Repositorys der neue Befehl für Komponenten im Dashboard.
 Nach dem Umzug der Komponenten nach `angular/ui/cards` und `angular/ui/dashboard` liefen am selben Tag erneut: `npx ng build fhir-vitals`, `npx ng test fhir-vitals --watch=false`, `npm test`, `npm run lint`, `npm run format` und `npm run build`.
 In einer Kopie des Repositorys liefen dazu `npm start`, beide Befehle für neue Komponenten, der Befehl für UI-Services und der Build mit und ohne die neue Zeile in `public-api.ts`.
 Nach dem Umbau der Karten und des Grundgerüsts der Demo-App mit Angular Material liefen am selben Tag erneut: `npx ng build fhir-vitals`, `npx ng test fhir-vitals --watch=false`, `npm test`, `npm run lint`, `npm run format` und `npm run build`.
 Dazu lief die Demo-App im Entwicklungsserver, einmal zusammen mit HAPI FHIR aus dem Compose-Profil `fhir`.
+Die [Dev Containers CLI](https://github.com/devcontainers/cli) ist ein Kommandozeilenwerkzeug, das Dev-Container ohne VS Code baut und startet.
+Am 17.11.2026 liefen damit in Version 0.90.0 im Dev-Container unter macOS `npm ci`, `npm start`, `npm test`, `npm run lint`, `npm run format` und `npm run build`.
+Die Ausgaben im Terminal glichen denen ohne Container direkt unter macOS.
+Nur `npm ci` meldete wie der Docker-Build unter Linux 611 Pakete.
+Am selben Tag startete `docker compose --profile fhir up -d fhir` in einer Kopie des Repositorys nur HAPI FHIR.
+Weil Port 8080 belegt war, lief HAPI dabei über eine Zusatzdatei auf Port 18080.
+Die Schritte in VS Code aus Variante D stammen aus der Dokumentation von VS Code.
+Ein Test in VS Code und im Browser fehlt dafür noch.
 Die Spalte „Was danach zu sehen ist“ gibt die tatsächliche Ausgabe wieder.
 
 ### a) Bibliothek entwickeln
@@ -141,7 +198,7 @@ Bundle meint dort die gebauten JavaScript-Dateien und nicht ein FHIR-Bundle aus 
 
 | Befehl | Wirkung | Wann nötig | Was danach zu sehen ist |
 |---|---|---|---|
-| `npm ci` | installiert alle Pakete genau nach `package-lock.json` und löscht vorher einen vorhandenen Ordner `node_modules` | einmal nach dem Klonen und nach jeder Änderung an `package-lock.json` | Nach einigen Sekunden bis etwa einer Minute erscheint `added … packages`. Die Zahl hängt vom Betriebssystem ab. Am 06.11.2026 meldete npm unter macOS `added 605 packages, and audited 606 packages in 10s`. Unter Linux meldete der Docker-Build am selben Tag mit derselben `package-lock.json` `added 611 packages in 8s`. Davor stehen Warnungen `npm warn deprecated` zu `inflight`, `rimraf` und `glob`. Sie stammen aus dem Testrunner Karma. Danach folgt `14 moderate severity vulnerabilities`, siehe Abschnitt 9. |
+| `npm ci` | installiert alle Pakete genau nach `package-lock.json` und löscht vorher einen vorhandenen Ordner `node_modules` | einmal nach dem Klonen und nach jeder Änderung an `package-lock.json` | Nach einigen Sekunden bis wenigen Minuten erscheint `added … packages`. Die Zahl hängt vom Betriebssystem ab. Am 06.11.2026 meldete npm unter macOS `added 605 packages, and audited 606 packages in 10s`. Unter Linux meldete der Docker-Build am selben Tag mit derselben `package-lock.json` `added 611 packages in 8s`. Davor stehen Warnungen `npm warn deprecated` zu `inflight`, `rimraf` und `glob`. Sie stammen aus dem Testrunner Karma. Danach folgt eine Zeile wie `9 moderate severity vulnerabilities`, siehe Abschnitt 9. Die Zahl ändert sich mit der Datenbank bekannter Schwachstellen, die npm bei jedem Lauf abfragt. Am 06.11.2026 meldete npm 14 und am 17.11.2026 noch 9. |
 | `npm start` | baut die Bibliothek einmal und startet die Demo-App mit dem Entwicklungsserver | zum Ausprobieren | sechs Zeilen `Built fhir-vitals…`, eine für das Paket und eine je Einstiegspunkt, danach `Local: http://localhost:4200/`. Im Browser erscheint die Seite „FHIR-Starter“ mit der Kachel „Blutdruckverlauf“. Die Konsole des Browsers meldet dabei `NG0751`, siehe Abschnitt 9. `Strg+C` beendet den Entwicklungsserver. |
 | Terminal 1: `npm run watch:lib` | baut die Bibliothek mit allen Einstiegspunkten bei jeder gespeicherten Änderung neu | beim Arbeiten an der Bibliothek, zusammen mit Terminal 2 | `Compilation complete. Watching for file changes...`. Nach jeder Änderung folgt ein neuer Block mit `Build at: …`. Der Neubau dauerte im Test 0,1 bis 0,2 Sekunden. |
 | Terminal 2: `npm run start:app` | startet nur die Demo-App, ohne die Bibliothek zu bauen | zusammen mit Terminal 1 | `Local: http://localhost:4200/`. Nach einer Änderung in der Bibliothek erscheint `Page reload sent to client(s).`, und der Browser lädt die Seite selbst neu. Vom Speichern bis zum Neuladen verging im Test weniger als eine Sekunde, für Änderungen in `core` ebenso wie in `angular/ui`. |
@@ -237,6 +294,8 @@ In der Demo-App liegen sie im Ordner `public`.
 ```text
 angular-fhir-vitals/
 ├── .github/workflows/pages.yml        Workflow: veröffentlicht die Demo-App auf GitHub Pages
+├── .devcontainer/devcontainer.json    Dev-Container: Erweiterungen, Einstellungen, Ports und Volume für node_modules
+├── .devcontainer/Dockerfile           Image des Dev-Containers mit Node.js 22, Chromium und Java
 ├── projects/
 │   ├── fhir-vitals/                   Angular-Bibliothek: ein npm-Paket mit fünf Einstiegspunkten
 │   │   ├── core/                      "fhir-vitals/core": Ports, Ablauf VitalsSync, Blutdruck und Messverlauf
@@ -265,18 +324,70 @@ angular-fhir-vitals/
 ├── tsconfig.json                      TypeScript-Einstellungen und die Pfadzuordnung für "fhir-vitals"
 ├── package.json                       npm-Skripte und Abhängigkeiten des Workspace
 ├── package-lock.json                  genaue Paketversionen für npm ci
-├── Dockerfile                         Image in zwei Stufen: Build mit Node.js, Auslieferung mit nginx
+├── Dockerfile                         Image der Demo-App in zwei Stufen: Build mit Node.js, Auslieferung mit nginx
 ├── .dockerignore                      Dateien, die nicht ins Docker-Image kopiert werden
 ├── compose.yaml                       Dienste demo-app und fhir
 ├── .gitignore                         Dateien, die nicht ins Repository gehören, etwa node_modules, dist und .env
 ├── eslint.config.js                   Regeln für ESLint
 ├── .prettierrc                        Einstellungen für Prettier
 ├── .editorconfig                      Einrückung, Zeilenenden und Anführungszeichen für Editoren
+├── .gitattributes                     einheitliche Zeilenenden für alle Textdateien
 ├── .nvmrc                             Node.js-Hauptversion für nvm
 ├── .vscode/extensions.json            empfohlene Erweiterungen für Visual Studio Code
 ├── .vscode/settings.json              ordnet den FHIR-Beispieldateien das JSON-Schema von FHIR R4 zu
 └── LICENSE                            Lizenztext Apache-2.0
 ```
+
+**Dev-Container.**
+`.devcontainer/devcontainer.json` beschreibt den Dev-Container aus Variante D in Abschnitt 3.
+Sein Image entsteht aus `.devcontainer/Dockerfile`.
+Mit dem `Dockerfile` im Wurzelverzeichnis hat es nichts zu tun, denn dieses baut das Image der Demo-App mit nginx für die Auslieferung.
+Das Image des Dev-Containers beruht auf `mcr.microsoft.com/devcontainers/javascript-node` mit Node.js 22.
+Es ergänzt Chromium und Java aus den Paketen von Debian, dem Linux-System im Image.
+Die Sandbox ist ein Schutz von Chromium, der Webseiten vom übrigen System abschottet.
+Sie braucht Rechte, die Docker einem Container standardmäßig nicht gibt.
+Ohne weitere Einstellung bricht Chromium im Container deshalb mit `No usable sandbox!` ab.
+Die Datei `/etc/chromium.d/no-sandbox` im Image schaltet die Sandbox ab.
+Karma öffnet in diesem Browser nur die Tests des Projekts.
+`CHROME_BIN` nennt Karma den Pfad zu Chromium.
+
+Der Ordner `node_modules` liegt im Dev-Container in einem eigenen Volume, also einem Speicherbereich, den Docker selbst verwaltet und in den Container einbindet.
+So ersetzen die Pakete für Linux nie die Pakete des eigenen Rechners.
+`docker volume ls` zeigt das Volume mit einem Namen wie `angular-fhir-vitals-node_modules-0r75pjv8…`.
+Docker legt dafür im Projektordner einen leeren Ordner `node_modules` an.
+Unter Linux und WSL 2 kann dieser Ordner dem Benutzer root gehören, also dem Administrator des Systems.
+`npm ci` auf dem eigenen Rechner darf dann nicht hineinschreiben.
+Bei geschlossenem Dev-Container entfernt `rmdir node_modules` den leeren Ordner.
+Ein Test unter Linux und WSL 2 fehlt dafür noch.
+Der Eintrag `postCreateCommand` in `devcontainer.json` nennt Befehle, die nach dem ersten Erstellen des Containers laufen.
+Er übergibt zuerst den Ordner `node_modules` an den Benutzer `node` im Container und führt dann `npm ci` aus.
+
+Der Eintrag `customizations.vscode` gilt nur für VS Code.
+Dort stehen die Erweiterungen aus `.vscode/extensions.json` außer Dev Containers selbst und Einstellungen nur für den Container.
+VS Code installiert diese Erweiterungen im Container von selbst.
+Im Container formatiert Prettier außerdem TypeScript, HTML und CSS beim Speichern, wie `npm run format`.
+Außerhalb des Containers bleibt das aus, weil diese Einstellungen nur in `.devcontainer/devcontainer.json` stehen.
+Nur im Container ist die Erweiterung Prettier sicher installiert.
+VS Code leitet Port 4200 an den eigenen Rechner weiter.
+Port 9876 von Karma braucht nur der Browser im Container.
+Deshalb leitet VS Code ihn nicht von selbst weiter.
+Diese Angaben zu VS Code stammen aus der Dokumentation von VS Code und der Spezifikation von `devcontainer.json`.
+Ein Test in VS Code selbst fehlt noch.
+
+**Zeilenenden.**
+Das Zeilenende ist das unsichtbare Zeichen am Ende jeder Zeile einer Textdatei.
+Linux und macOS nutzen dafür das Zeichen LF (Line Feed, Zeilenvorschub).
+Windows nutzt die zwei Zeichen CRLF (Carriage Return und Line Feed).
+`.editorconfig` und Prettier erwarten LF.
+`.gitattributes` lässt Git alle Textdateien auf jedem System mit LF in den Arbeitsordner schreiben.
+Ohne diese Datei schreibt Git für Windows mit seiner Voreinstellung CRLF.
+Laut Dokumentation von VS Code meldet Git im Dev-Container dann viele Dateien als geändert.
+
+**Nutzungsdaten der Angular CLI.**
+Ohne Einstellung fragt die Angular CLI bei Befehlen wie `ng generate` einmal, ob sie Nutzungsdaten an das Angular-Team schicken darf.
+Die Frage beginnt mit `Would you like to share pseudonymous usage data about this project with the Angular Team at Google` und hält den Befehl an, bis eine Antwort kommt.
+`"analytics": false` unter `cli` in `angular.json` schaltet das für dieses Projekt ab, wie im Patientenportal.
+Die CLI fragt dann nicht und schickt keine Nutzungsdaten.
 
 **Pfadzuordnung.** Die Demo-App importiert die Bibliothek über ihre Paketnamen, also etwa `import { VitalsFacade } from "fhir-vitals/angular/data";` und `import { PatientCard, ServerStatus } from "fhir-vitals/angular/ui/cards";`.
 Genau so sähe der Import im Patientenportal aus, wenn es die Bibliothek als npm-Paket installiert.
@@ -789,8 +900,33 @@ Danach erscheinen vier Zeilen wie `CREATE projects/fhir-vitals/angular/ui/cards/
 
 **Tests finden keinen Browser.**
 Karma meldet `No binary for ChromeHeadless browser on your platform. Please, set "CHROME_BIN" env variable.`
-Google Chrome oder Chromium installieren.
-Liegt der Browser an einem ungewöhnlichen Ort, die Umgebungsvariable `CHROME_BIN` auf die ausführbare Datei setzen.
+Karma sucht von selbst nur nach Google Chrome.
+Google Chrome installieren.
+Für Chromium oder einen Browser an einem ungewöhnlichen Ort die Umgebungsvariable `CHROME_BIN` auf die ausführbare Datei setzen.
+In den Kommandozeilen bash und zsh von Linux und macOS setzt `export CHROME_BIN=/usr/bin/chromium` die Variable für das laufende Terminal.
+Der Befehl gibt nichts aus.
+Der Pfad gilt für das Paket `chromium` von Debian.
+Der Dev-Container setzt `CHROME_BIN` selbst.
+Ohne diese Variable meldete Karma dort am 17.11.2026 genau diesen Fehler.
+
+**`curl` im Dev-Container erreicht HAPI nicht.**
+Im Terminal des Dev-Containers meldet `curl http://localhost:8080/fhir/metadata` den Fehler `curl: (7) Failed to connect to localhost port 8080 after 1 ms: Could not connect to server`.
+`localhost` ist der Name, unter dem ein Rechner sich selbst erreicht.
+Im Dev-Container meint `localhost` den Container, und HAPI läuft auf dem eigenen Rechner.
+`curl` deshalb im Terminal des eigenen Rechners ausführen.
+Die Demo-App im Browser betrifft das nicht, denn der Browser läuft auf dem eigenen Rechner.
+
+**Port 4200 im Dev-Container und in Docker.**
+Die Varianten B und C starten nginx auf Port 4200 des eigenen Rechners.
+Die Weiterleitung von VS Code für den Entwicklungsserver im Dev-Container will ebenfalls Port 4200 des eigenen Rechners belegen.
+Belegt nginx den Port schon, zeigt http://localhost:4200 weiter die Demo-App aus nginx, also den Stand ihres letzten Builds.
+Beide deshalb nicht gleichzeitig betreiben.
+Vor `Dev Containers: Reopen in Container` die Varianten B und C mit `docker compose --profile fhir down` beenden.
+Docker meldet dann `Removed`.
+Für HAPI allein genügt `docker compose --profile fhir up -d fhir`, siehe Variante D in Abschnitt 3.
+Die Ansicht „Ports“ von VS Code zeigt unter „Forwarded Address“, wohin VS Code Port 4200 tatsächlich weiterleitet.
+Diese Angaben zu VS Code stammen aus der Dokumentation von VS Code.
+Ein Test in VS Code selbst fehlt noch.
 
 **`config.json` im Container liefert 404.**
 Manche Editoren speichern eine Datei, indem sie sie durch eine neue Datei ersetzen.
@@ -803,9 +939,14 @@ Docker meldet danach `Container angular-fhir-vitals-demo-app-1 Started`, und die
 Die Warnungen `npm warn deprecated` zu `inflight`, `rimraf` und `glob` stammen aus Karma 6.4.4.
 Das Karma-Projekt entwickelt Karma nicht mehr weiter.
 Das Patientenportal nutzt Karma trotzdem als Testrunner, deshalb auch dieser Starter.
-Die Meldung `14 moderate severity vulnerabilities` betrifft das Paket `minimatch` in der ESLint-Kette.
+Die Meldung `… moderate severity vulnerabilities` betrifft das Paket `minimatch` in der ESLint-Kette.
+Am 17.11.2026 waren es 9 Meldungen.
 Beides betrifft nur Entwicklungswerkzeuge und nicht den Code, der im Browser läuft.
 `npm audit fix --force` nicht ausführen, weil es Pakete auf unpassende Versionen ändert.
+Am 17.11.2026 schlug npm außerdem `npm audit fix` ohne `--force` vor.
+Ein Probelauf mit `npm audit fix --dry-run` zeigte neuere Patches für die ESLint-Kette, etwa `add minimatch 11.0.9`.
+`npm audit fix` ohne `--dry-run` ändert damit `package-lock.json`.
+Solche Änderungen gehören in einen eigenen Commit, den alle anderen mit `npm ci` übernehmen.
 
 **Daten auf HAPI sind nach einem Neustart weg.**
 HAPI läuft hier ohne eigene Datenbank und hält die Daten im Arbeitsspeicher.
@@ -994,6 +1135,18 @@ Regeln für die Nutzung:
 | Bind-Mount | eine Datei oder ein Ordner des eigenen Rechners, den Docker in einen Container einbindet. `compose.yaml` bindet so `config.json` ein. |
 | Profil in Compose | eine Gruppe von Diensten, die nur mit `--profile <name>` startet und stoppt. Der Dienst `fhir` gehört zum Profil `fhir`. |
 | Port | eine Nummer, unter der ein Programm auf einem Rechner erreichbar ist, etwa 4200 für die Demo-App und 8080 für HAPI |
+| Port-Weiterleitung | macht einen Port eines Containers auf dem eigenen Rechner erreichbar, etwa Port 80 von nginx als Port 4200 oder Port 4200 des Dev-Containers |
+| localhost | der Name, unter dem ein Rechner sich selbst erreicht. Im Dev-Container meint `localhost` den Container und nicht den eigenen Rechner. |
+| Dev-Container | ein Container, in dem die ganze Entwicklungsumgebung läuft. Visual Studio Code öffnet den Projektordner darin. Die Beschreibung steht in `.devcontainer/devcontainer.json`. |
+| Erweiterung | ein Zusatzprogramm für Visual Studio Code, etwa für Angular, ESLint oder FHIR |
+| Befehlspalette | die Eingabezeile für alle Befehle von VS Code. `F1` oder `Strg+Umschalt+P` öffnet sie, unter macOS `Cmd+Umschalt+P`. |
+| Sandbox | ein Schutz von Chromium, der Webseiten vom übrigen System abschottet. Im Dev-Container ist sie abgeschaltet. Karma öffnet dort nur die Tests des Projekts. |
+| WSL 2 | das Windows Subsystem for Linux. Es führt Linux-Systeme wie Ubuntu unter Windows aus. Docker Desktop nutzt es unter Windows. |
+| Zeilenende | das unsichtbare Zeichen am Ende jeder Zeile einer Textdatei. Linux und macOS nutzen LF (Line Feed). Windows nutzt CRLF (Carriage Return und Line Feed). |
+| Umgebungsvariable | ein benannter Wert, den das Betriebssystem oder das Terminal an jedes gestartete Programm weitergibt, etwa `CHROME_BIN` für Karma |
+| Basis-Image | das fertige Image, auf dem ein eigenes Image aufbaut. In `.devcontainer/Dockerfile` nennt die Zeile `FROM` das Basis-Image. |
+| root | der Administrator eines Linux-Systems mit allen Rechten |
+| Mermaid | eine Textsprache für Diagramme. GitHub zeigt den Block in Abschnitt 6 als Diagramm. Die Vorschau von Visual Studio Code zeigt ihn mit der Erweiterung Markdown Preview Mermaid Support. |
 | GitHub Actions | ein Dienst von GitHub, der Workflows ausführt, etwa bei jedem Push |
 | Workflow | ein automatischer Ablauf aus Jobs und Schritten, beschrieben in einer YAML-Datei unter `.github/workflows/`. Jede Ausführung heißt Lauf. |
 | Job | eine Folge von Schritten in einem Workflow, die GitHub auf einem eigenen Rechner ausführt |
@@ -1042,6 +1195,7 @@ Regeln für die Nutzung:
 
 Stand aller Links: 05.11.2026.
 Die Links zum FHIR-Bundle und zu `$validate` und die vier Gruppen „Karten und Dashboard: vorgeschlagene Bibliotheken“, „Barrierefreiheit“, „npm-Paket und Vue“ und „Alternativen und ihre Lizenzen“ sind vom 06.11.2026.
+Die Gruppe „Dev-Container und Editor“ ist vom 17.11.2026.
 
 **Angular und Werkzeuge**
 
@@ -1115,6 +1269,28 @@ Die Links zum FHIR-Bundle und zu `$validate` und die vier Gruppen „Karten und 
 - JSON-Schema von FHIR R4 (Download-Seite): https://hl7.org/fhir/R4/downloads.html
 - Erweiterung FHIR tools: https://marketplace.visualstudio.com/items?itemName=Yannick-Lagger.vscode-fhir-tools und https://github.com/laggery/vscode-fhir-tools
 
+**Dev-Container und Editor**
+
+- Dev Containers in VS Code: https://code.visualstudio.com/docs/devcontainers/containers
+- Erweiterung Dev Containers: https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers
+- Dev Container Specification und `devcontainer.json`: https://containers.dev und https://containers.dev/implementors/json_reference/
+- Image `javascript-node`: https://github.com/devcontainers/images/tree/main/src/javascript-node
+- `node_modules` in einem Volume: https://code.visualstudio.com/remote/advancedcontainers/improve-performance
+- Zeilenenden in Dev-Containern: https://code.visualstudio.com/docs/devcontainers/tips-and-tricks
+- Ports aus dem Dev-Container weiterleiten: https://code.visualstudio.com/docs/devcontainers/containers#_forwarding-or-publishing-a-port
+- Ordner aus WSL 2 im Dev-Container öffnen: https://code.visualstudio.com/docs/devcontainers/containers#_open-a-wsl-2-folder-in-a-container-on-windows
+- Ansicht „Ports“ in VS Code: https://code.visualstudio.com/docs/debugtest/port-forwarding. Die Freigabe über Dev Tunnels ins Internet auf derselben Seite braucht dieses Projekt nicht.
+- Dev Containers CLI: https://github.com/devcontainers/cli
+- WSL 2 installieren: https://learn.microsoft.com/en-us/windows/wsl/install
+- WSL 2 und Docker Desktop: https://docs.docker.com/desktop/features/wsl/best-practices/
+- `.gitattributes`: https://git-scm.com/docs/gitattributes
+- EditorConfig: https://editorconfig.org und https://marketplace.visualstudio.com/items?itemName=EditorConfig.EditorConfig
+- Erweiterung ESLint: https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint
+- Erweiterung Prettier: https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode
+- Erweiterung Markdown Preview Mermaid Support: https://marketplace.visualstudio.com/items?itemName=bierner.markdown-mermaid
+- Nutzungsdaten der Angular CLI: https://angular.dev/cli/analytics
+- Karma und `CHROME_BIN`: https://github.com/karma-runner/karma-chrome-launcher
+
 **Karten und Dashboard: vorgeschlagene Bibliotheken**
 
 - gridstack: https://gridstackjs.com und https://github.com/gridstack/gridstack.js
@@ -1175,6 +1351,7 @@ Die Spalte „Portal“ nennt die installierten Paketversionen aus dessen `packa
 Node.js, nginx und HAPI FHIR stammen aus `.nvmrc` und den Dockerfiles des Portals.
 Die Versionen des Starters stammen von der npm-Registry, von nodejs.org und von Docker Hub, Stand 05.11.2026.
 Die Zeilen für die vorgeschlagenen Pakete stammen vom 06.11.2026, auch die Spalte „Portal“.
+Die beiden Zeilen zum Dev-Container stammen vom 17.11.2026, aus der Microsoft Container Registry und aus den Paketquellen von Debian 13.
 
 | Paket | Portal | Starter | Begründung |
 |---|---|---|---|
@@ -1199,6 +1376,8 @@ Die Zeilen für die vorgeschlagenen Pakete stammen vom 06.11.2026, auch die Spal
 | npm | nicht festgelegt, Lock-Datei Version 3 | 10.9.8 (Feld `packageManager`), Lock-Datei Version 3 | gleiche Version der Lock-Datei |
 | nginx | `nginx:1.31-alpine` | `nginx:1.31.8-alpine` | dieselbe Linie mit fester Version |
 | HAPI FHIR | `hapiproject/hapi:v8.10.0-2` | `hapiproject/hapi:v8.12.0-2` | neueste Version am 05.11.2026 |
+| Image des Dev-Containers | kein Dev-Container | `mcr.microsoft.com/devcontainers/javascript-node:5.2.6-22-trixie` | Node.js 22 wie `.nvmrc` auf Debian 13 „trixie“. 5.2.6 war am 17.11.2026 die neueste Version des Images. Es bringt Node.js 22.23.5 und npm 10.9.9 mit. `npm ci` lief damit ohne Warnung zum Feld `packageManager`, das 10.9.8 nennt. |
+| Chromium und Java im Dev-Container | kein Dev-Container | Chromium 156.0.8078.79 und OpenJDK 21.0.13 aus Debian 13 | Das Dockerfile legt keine Version fest, denn Debian ersetzt ältere Versionen in seinen Paketquellen durch neue. Eine feste Version ließe den Bau nach dem nächsten Update scheitern. Der erste Bau auf einem Rechner holt so den aktuellen Stand mit den Sicherheitsupdates. Docker merkt sich danach das Ergebnis jedes Schritts und nutzt es bei einem Neubau wieder. FHIR tools braucht Java 17 oder neuer. |
 
 ## 15 Lizenz
 

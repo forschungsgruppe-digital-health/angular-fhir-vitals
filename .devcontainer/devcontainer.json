@@ -1,0 +1,63 @@
+// Development environment in a container. VS Code with the Dev Containers extension builds it from the Dockerfile next to this file.
+// The demo app with nginx and HAPI FHIR from compose.yaml keep running in Docker on the host.
+{
+  "name": "angular-fhir-vitals",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  // node_modules lives in a Docker volume instead of the project folder on the host.
+  // The Linux packages of the container then never replace the packages of the host.
+  // devcontainerId differs per folder, so two clones never share one volume.
+  // The fixed prefix keeps the name valid even when the folder name has spaces or umlauts.
+  "mounts": [
+    "source=angular-fhir-vitals-node_modules-${devcontainerId},target=${containerWorkspaceFolder}/node_modules,type=volume"
+  ],
+  // A new volume belongs to root, so the user "node" takes it over before npm installs the packages.
+  "postCreateCommand": "sudo chown node node_modules && npm ci",
+  "containerEnv": {
+    // Karma starts this browser for "npm test" and "ng test".
+    "CHROME_BIN": "/usr/bin/chromium"
+  },
+  // The development server of "npm start" listens on port 4200 in the container. VS Code forwards it to the host.
+  "forwardPorts": [4200],
+  "portsAttributes": {
+    "4200": {
+      "label": "Demo-App"
+    },
+    // Only the browser inside the container needs the Karma server.
+    "9876": {
+      "label": "Karma",
+      "onAutoForward": "ignore"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      // The list from .vscode/extensions.json without Dev Containers, which runs on the host only.
+      // In the container VS Code installs them right away.
+      "extensions": [
+        "angular.ng-template",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "editorconfig.editorconfig",
+        "bierner.markdown-mermaid",
+        "Yannick-Lagger.vscode-fhir-tools"
+      ],
+      // These settings need the Prettier extension, which is always installed in the container.
+      "settings": {
+        // Prettier formats the same file types as "npm run format", on every save.
+        "[typescript]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode",
+          "editor.formatOnSave": true
+        },
+        "[html]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode",
+          "editor.formatOnSave": true
+        },
+        "[css]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode",
+          "editor.formatOnSave": true
+        }
+      }
+    }
+  }
+}

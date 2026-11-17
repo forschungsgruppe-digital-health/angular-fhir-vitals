@@ -2,7 +2,16 @@
   // For more information, visit: https://go.microsoft.com/fwlink/?linkid=827846
   "recommendations": [
     "angular.ng-template",
+    // Show ESLint findings while typing and format with Prettier, as "npm run lint" and "npm run format" do.
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    // Applies .editorconfig, for example LF line endings and two spaces.
+    "editorconfig.editorconfig",
+    // Shows the Mermaid diagram of the README in the Markdown preview.
+    "bierner.markdown-mermaid",
     // Validates FHIR resources with the official HL7 validator (needs Java 17+ on PATH).
-    "Yannick-Lagger.vscode-fhir-tools"
+    "Yannick-Lagger.vscode-fhir-tools",
+    // Opens this folder in the Dev Container from .devcontainer/devcontainer.json.
+    "ms-vscode-remote.remote-containers"
   ]
 }
