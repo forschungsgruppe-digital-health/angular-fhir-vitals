@@ -5,11 +5,13 @@ Startpunkt für den Workshop WW2 (#WW26-MiHUB) der Forschungsgruppe Digital Heal
 ## 1 Worum es geht
 
 Dieses Repository enthält `fhir-vitals`, eine Bibliothek mit wiederverwendbarem Code für das Web-Framework Angular, und die Demo-App `demo-app`, die diese Bibliothek nutzt.
-Die Demo-App zeigt einen synthetischen Patienten und speichert auf Wunsch eine Blutdruckmessung auf einem FHIR-Server, also einem Server für Gesundheitsdaten nach dem Standard HL7 FHIR R4.
+Die Demo-App zeigt einen synthetischen, also erfundenen Patienten und speichert auf Wunsch eine Blutdruckmessung auf einem FHIR-Server, also einem Server für Gesundheitsdaten nach dem Standard HL7 FHIR R4.
 Im Workshop entsteht daraus Schritt für Schritt eine Bibliothek für Vitalparameter, die sich später in ein Patientenportal einbinden lässt.
 Weiter unten zeigt eine Kachel, also ein Rechteck mit Titel und Inhalt, den Blutdruckverlauf aus sieben synthetischen Messungen als Liniendiagramm.
 Sie ist ein minimales Beispiel für das Dashboard, also die Übersicht aus Kacheln, die im Workshop entsteht.
 Die Bibliotheken für die Oberfläche sind ein Vorschlag, siehe Abschnitt 10.
+Einen groben Einstieg in HL7 FHIR und die genutzten Technologien gibt der Vortrag [„Technologiestack“](https://datashare.tu-dresden.de/s/bdotfGe69FRNRZe) aus dem Workshop.
+Der Link läuft zu einem festen Datum ab.
 
 ## 2 Voraussetzungen
 
@@ -28,7 +30,13 @@ Docker Compose startet mehrere Container gemeinsam nach der Beschreibung in `com
 Ein Dev-Container ist ein Container, in dem die ganze Entwicklungsumgebung läuft.
 Der Editor Visual Studio Code, kurz VS Code, öffnet den Projektordner darin und nutzt die Programme im Container.
 Die Beschreibung steht im Ordner `.devcontainer`.
-Mit dem Dev-Container genügen auf dem eigenen Rechner Git, Docker und VS Code mit der Erweiterung Dev Containers.
+
+Welche Werkzeuge aus der Tabelle nötig sind, hängt von der Variante in Abschnitt 3 ab.
+Variante A ohne Docker braucht Git, Node.js und einen Browser.
+Für die Unit-Tests kommt Google Chrome oder Chromium dazu.
+Die Varianten B und C mit Docker brauchen Git, Docker und einen Browser, aber kein Node.js auf dem eigenen Rechner.
+Für die Befehle mit `npm` und `npx` aus Abschnitt 4 braucht es Node.js wie in Variante A oder den Dev-Container aus Variante D.
+Variante D im Dev-Container braucht auf dem eigenen Rechner Git, Docker, einen Browser und VS Code mit der Erweiterung Dev Containers.
 Unter Windows kommt WSL 2 dazu, mit dem Windows Linux ausführt, siehe Variante D in Abschnitt 3.
 
 | Werkzeug | Version | Wozu |
@@ -39,7 +47,7 @@ Unter Windows kommt WSL 2 dazu, mit dem Windows Linux ausführt, siehe Variante 
 | [Docker Desktop](https://docs.docker.com/desktop/) oder [Docker Engine](https://docs.docker.com/engine/install/) mit Compose | geprüft mit Docker 29.9.2 und Compose 5.6.1. Der Dev-Container lief mit Docker 29.9.3. | startet Demo-App und FHIR-Server in Containern und führt den Dev-Container aus |
 | Google Chrome oder Chromium | aktuelle Version | führt die Unit-Tests aus, ohne ein Fenster zu öffnen. Für Chromium die Umgebungsvariable `CHROME_BIN` setzen, also einen benannten Wert, den das Terminal an jedes gestartete Programm weitergibt, siehe Abschnitt 9. Der Dev-Container bringt Chromium mit und setzt `CHROME_BIN` selbst. |
 | Java, JRE oder JDK (optional) | 17 oder neuer, aufrufbar als `java` | nur für die Prüfung mit der Erweiterung FHIR tools, siehe Abschnitt 7. `java -version` zeigt die installierte Version, zum Beispiel `openjdk version "25.0.2"`. Der Dev-Container bringt Java 21 mit. |
-| [Visual Studio Code](https://code.visualstudio.com) (optional) | aktuelle Version | Editor. Beim Öffnen des Ordners schlägt er sieben Erweiterungen vor: Angular Language Service für Vorschläge und Fehlermeldungen in den HTML-Templates von Angular, ESLint und Prettier für Prüfung und Format des Codes, EditorConfig für die Einstellungen aus `.editorconfig`, Markdown Preview Mermaid Support für das Diagramm in Abschnitt 6, FHIR tools für die Prüfung von FHIR-Ressourcen und Dev Containers für Variante D. Mermaid ist eine Textsprache für Diagramme. Er prüft außerdem die FHIR-Beispieldateien beim Tippen, siehe Abschnitt 7. |
+| [Visual Studio Code](https://code.visualstudio.com) (optional) | aktuelle Version | Editor. Beim Öffnen des Ordners schlägt er sieben Erweiterungen vor: Angular Language Service für Vorschläge und Fehlermeldungen in den HTML-Dateien dieses Repositorys, ESLint und Prettier für Prüfung und Format des Codes, EditorConfig für die Einstellungen aus `.editorconfig`, Markdown Preview Mermaid Support für das Diagramm in Abschnitt 6, FHIR tools für die Prüfung von FHIR-Ressourcen und Dev Containers für Variante D. Mermaid ist eine Textsprache für Diagramme. VS Code prüft außerdem die FHIR-Beispieldateien beim Tippen. Einen neuen Ordner öffnet VS Code zunächst im eingeschränkten Modus. Darin bleiben diese Prüfung und Erweiterungen wie FHIR tools abgeschaltet, bis der Ordner als vertrauenswürdig gilt, siehe Abschnitt 7. |
 | Erweiterung [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) für Visual Studio Code (optional) | aktuelle Version | öffnet das Projekt im Dev-Container, siehe Variante D in Abschnitt 3 |
 
 Die installierte Node.js-Version zeigt `node -v`, zum Beispiel `v22.22.3`.
@@ -62,6 +70,7 @@ Danach gibt es den Ordner `angular-fhir-vitals` mit unter anderem `package.json`
 
 `npm start` startet den Entwicklungsserver von Angular.
 Er liefert die Demo-App auf Port 4200 aus und lädt die Seite nach jeder Änderung neu.
+Ein Port ist eine Nummer, unter der ein Programm auf einem Rechner erreichbar ist.
 
 ```bash
 npm ci
@@ -69,12 +78,16 @@ npm start
 ```
 
 Die Ausgabe von `npm ci` beschreibt Abschnitt 4.
+Die Warnungen `npm warn deprecated` darin und die Zeile `… moderate severity vulnerabilities` betreffen nur Entwicklungswerkzeuge, siehe Abschnitt 9.
 Nach `npm start` erscheint `Local: http://localhost:4200/`.
 Danach http://localhost:4200 im Browser öffnen.
 `localhost` ist der Name, unter dem ein Rechner sich selbst erreicht.
 Oben steht eine Toolbar, also eine Leiste über die ganze Breite, mit dem Titel „FHIR-Starter“.
 Darunter nennt ein kurzer Text Angular Material, gridstack und Chart.js einen Vorschlag, der sich austauschen lässt.
-Es folgen zwei Karten, also umrandete Kästen mit Überschrift und Inhalt.
+Diese drei Bibliotheken liefern fertige Bausteine.
+Angular Material liefert zum Beispiel Karten, also umrandete Kästen mit Überschrift und Inhalt.
+gridstack ordnet Kacheln in einem Raster aus Spalten und Zeilen an, und Chart.js zeichnet die Diagramme.
+Es folgen zwei solche Karten.
 Die Karte „Patient“ zeigt Herrn K.
 Die Karte „FHIR-Server“ zeigt den Status „nicht erreichbar“, weil kein FHIR-Server läuft.
 In einem breiten Fenster stehen beide Karten nebeneinander.
@@ -111,6 +124,7 @@ HAPI braucht nach dem Start etwa 40 Sekunden.
 Bis dahin zeigt die Seite „nicht erreichbar“.
 Danach auf der Seite „Erneut verbinden“ klicken.
 Die Seite meldet „verbunden, Patient und Blutdruck gespeichert“ und zeigt „Blutdruck vom Server: 104/66 mm[Hg]“.
+mm[Hg] steht für Millimeter Quecksilbersäule, die übliche Einheit für den Blutdruck.
 
 Zum Beenden in einem zweiten Terminal `docker compose --profile fhir down` ausführen.
 Docker meldet dann für beide Container `Removed`.
@@ -153,10 +167,14 @@ Ein Test der Demo-App aus dem Dev-Container zusammen mit HAPI im Browser fehlt n
 
 Nach einer Änderung an `package-lock.json` im Terminal von VS Code erneut `npm ci` ausführen.
 Nach einer Änderung im Ordner `.devcontainer` baut `Dev Containers: Rebuild Container` aus der Befehlspalette den Container neu.
+Hintergründe zum Dev-Container, etwa zum Ordner `node_modules` unter Linux und WSL 2, stehen in Abschnitt 5 unter „Dev-Container und Werkzeuge“.
 
 ## 4 Befehle
 
 Alle Befehle im Wurzelverzeichnis des Repositorys ausführen.
+`npm run <name>` startet ein npm-Skript, also einen Eintrag unter `scripts` in `package.json`, etwa `npm run lint`.
+Für `npm start` und `npm test` genügt der Name ohne `run`.
+`npx` startet ein Programm aus den installierten Paketen, etwa mit `npx ng` die Angular CLI.
 Bei Variante D gehören die Befehle mit `docker` ins Terminal des eigenen Rechners, siehe Abschnitt 3.
 Jeder Befehl in diesen Tabellen ist am 05.11.2026 mit den Versionen aus Abschnitt 14 gelaufen.
 Nach dem Einbau des Dashboard-Beispiels liefen am 06.11.2026 unter macOS erneut: `npm ci`, `npm start`, `npx ng build fhir-vitals`, `npx ng test fhir-vitals --watch=false`, `npm test`, `npm run lint`, `npm run format` und `npm run build`, dazu in einer Kopie des Repositorys der neue Befehl für Komponenten im Dashboard.
@@ -176,15 +194,13 @@ Die Spalte „Was danach zu sehen ist“ gibt die tatsächliche Ausgabe wieder.
 
 ### a) Bibliothek entwickeln
 
+**Befehle für den Alltag.**
 Die Datei `package-lock.json` hält die genauen Versionen aller Pakete fest.
 Ein Commit speichert einen Stand des Codes in der Versionsverwaltung Git.
-Eine Komponente ist ein Baustein der Oberfläche aus TypeScript-Klasse, HTML-Template und CSS.
-Ihr Selektor ist der Name des HTML-Elements, mit dem eine Seite sie einbindet, etwa `<lib-vitals-card>`.
-Ein Service ist eine Klasse mit Logik ohne eigene Oberfläche, etwa für Datenzugriffe.
-Der Decorator `@Service()` ist eine Markierung über der Klasse.
-Angular erzeugt einen so markierten Service selbst und gibt ihn an alle Klassen weiter, die ihn brauchen.
 ESLint prüft den Code auf Fehler und Regelverstöße, ohne ihn auszuführen.
 Prettier formatiert den Code einheitlich.
+Karma ist der Testrunner, also das Programm, das die Unit-Tests im Browser startet.
+Die Tests selbst nutzen die Bibliothek Jasmine.
 Die Bibliothek besteht aus fünf Einstiegspunkten, also Teilpaketen mit eigenem Importnamen wie `fhir-vitals/core` oder `fhir-vitals/angular/ui/cards`.
 Jeder Einstiegspunkt gehört zu einer Schicht mit einer festen Aufgabe.
 Abschnitt 5 beschreibt, was in welche Schicht gehört.
@@ -202,17 +218,31 @@ Bundle meint dort die gebauten JavaScript-Dateien und nicht ein FHIR-Bundle aus 
 | `npm start` | baut die Bibliothek einmal und startet die Demo-App mit dem Entwicklungsserver | zum Ausprobieren | sechs Zeilen `Built fhir-vitals…`, eine für das Paket und eine je Einstiegspunkt, danach `Local: http://localhost:4200/`. Im Browser erscheint die Seite „FHIR-Starter“ mit der Kachel „Blutdruckverlauf“. Die Konsole des Browsers meldet dabei `NG0751`, siehe Abschnitt 9. `Strg+C` beendet den Entwicklungsserver. |
 | Terminal 1: `npm run watch:lib` | baut die Bibliothek mit allen Einstiegspunkten bei jeder gespeicherten Änderung neu | beim Arbeiten an der Bibliothek, zusammen mit Terminal 2 | `Compilation complete. Watching for file changes...`. Nach jeder Änderung folgt ein neuer Block mit `Build at: …`. Der Neubau dauerte im Test 0,1 bis 0,2 Sekunden. |
 | Terminal 2: `npm run start:app` | startet nur die Demo-App, ohne die Bibliothek zu bauen | zusammen mit Terminal 1 | `Local: http://localhost:4200/`. Nach einer Änderung in der Bibliothek erscheint `Page reload sent to client(s).`, und der Browser lädt die Seite selbst neu. Vom Speichern bis zum Neuladen verging im Test weniger als eine Sekunde, für Änderungen in `core` ebenso wie in `angular/ui`. |
-| `npx ng generate service <name> --project fhir-vitals` | legt einen Angular-Service in der Angular-Datenschicht `fhir-vitals/angular/data` an | für Services, die Daten laden oder den Zustand der Daten halten, etwa weitere Datenzugriffe mit HttpClient, dem HTTP-Dienst von Angular | Zwei Zeilen `CREATE projects/fhir-vitals/angular/data/src/lib/<name>.ts` und `…/<name>.spec.ts`. Die Klasse trägt den Decorator `@Service()`. Logik, die auch andere UI-Frameworks brauchen, gehört dagegen als Datei ohne Decorator nach `core`, siehe Abschnitt 5. |
-| `npx ng generate service <name> --project fhir-vitals --path projects/fhir-vitals/angular/ui/cards/src/lib` | legt einen UI-Service, also einen Service nur für die Oberfläche, im Einstiegspunkt `fhir-vitals/angular/ui/cards` an | für Logik der Oberfläche, etwa zum Öffnen eines Dialogs, siehe Abschnitt 5 | Zwei Zeilen `CREATE projects/fhir-vitals/angular/ui/cards/src/lib/<name>.spec.ts` und `…/<name>.ts`, jeweils mit der Größe in Bytes. Mit dem Namen `dialog-opener` heißt die Klasse `DialogOpener` und trägt ebenfalls `@Service()`. |
-| `npx ng generate component <name> --project fhir-vitals --path projects/fhir-vitals/angular/ui/cards/src/lib` | legt eine Komponente im Einstiegspunkt `fhir-vitals/angular/ui/cards` an | für neue Anzeigen, etwa eine Karte mit Messwerten | Vier Zeilen `CREATE projects/fhir-vitals/angular/ui/cards/src/lib/<name>/<name>.css`, `.spec.ts`, `.ts` und `.html`, jeweils mit der Größe in Bytes. Mit dem Namen `vitals-card` heißt die Klasse `VitalsCard` und der Selektor `lib-vitals-card`. Ohne `--path` landet die Komponente in der Angular-Datenschicht, wo sie nicht hingehört. |
-| `npx ng generate component <name> --project fhir-vitals --path projects/fhir-vitals/angular/ui/dashboard/src/lib` | legt eine Komponente im Einstiegspunkt `fhir-vitals/angular/ui/dashboard` an | für weitere Kacheln im Dashboard, siehe Abschnitt 10 | Vier Zeilen `CREATE projects/fhir-vitals/angular/ui/dashboard/src/lib/<name>/<name>.css`, `.spec.ts`, `.ts` und `.html`, jeweils mit der Größe in Bytes. Mit dem Namen `weight-chart` heißt die Klasse `WeightChart` und der Selektor `lib-weight-chart`. |
-| neue Zeile in der Datei `src/public-api.ts` des Einstiegspunkts, zum Beispiel `export * from "./lib/vitals-card/vitals-card";` in `projects/fhir-vitals/angular/ui/cards/src/public-api.ts` | macht den neuen Baustein außerhalb der Bibliothek sichtbar | nach jedem neuen Service, jeder neuen Komponente und jeder neuen Datei in `core` oder `fhir` | Nach dem nächsten Build der Bibliothek klappt in der Demo-App `import { VitalsCard } from "fhir-vitals/angular/ui/cards";`. Ohne diese Zeile meldet der Build `TS2305: Module '"fhir-vitals/angular/ui/cards"' has no exported member 'VitalsCard'.` |
 | `npx ng build fhir-vitals` | baut das Paket mit allen fünf Einstiegspunkten einmal nach `dist/fhir-vitals` | vor `npm run start:app`, wenn `watch:lib` nicht läuft | Sechs Zeilen `Built …` für `fhir-vitals`, `fhir-vitals/core`, `fhir-vitals/fhir`, `fhir-vitals/angular/data`, `fhir-vitals/angular/ui/cards` und `fhir-vitals/angular/ui/dashboard`, dann `Built Angular Package`. Die Reihenfolge ergibt sich aus den Abhängigkeiten: `core` kommt immer vor den Schichten, die es nutzen, sonst kann sie wechseln. Der Ordner `dist/fhir-vitals/fesm2022` enthält je Einstiegspunkt eine Datei `.mjs` und eine `.mjs.map`, etwa `fhir-vitals-core.mjs` und `fhir-vitals-angular-ui-cards.mjs`. |
 | `npx ng test fhir-vitals --watch=false` | testet alle Einstiegspunkte der Bibliothek, direkt aus den Quellen | nach Änderungen an der Bibliothek | `TOTAL: 52 SUCCESS`. Dafür muss die Bibliothek vorher nicht gebaut sein. |
 | `npm test` | baut die Bibliothek und testet dann Bibliothek und Demo-App nacheinander, ohne Watch-Modus | vor jedem Commit | Die sechs Zeilen `Built fhir-vitals…`, dann zwei Blöcke: zuerst `TOTAL: 52 SUCCESS` für die Bibliothek, dann `TOTAL: 3 SUCCESS` für die Demo-App. Im zweiten Block stehen vier Warnungen `WARN [web-server]: 404: /base/media/roboto-latin-…`, siehe Abschnitt 9. |
 | `npm run lint` | prüft den Code mit ESLint, auch die Regeln zwischen den Schichten aus Abschnitt 5 | vor jedem Commit | nur die beiden Kopfzeilen `> angular-fhir-vitals@0.0.0 lint` und `> eslint .`. Folgt keine weitere Ausgabe, hat ESLint nichts zu beanstanden. |
 | `npm run format` | formatiert TypeScript, HTML und CSS mit Prettier | vor jedem Commit | eine Zeile je Datei. `(unchanged)` heißt, dass die Datei schon passte. |
 | `npm run build` | baut erst die Bibliothek, dann die Demo-App für die Auslieferung | vor einer Auslieferung ohne Docker | sechs Zeilen `Built fhir-vitals…`, dann eine Tabelle `Initial chunk files` mit der Zeile `Initial total` und `329.44 kB`, geschätzt `89.83 kB` bei der Übertragung. Darunter steht `Lazy chunk files` mit der Zeile `fhir-vitals-angular-ui-dashboard` und `271.24 kB`, geschätzt `76.38 kB`. Eine Warnung zum Budget erscheint nicht. Am Ende folgen `Application bundle generation complete` und `Output location: …/dist/demo-app`. |
+
+**Neue Bausteine anlegen.**
+Eine Komponente ist ein Baustein der Oberfläche aus TypeScript-Klasse, HTML-Template und CSS.
+Das Template ist das HTML der Komponente mit Platzhaltern für ihre Daten.
+Der Selektor einer Komponente ist der Name des HTML-Elements, mit dem eine Seite sie einbindet, etwa `<lib-vitals-card>`.
+Ein Service ist eine Klasse mit Logik ohne eigene Oberfläche, etwa für Datenzugriffe.
+Der Decorator `@Service()` ist eine Markierung über der Klasse.
+Angular erzeugt einen so markierten Service selbst und gibt ihn an alle Klassen weiter, die ihn brauchen.
+`sourceRoot` in `angular.json` nennt den Quellordner eines Projekts.
+`ng generate` legt neue Dateien ohne `--path` unter diesem Ordner an.
+Für die Bibliothek zeigt `sourceRoot` auf `projects/fhir-vitals/angular/data/src`, also in die Angular-Datenschicht.
+
+| Befehl | Wirkung | Wann nötig | Was danach zu sehen ist |
+|---|---|---|---|
+| `npx ng generate service <name> --project fhir-vitals` | legt einen Angular-Service in der Angular-Datenschicht `fhir-vitals/angular/data` an | für Services, die Daten laden oder den Zustand der Daten halten, etwa weitere Datenzugriffe mit HttpClient, dem HTTP-Dienst von Angular | Zwei Zeilen `CREATE projects/fhir-vitals/angular/data/src/lib/<name>.ts` und `…/<name>.spec.ts`. Die Klasse trägt den Decorator `@Service()`. Logik, die auch andere UI-Frameworks brauchen, gehört dagegen als Datei ohne Decorator nach `core`, siehe Abschnitt 5. |
+| `npx ng generate service <name> --project fhir-vitals --path projects/fhir-vitals/angular/ui/cards/src/lib` | legt einen UI-Service, also einen Service nur für die Oberfläche, im Einstiegspunkt `fhir-vitals/angular/ui/cards` an | für Logik der Oberfläche, etwa zum Öffnen eines Dialogs, siehe Abschnitt 5 | Zwei Zeilen `CREATE projects/fhir-vitals/angular/ui/cards/src/lib/<name>.spec.ts` und `…/<name>.ts`, jeweils mit der Größe in Bytes. Mit dem Namen `dialog-opener` heißt die Klasse `DialogOpener` und trägt ebenfalls `@Service()`. |
+| `npx ng generate component <name> --project fhir-vitals --path projects/fhir-vitals/angular/ui/cards/src/lib` | legt eine Komponente im Einstiegspunkt `fhir-vitals/angular/ui/cards` an | für neue Anzeigen, etwa eine Karte mit Messwerten | Vier Zeilen `CREATE projects/fhir-vitals/angular/ui/cards/src/lib/<name>/<name>.css`, `.spec.ts`, `.ts` und `.html`, jeweils mit der Größe in Bytes. Mit dem Namen `vitals-card` heißt die Klasse `VitalsCard` und der Selektor `lib-vitals-card`. Ohne `--path` landet die Komponente in der Angular-Datenschicht, wo sie nicht hingehört. |
+| `npx ng generate component <name> --project fhir-vitals --path projects/fhir-vitals/angular/ui/dashboard/src/lib` | legt eine Komponente im Einstiegspunkt `fhir-vitals/angular/ui/dashboard` an | für weitere Kacheln im Dashboard, siehe Abschnitt 10 | Vier Zeilen `CREATE projects/fhir-vitals/angular/ui/dashboard/src/lib/<name>/<name>.css`, `.spec.ts`, `.ts` und `.html`, jeweils mit der Größe in Bytes. Mit dem Namen `weight-chart` heißt die Klasse `WeightChart` und der Selektor `lib-weight-chart`. |
+| neue Zeile in der Datei `src/public-api.ts` des Einstiegspunkts, zum Beispiel `export * from "./lib/vitals-card/vitals-card";` in `projects/fhir-vitals/angular/ui/cards/src/public-api.ts` | macht den neuen Baustein außerhalb der Bibliothek sichtbar | nach jedem neuen Service, jeder neuen Komponente und jeder neuen Datei in `core` oder `fhir` | Nach dem nächsten Build der Bibliothek klappt in der Demo-App `import { VitalsCard } from "fhir-vitals/angular/ui/cards";`. Ohne diese Zeile meldet der Build `TS2305: Module '"fhir-vitals/angular/ui/cards"' has no exported member 'VitalsCard'.` |
 
 ### b) Demo-App mit Docker, ohne HAPI FHIR
 
@@ -290,6 +320,7 @@ Sonst den Workflow wie in der Tabelle unten von Hand starten.
 Das Repository ist ein Angular-Workspace, also ein Ordner mit mehreren Angular-Projekten und gemeinsamer Konfiguration.
 Assets sind statische Dateien wie JSON oder Bilder, die die App unverändert mit ausliefert.
 In der Demo-App liegen sie im Ordner `public`.
+Die Absätze nach dem Baum erklären seine Begriffe, etwa Adapter, fhirclient und fetch unter „Schichten der Bibliothek“ und Volume unter „Dev-Container und Werkzeuge“.
 
 ```text
 angular-fhir-vitals/
@@ -298,7 +329,7 @@ angular-fhir-vitals/
 ├── .devcontainer/Dockerfile           Image des Dev-Containers mit Node.js 22, Chromium und Java
 ├── projects/
 │   ├── fhir-vitals/                   Angular-Bibliothek: ein npm-Paket mit fünf Einstiegspunkten
-│   │   ├── core/                      "fhir-vitals/core": Ports, Ablauf VitalsSync, Blutdruck und Messverlauf
+│   │   ├── core/                      "fhir-vitals/core": Ports, also Schnittstellen nach außen, Ablauf VitalsSync, Blutdruck und Messverlauf
 │   │   ├── fhir/                      "fhir-vitals/fhir": Adapter mit fhirclient und mit fetch
 │   │   ├── angular/                   alles, was Angular braucht, selbst kein Einstiegspunkt
 │   │   │   ├── data/                  "fhir-vitals/angular/data": Datenschicht mit FhirAssets und VitalsFacade
@@ -338,91 +369,8 @@ angular-fhir-vitals/
 └── LICENSE                            Lizenztext Apache-2.0
 ```
 
-**Dev-Container.**
-`.devcontainer/devcontainer.json` beschreibt den Dev-Container aus Variante D in Abschnitt 3.
-Sein Image entsteht aus `.devcontainer/Dockerfile`.
-Mit dem `Dockerfile` im Wurzelverzeichnis hat es nichts zu tun, denn dieses baut das Image der Demo-App mit nginx für die Auslieferung.
-Das Image des Dev-Containers beruht auf `mcr.microsoft.com/devcontainers/javascript-node` mit Node.js 22.
-Es ergänzt Chromium und Java aus den Paketen von Debian, dem Linux-System im Image.
-Die Sandbox ist ein Schutz von Chromium, der Webseiten vom übrigen System abschottet.
-Sie braucht Rechte, die Docker einem Container standardmäßig nicht gibt.
-Ohne weitere Einstellung bricht Chromium im Container deshalb mit `No usable sandbox!` ab.
-Die Datei `/etc/chromium.d/no-sandbox` im Image schaltet die Sandbox ab.
-Karma öffnet in diesem Browser nur die Tests des Projekts.
-`CHROME_BIN` nennt Karma den Pfad zu Chromium.
-
-Der Ordner `node_modules` liegt im Dev-Container in einem eigenen Volume, also einem Speicherbereich, den Docker selbst verwaltet und in den Container einbindet.
-So ersetzen die Pakete für Linux nie die Pakete des eigenen Rechners.
-`docker volume ls` zeigt das Volume mit einem Namen wie `angular-fhir-vitals-node_modules-0r75pjv8…`.
-Docker legt dafür im Projektordner einen leeren Ordner `node_modules` an.
-Unter Linux und WSL 2 kann dieser Ordner dem Benutzer root gehören, also dem Administrator des Systems.
-`npm ci` auf dem eigenen Rechner darf dann nicht hineinschreiben.
-Bei geschlossenem Dev-Container entfernt `rmdir node_modules` den leeren Ordner.
-Ein Test unter Linux und WSL 2 fehlt dafür noch.
-Der Eintrag `postCreateCommand` in `devcontainer.json` nennt Befehle, die nach dem ersten Erstellen des Containers laufen.
-Er übergibt zuerst den Ordner `node_modules` an den Benutzer `node` im Container und führt dann `npm ci` aus.
-
-Der Eintrag `customizations.vscode` gilt nur für VS Code.
-Dort stehen die Erweiterungen aus `.vscode/extensions.json` außer Dev Containers selbst und Einstellungen nur für den Container.
-VS Code installiert diese Erweiterungen im Container von selbst.
-Im Container formatiert Prettier außerdem TypeScript, HTML und CSS beim Speichern, wie `npm run format`.
-Außerhalb des Containers bleibt das aus, weil diese Einstellungen nur in `.devcontainer/devcontainer.json` stehen.
-Nur im Container ist die Erweiterung Prettier sicher installiert.
-VS Code leitet Port 4200 an den eigenen Rechner weiter.
-Port 9876 von Karma braucht nur der Browser im Container.
-Deshalb leitet VS Code ihn nicht von selbst weiter.
-Diese Angaben zu VS Code stammen aus der Dokumentation von VS Code und der Spezifikation von `devcontainer.json`.
-Ein Test in VS Code selbst fehlt noch.
-
-**Zeilenenden.**
-Das Zeilenende ist das unsichtbare Zeichen am Ende jeder Zeile einer Textdatei.
-Linux und macOS nutzen dafür das Zeichen LF (Line Feed, Zeilenvorschub).
-Windows nutzt die zwei Zeichen CRLF (Carriage Return und Line Feed).
-`.editorconfig` und Prettier erwarten LF.
-`.gitattributes` lässt Git alle Textdateien auf jedem System mit LF in den Arbeitsordner schreiben.
-Ohne diese Datei schreibt Git für Windows mit seiner Voreinstellung CRLF.
-Laut Dokumentation von VS Code meldet Git im Dev-Container dann viele Dateien als geändert.
-
-**Nutzungsdaten der Angular CLI.**
-Ohne Einstellung fragt die Angular CLI bei Befehlen wie `ng generate` einmal, ob sie Nutzungsdaten an das Angular-Team schicken darf.
-Die Frage beginnt mit `Would you like to share pseudonymous usage data about this project with the Angular Team at Google` und hält den Befehl an, bis eine Antwort kommt.
-`"analytics": false` unter `cli` in `angular.json` schaltet das für dieses Projekt ab, wie im Patientenportal.
-Die CLI fragt dann nicht und schickt keine Nutzungsdaten.
-
-**Pfadzuordnung.** Die Demo-App importiert die Bibliothek über ihre Paketnamen, also etwa `import { VitalsFacade } from "fhir-vitals/angular/data";` und `import { PatientCard, ServerStatus } from "fhir-vitals/angular/ui/cards";`.
-Genau so sähe der Import im Patientenportal aus, wenn es die Bibliothek als npm-Paket installiert.
-Möglich macht das der Eintrag `"fhir-vitals/*": ["./dist/fhir-vitals/*"]` unter `compilerOptions.paths` in `tsconfig.json`, auch für verschachtelte Namen wie `fhir-vitals/angular/ui/cards`.
-Er leitet die Paketnamen auf die gebaute Bibliothek im Ordner `dist` um.
-Den Eintrag `"fhir-vitals": ["./dist/fhir-vitals"]` daneben hat die Angular CLI beim Anlegen der Bibliothek erzeugt.
-Er zeigt nur noch auf den leeren Platzhalter.
-Deshalb muss die Bibliothek gebaut sein, bevor die Demo-App startet.
-`npm start` und `npm test` erledigen das automatisch.
-Die Tests der Bibliothek brauchen keinen Build, weil `projects/fhir-vitals/tsconfig.spec.json` die Paketnamen auf die Quellen umleitet.
-
-**peerDependencies.** peerDependencies sind Pakete, die eine Bibliothek voraussetzt, die aber die einbindende Anwendung selbst installiert.
-So nutzen Bibliothek und Anwendung dieselbe Version.
-Die Bibliothek führt `@angular/core`, `@angular/common`, `fhirclient` und `@types/fhir` als peerDependencies.
-Die Karten und das Dashboard-Beispiel bringen weitere Pakete mit.
-Sie sind ein Vorschlag und lassen sich austauschen, siehe Abschnitt 10.
-Angular Material ist eine Sammlung fertiger Komponenten wie Karten und Tabellen vom Angular-Team.
-Sie baut auf dem CDK (Component Dev Kit) auf, einem Baukasten für Verhalten wie Menüs und den Fokus.
-Der Fokus ist das Element der Seite, das gerade Eingaben von der Tastatur empfängt.
-`PatientCard` und `ServerStatus` in `angular/ui/cards` nutzen Angular Material.
-Das Dashboard-Beispiel nutzt es ebenfalls.
-Nur das Dashboard-Beispiel nutzt gridstack, Chart.js und ng2-charts.
-gridstack ordnet Kacheln in einem Raster aus Spalten und Zeilen an.
-Chart.js zeichnet Diagramme, und ng2-charts bindet Chart.js an Angular an.
-Für diese Vorschläge führt die Bibliothek zusätzlich `@angular/cdk`, `@angular/material`, `chart.js`, `gridstack` und `ng2-charts` als peerDependencies.
-In der `package.json` im Wurzelverzeichnis stehen alle diese Pakete unter `dependencies`, dazu `@fontsource/roboto` für die Schrift der Demo-App.
-
-Seit Version 7 installiert npm peerDependencies automatisch mit.
-Eine App mit dem Framework Vue, die nur `fhir-vitals/core` und `fhir-vitals/fhir` nutzt, bekäme so auch Angular, Angular Material, gridstack und ng2-charts.
-Deshalb markiert das Feld `peerDependenciesMeta` in `projects/fhir-vitals/package.json` alle Angular-Pakete sowie `chart.js`, `gridstack` und `ng2-charts` mit `"optional": true`.
-Optionale peerDependencies installiert npm nicht von selbst.
-Eine Angular-App installiert sie selbst, so wie die Demo-App.
-`fhirclient` und `@types/fhir` bleiben Pflicht, weil `fhir-vitals/fhir` fhirclient importiert und `core` die FHIR-Typen nutzt.
-
 **Schichten der Bibliothek.**
+Eine Kurzfassung der fünf Einstiegspunkte steht in [`projects/fhir-vitals/README.md`](projects/fhir-vitals/README.md).
 Die Bibliothek trennt Abläufe, Serverzugriff, Angular-Anbindung und Oberfläche in vier Schichten.
 Jede Schicht hat eine feste Aufgabe.
 Dahinter steht das Prinzip der Trennung der Zuständigkeiten, englisch Separation of Concerns.
@@ -433,10 +381,13 @@ Die Ordner `angular/` und `angular/ui/` sind selbst keine Einstiegspunkte, desha
 Auch `fhir-vitals` allein ist nur ein leerer Platzhalter.
 ng-packagr verlangt ihn für den Paketnamen und zeigt ihn beim Build als `Built fhir-vitals` an.
 Importieren lassen sich nur die fünf Einstiegspunkte.
-Der Kern, also `fhir-vitals/core`, enthält die eigentliche Logik.
+Der Kern, also `fhir-vitals/core`, enthält mit `VitalsSync` den ganzen Ablauf der Demo ohne UI-Framework, vom Laden der Beispieldaten bis zum Zurücklesen vom Server.
+Angular und andere UI-Frameworks übernehmen nur den Zustand von `VitalsSync`.
 Ein Port ist eine Schnittstelle, die beschreibt, was der Kern von außen braucht, etwa das Laden einer Ressource.
-Mit einem Netzwerk-Port hat dieser Begriff nichts zu tun.
+Mit dem Port aus Abschnitt 3, also einer Nummer wie 4200, hat dieser Begriff nichts zu tun.
 Ein Adapter setzt einen Port mit einer bestimmten Technik um, etwa mit fhirclient oder mit fetch.
+fhirclient ist eine JavaScript-Bibliothek für den Zugriff auf FHIR-Server.
+fetch ist die eingebaute Funktion des Browsers für HTTP-Anfragen.
 Eine Facade ist ein einfacher Zugang für die Oberfläche, der die Einzelheiten dahinter verbirgt.
 Ein Signal ist ein Wert, dessen Änderungen Angular verfolgt.
 Ein Input ist eine Eigenschaft einer Komponente, die die einbindende Seite setzt.
@@ -449,13 +400,18 @@ Alles für die Angular-Oberfläche liegt deshalb unter `angular/ui`, mit einem E
 `fhir-vitals/angular/ui/cards` enthält `PatientCard` und `ServerStatus`, `fhir-vitals/angular/ui/dashboard` das Dashboard-Beispiel.
 Angular Material ist genauso aufgebaut, mit Einstiegspunkten wie `@angular/material/card` und `@angular/material/table`.
 Die Schichten `core`, `fhir` und `angular/data` sind je ein einziger Einstiegspunkt.
+Die folgende Tabelle nennt einige weitere Pakete.
+RxJS ist eine Bibliothek für Datenströme.
+Angular nutzt sie etwa für die Antworten von HttpClient.
+Vue ist wie Angular ein Framework für Webanwendungen im Browser.
+ng2-charts bindet Chart.js an Angular an.
 
 | Einstiegspunkt | Inhalt | darf importieren | darf nicht importieren |
 |---|---|---|---|
 | `fhir-vitals/core` | die Ports `ResourceLoader` und `FhirServerConnection`, der Ablauf `VitalsSync` mit Patient und Messverlauf laden, Adresse lesen, verbinden, prüfen, speichern und zurücklesen, dazu `formatBloodPressure`, `bloodPressureHistory` und die LOINC-Codes | FHIR-Typen aus `fhir/r4` | Angular, RxJS, Vue, fhirclient, `fetch`, gridstack, Chart.js, ng2-charts und alle anderen Teile der Bibliothek |
 | `fhir-vitals/fhir` | die Adapter `FhirClientConnection` mit fhirclient und `FetchResourceLoader` mit fetch | `fhir-vitals/core`, fhirclient, FHIR-Typen aus `fhir/r4` | Angular, RxJS, Vue, gridstack, Chart.js, ng2-charts und die übrigen Teile |
 | `fhir-vitals/angular/data` | die Angular-Datenschicht: `FhirAssets` als Adapter mit HttpClient, dem Dienst von Angular für HTTP-Anfragen, und `VitalsFacade`, die den Zustand von `VitalsSync` als Signal anbietet | `fhir-vitals/core`, `fhir-vitals/fhir`, Angular, RxJS, FHIR-Typen aus `fhir/r4` | jedes UI-Feature wie `fhir-vitals/angular/ui/cards`, Angular Material, fhirclient direkt, gridstack, Chart.js und ng2-charts |
-| `fhir-vitals/angular/ui/cards` | die Komponenten `PatientCard` und `ServerStatus`, beide als Karte von Angular Material. Sie bekommen Daten über Inputs und übersetzen die Statuscodes des Kerns in deutsche Texte. | `fhir-vitals/core`, andere UI-Features über ihren Paketnamen, Angular mit Angular Material, FHIR-Typen aus `fhir/r4` | die Datenschicht, `fhir-vitals/fhir`, fhirclient, HttpClient, `fetch`, gridstack, Chart.js und ng2-charts |
+| `fhir-vitals/angular/ui/cards` | die Komponenten `PatientCard` und `ServerStatus`, beide als Karte von Angular Material. Sie bekommen Daten über Inputs und übersetzen die Statuswerte des Kerns wie `saved` in deutsche Texte. | `fhir-vitals/core`, andere UI-Features über ihren Paketnamen, Angular mit Angular Material, FHIR-Typen aus `fhir/r4` | die Datenschicht, `fhir-vitals/fhir`, fhirclient, HttpClient, `fetch`, gridstack, Chart.js und ng2-charts |
 | `fhir-vitals/angular/ui/dashboard` | das minimale Dashboard-Beispiel: `VitalsDashboard` mit einer festen Kachel und `BloodPressureChart` für das Diagramm. Die Messwerte kommen über das Input `history`. | `fhir-vitals/core`, andere UI-Features über ihren Paketnamen, Angular und die vorgeschlagenen Pakete Angular Material, gridstack, Chart.js und ng2-charts | die Datenschicht, `fhir-vitals/fhir`, fhirclient, HttpClient und `fetch` |
 
 Die Demo-App ist die einzige Stelle, die Datenschicht und UI-Features kennt.
@@ -511,13 +467,14 @@ import { GridstackComponent, GridstackItemComponent } from "gridstack/dist/angul
 - Nutzen mehrere Features denselben Baustein, kommt er in ein eigenes Feature, etwa `angular/ui/shared`. Die anderen Features importieren ihn dann über `fhir-vitals/angular/ui/shared`. `shared` selbst importiert keine anderen Features. Importieren sich zwei Features gegenseitig, etwa `dashboard` und `shared`, bricht `npx ng build fhir-vitals` mit `Entry point fhir-vitals/angular/ui/dashboard has a circular dependency on fhir-vitals/angular/ui/shared.` ab. ESLint meldet das nicht.
 - Services, die Daten laden oder den Zustand der Daten halten, etwa Patient, Messungen oder Verbindungsstatus, gehören nach `angular/data`. Reiner Zustand der Oberfläche, etwa ob ein Dialog offen ist, bleibt im UI-Feature. ESLint prüft dabei nur die Importe und nicht, wo ein Zustand liegt.
 - Logik ohne Angular gehört nach `core`, ein Adapter für einen Server nach `fhir`.
+- Bezeichner, also die Namen von Klassen, Funktionen und Variablen, sind englisch, ebenso Kommentare und Testnamen. Texte der Oberfläche und die Meldungen der ESLint-Regeln sind deutsch. Kommentare begründen, warum der Code etwas tut.
 
 **Ein neues UI-Feature anlegen.**
 Die Schritte am Beispiel eines Features `shared`:
 
 1. Den Ordner `projects/fhir-vitals/angular/ui/shared/` anlegen und `ng-package.json` aus `angular/ui/cards` hineinkopieren. Der Pfad unter `$schema` passt ohne Änderung, weil der Ordner gleich tief liegt.
 2. Komponenten wie in Abschnitt 4 mit `--path projects/fhir-vitals/angular/ui/shared/src/lib` anlegen. Dann die Datei `src/public-api.ts` anlegen und die Komponenten dort exportieren.
-3. In `projects/fhir-vitals/tsconfig.lib.json` und `projects/fhir-vitals/tsconfig.spec.json` unter `paths` den Eintrag `"fhir-vitals/angular/ui/shared": ["./angular/ui/shared/src/public-api.ts"]` ergänzen.
+3. In `projects/fhir-vitals/tsconfig.lib.json` und `projects/fhir-vitals/tsconfig.spec.json` unter `paths` den Eintrag `"fhir-vitals/angular/ui/shared": ["./angular/ui/shared/src/public-api.ts"]` ergänzen. Der Eintrag ordnet dem neuen Paketnamen die Quellen des Features zu, siehe „Pfadzuordnung“ weiter unten.
 4. In `eslint.config.js` den Namen `"angular/ui/shared"` in die Liste `entryPoints` eintragen. Dann direkt nach `uiFeature("dashboard"),` innerhalb von `defineConfig(…)` den Block `uiFeature("shared", dashboardPackages),` ergänzen. `dashboardPackages` verbietet dem neuen Feature gridstack, Chart.js und ng2-charts.
 5. Den Eintrag `"../../ui/**/*.spec.ts"` für die Tests in `angular.json` so lassen. Er erfasst schon jedes Feature unter `angular/ui`.
 6. `npx ng build fhir-vitals` ausführen. Dann erscheint zusätzlich die Zeile `✔ Built fhir-vitals/angular/ui/shared`, und `dist/fhir-vitals/package.json` nennt unter `exports` den Eintrag `./angular/ui/shared`. Läuft gerade `npm run watch:lib`, ihn mit `Strg+C` beenden und neu starten. Einen neuen Einstiegspunkt erkennt er erst beim Start. Im Test baute ein laufendes `npm run watch:lib` nach dem Speichern einer Datei in `angular/ui/cards` nur `✔ Built fhir-vitals/angular/ui/cards` neu und das neue Feature erst nach dem Neustart.
@@ -527,6 +484,39 @@ Am 06.11.2026 entstand so in einer Kopie des Repositorys ein Feature `shared` mi
 `npx ng test fhir-vitals --watch=false` meldete `TOTAL: 52 SUCCESS`, also einen Test mehr als der damalige Stand mit 51 Tests.
 Ein Import von `fhir-vitals/angular/ui/shared` im Dashboard war erlaubt.
 Ein Import von `gridstack` in `angular/ui/shared` meldete `Diese Pakete gehören nach fhir-vitals/angular/ui/dashboard, damit nur das Dashboard von ihnen abhängt`.
+
+**Pfadzuordnung.** Die Demo-App importiert die Bibliothek über ihre Paketnamen, also etwa `import { VitalsFacade } from "fhir-vitals/angular/data";` und `import { PatientCard, ServerStatus } from "fhir-vitals/angular/ui/cards";`.
+Genau so sähe der Import im Patientenportal aus, wenn es die Bibliothek als npm-Paket installiert.
+Möglich macht das der Eintrag `"fhir-vitals/*": ["./dist/fhir-vitals/*"]` unter `compilerOptions.paths` in `tsconfig.json`, auch für verschachtelte Namen wie `fhir-vitals/angular/ui/cards`.
+Er leitet die Paketnamen auf die gebaute Bibliothek im Ordner `dist` um.
+Den Eintrag `"fhir-vitals": ["./dist/fhir-vitals"]` daneben hat die Angular CLI beim Anlegen der Bibliothek erzeugt.
+Er zeigt nur noch auf den leeren Platzhalter.
+Deshalb muss die Bibliothek gebaut sein, bevor die Demo-App startet.
+`npm start` und `npm test` erledigen das automatisch.
+Die Tests der Bibliothek brauchen keinen Build, weil `projects/fhir-vitals/tsconfig.spec.json` die Paketnamen auf die Quellen umleitet.
+
+**peerDependencies.** peerDependencies sind Pakete, die eine Bibliothek voraussetzt, die aber die einbindende Anwendung selbst installiert.
+So nutzen Bibliothek und Anwendung dieselbe Version.
+Die Bibliothek führt `@angular/core`, `@angular/common`, `fhirclient` und `@types/fhir` als peerDependencies.
+Die Karten und das Dashboard-Beispiel bringen weitere Pakete mit.
+Sie sind ein Vorschlag und lassen sich austauschen, siehe Abschnitt 10.
+Angular Material ist eine Sammlung fertiger Komponenten wie Karten und Tabellen vom Angular-Team.
+Sie baut auf dem CDK (Component Dev Kit) auf, einem Baukasten für Verhalten wie Menüs und den Fokus.
+Der Fokus ist das Element der Seite, das gerade Eingaben von der Tastatur empfängt.
+`PatientCard` und `ServerStatus` in `angular/ui/cards` nutzen Angular Material.
+Das Dashboard-Beispiel nutzt es ebenfalls.
+Nur das Dashboard-Beispiel nutzt gridstack, Chart.js und ng2-charts.
+gridstack ordnet Kacheln in einem Raster aus Spalten und Zeilen an.
+Chart.js zeichnet Diagramme, und ng2-charts bindet Chart.js an Angular an.
+Für diese Vorschläge führt die Bibliothek zusätzlich `@angular/cdk`, `@angular/material`, `chart.js`, `gridstack` und `ng2-charts` als peerDependencies.
+In der `package.json` im Wurzelverzeichnis stehen alle diese Pakete unter `dependencies`, dazu `@fontsource/roboto` für die Schrift der Demo-App.
+
+Seit Version 7 installiert npm peerDependencies automatisch mit.
+Eine App mit dem Framework Vue, die nur `fhir-vitals/core` und `fhir-vitals/fhir` nutzt, bekäme so auch Angular, Angular Material, gridstack und ng2-charts.
+Deshalb markiert das Feld `peerDependenciesMeta` in `projects/fhir-vitals/package.json` alle Angular-Pakete sowie `chart.js`, `gridstack` und `ng2-charts` mit `"optional": true`.
+Optionale peerDependencies installiert npm nicht von selbst.
+Eine Angular-App installiert sie selbst, so wie die Demo-App.
+`fhirclient` und `@types/fhir` bleiben Pflicht, weil `fhir-vitals/fhir` fhirclient importiert und `core` die FHIR-Typen nutzt.
 
 **Andere UI-Frameworks.**
 Vue ist wie Angular ein Framework für Webanwendungen im Browser.
@@ -696,6 +686,59 @@ Die Textalternative nennt nur Anzahl, Zeitraum und letzten Wert.
 Mit Tastatur oder Screenreader lassen sich die übrigen Werte deshalb nicht genau lesen.
 Diese Teile entstehen im Workshop, Hinweise dazu stehen in Abschnitt 10.
 
+### Dev-Container und Werkzeuge
+
+**Dev-Container.**
+`.devcontainer/devcontainer.json` beschreibt den Dev-Container aus Variante D in Abschnitt 3.
+Sein Image entsteht aus `.devcontainer/Dockerfile`.
+Mit dem `Dockerfile` im Wurzelverzeichnis hat es nichts zu tun, denn dieses baut das Image der Demo-App mit nginx für die Auslieferung.
+Das Image des Dev-Containers beruht auf `mcr.microsoft.com/devcontainers/javascript-node` mit Node.js 22.
+Es ergänzt Chromium und Java aus den Paketen von Debian, dem Linux-System im Image.
+Die Sandbox ist ein Schutz von Chromium, der Webseiten vom übrigen System abschottet.
+Sie braucht Rechte, die Docker einem Container standardmäßig nicht gibt.
+Ohne weitere Einstellung bricht Chromium im Container deshalb mit `No usable sandbox!` ab.
+Die Datei `/etc/chromium.d/no-sandbox` im Image schaltet die Sandbox ab.
+Karma öffnet in diesem Browser nur die Tests des Projekts.
+`CHROME_BIN` nennt Karma den Pfad zu Chromium.
+
+Der Ordner `node_modules` liegt im Dev-Container in einem eigenen Volume, also einem Speicherbereich, den Docker selbst verwaltet und in den Container einbindet.
+So ersetzen die Pakete für Linux nie die Pakete des eigenen Rechners.
+`docker volume ls` zeigt das Volume mit einem Namen wie `angular-fhir-vitals-node_modules-0r75pjv8…`.
+Docker legt dafür im Projektordner einen leeren Ordner `node_modules` an.
+Unter Linux und WSL 2 kann dieser Ordner dem Benutzer root gehören, also dem Administrator des Systems.
+`npm ci` auf dem eigenen Rechner darf dann nicht hineinschreiben.
+Bei geschlossenem Dev-Container entfernt `rmdir node_modules` den leeren Ordner.
+Ein Test unter Linux und WSL 2 fehlt dafür noch.
+Der Eintrag `postCreateCommand` in `devcontainer.json` nennt Befehle, die nach dem ersten Erstellen des Containers laufen.
+Er übergibt zuerst den Ordner `node_modules` an den Benutzer `node` im Container und führt dann `npm ci` aus.
+
+Der Eintrag `customizations.vscode` gilt nur für VS Code.
+Dort stehen die Erweiterungen aus `.vscode/extensions.json` außer Dev Containers selbst und Einstellungen nur für den Container.
+VS Code installiert diese Erweiterungen im Container von selbst.
+Im Container formatiert Prettier außerdem TypeScript, HTML und CSS beim Speichern, wie `npm run format`.
+Außerhalb des Containers bleibt das aus, weil diese Einstellungen nur in `.devcontainer/devcontainer.json` stehen.
+Nur im Container ist die Erweiterung Prettier sicher installiert.
+VS Code leitet Port 4200 an den eigenen Rechner weiter.
+Port 9876 von Karma braucht nur der Browser im Container.
+Deshalb leitet VS Code ihn nicht von selbst weiter.
+Diese Angaben zu VS Code stammen aus der Dokumentation von VS Code und der Spezifikation von `devcontainer.json`.
+Ein Test in VS Code selbst fehlt noch.
+
+**Zeilenenden.**
+Das Zeilenende ist das unsichtbare Zeichen am Ende jeder Zeile einer Textdatei.
+Linux und macOS nutzen dafür das Zeichen LF (Line Feed, Zeilenvorschub).
+Windows nutzt die zwei Zeichen CRLF (Carriage Return und Line Feed).
+`.editorconfig` und Prettier erwarten LF.
+`.gitattributes` lässt Git alle Textdateien auf jedem System mit LF in den Arbeitsordner schreiben.
+Ohne diese Datei schreibt Git für Windows mit seiner Voreinstellung CRLF.
+Laut Dokumentation von VS Code meldet Git im Dev-Container dann viele Dateien als geändert.
+
+**Nutzungsdaten der Angular CLI.**
+Ohne Einstellung fragt die Angular CLI bei Befehlen wie `ng generate` einmal, ob sie Nutzungsdaten an das Angular-Team schicken darf.
+Die Frage beginnt mit `Would you like to share pseudonymous usage data about this project with the Angular Team at Google` und hält den Befehl an, bis eine Antwort kommt.
+`"analytics": false` unter `cli` in `angular.json` schaltet das für dieses Projekt ab, wie im Patientenportal.
+Die CLI fragt dann nicht und schickt keine Nutzungsdaten.
+
 ## 6 Wie die Teile zusammenspielen
 
 Die Demo-App läuft vollständig im Browser.
@@ -753,6 +796,8 @@ Sie enthält eine Kennung `4711`, den Namen „Herr K.“, das Geschlecht `male`
 **`blutdruck.json`** ist eine Ressource vom Typ [Observation](https://hl7.org/fhir/R4/observation.html), also eine Messung oder Beobachtung, mit der festen ID `blutdruck-01`.
 Sie folgt dem [Blutdruckprofil](https://hl7.org/fhir/R4/bp.html) aus FHIR R4.
 Ein Profil legt fest, welche Felder und Codes eine Ressource für einen bestimmten Zweck haben muss.
+Ein Code ist hier eine feste Kennung aus einem Codesystem, etwa `8480-6` für den systolischen Wert, und hat mit Programmcode nichts zu tun.
+Mit dem Profil in Compose aus Abschnitt 3 hat der Begriff Profil nichts zu tun.
 
 | Feld | Wert | Bedeutung |
 |---|---|---|
@@ -769,6 +814,10 @@ Ein Profil legt fest, welche Felder und Codes eine Ressource für einen bestimmt
 [UCUM](https://ucum.org) ist ein Codesystem für Maßeinheiten.
 Ein Terminologieserver kennt Codesysteme wie LOINC und prüft Codes und Anzeigenamen.
 Die Anzeigenamen der drei LOINC-Codes stimmen mit den Angaben des Terminologieservers tx.fhir.org überein.
+Von den Feldern der Tabelle liest die Bibliothek nur die LOINC-Codes in `component`, die Werte in `valueQuantity` und den Zeitpunkt in `effectiveDateTime`.
+Für die Anzeige „104/66 mm[Hg]“ liest sie außerdem die Einheit des systolischen Werts.
+Die übrigen Felder brauchen Server und andere Systeme.
+HAPI prüft etwa, ob der Verweis in `subject` auf einen vorhandenen Patienten zeigt.
 
 **`blutdruck-verlauf.json`** ist ein [FHIR-Bundle](https://hl7.org/fhir/R4/bundle.html), also eine Ressource vom Typ `Bundle`.
 Sie sammelt andere Ressourcen in der Liste `entry`.
@@ -832,19 +881,21 @@ Diese Angaben stammen aus dem Quelltext der Erweiterung, die Erweiterung selbst 
 
 ## 8 Was beim Start passiert
 
-1. Der Browser lädt `index.html` und das JavaScript der Demo-App vom Entwicklungsserver oder von nginx. Im Build für die Auslieferung sind das die Initial Chunks, noch ohne das Dashboard.
-2. `main.ts` startet Angular mit den Einstellungen aus `app.config.ts`. Dort schaltet `provideZoneChangeDetection()` die Änderungserkennung mit zone.js ein. Die Änderungserkennung prüft nach Ereignissen wie Klicks oder Serverantworten, ob sich die Seite ändern muss. zone.js meldet Angular diese Ereignisse. `provideHttpClient(withFetch())` richtet HTTP-Anfragen mit der Fetch-API des Browsers ein.
-3. Die Komponente `App` holt sich die `VitalsFacade` aus der Angular-Datenschicht `fhir-vitals/angular/data`. Die Facade erzeugt den Ablauf `VitalsSync` aus `fhir-vitals/core` und gibt ihm zwei Adapter mit: `FhirAssets` zum Laden der Assets und `connectWithFhirClient` aus `fhir-vitals/fhir` für den Server.
-4. `App` ruft `start()` der Facade auf und übergibt eine Funktion, die `config.json` liest. `VitalsSync` liest die Datei beim Start und nicht beim Build, damit sie sich ohne Neubau des Images ändern lässt.
-5. `VitalsSync` lädt `assets/fhir/patient.json`. Die Komponente `PatientCard` zeigt in der Karte „Patient“ Name, Geschlecht, Geburtsdatum und Kennung. Fehlt ein Feld, steht dort „–“.
-6. `VitalsSync` lädt das FHIR-Bundle `assets/fhir/blutdruck-verlauf.json`. `bloodPressureHistory()` macht daraus eine Liste von Messpunkten mit Zeitpunkt, systolischem und diastolischem Wert, die älteste zuerst. Der Zustand führt sie unter `history`.
-7. `VitalsSync` liest danach über die übergebene Funktion die Adresse des Servers. Ist `fhirBaseUrl` leer oder `null`, meldet er den Status `not-configured`, und die Komponente `ServerStatus` zeigt in der Karte „FHIR-Server“ „nicht konfiguriert“. Der Ablauf endet dann hier.
+Pfade in Klammern ohne `projects/` am Anfang liegen unter `projects/fhir-vitals/`.
+
+1. Der Browser lädt `index.html` (`projects/demo-app/src/index.html`) und das JavaScript der Demo-App vom Entwicklungsserver oder von nginx. Im Build für die Auslieferung sind das die Initial Chunks, noch ohne das Dashboard.
+2. `main.ts` (`projects/demo-app/src/main.ts`) startet Angular mit den Einstellungen aus `app.config.ts` (`projects/demo-app/src/app/app.config.ts`). Dort schaltet `provideZoneChangeDetection()` die Änderungserkennung mit zone.js ein. Die Änderungserkennung prüft nach Ereignissen wie Klicks oder Serverantworten, ob sich die Seite ändern muss. zone.js meldet Angular diese Ereignisse. `provideHttpClient(withFetch())` richtet HTTP-Anfragen mit der Fetch-API des Browsers ein.
+3. Die Komponente `App` (`projects/demo-app/src/app/app.ts`) holt sich die `VitalsFacade` (`angular/data/src/lib/vitals-facade.ts`) aus der Angular-Datenschicht `fhir-vitals/angular/data`. Die Facade erzeugt den Ablauf `VitalsSync` (`core/src/lib/vitals-sync.ts`) aus `fhir-vitals/core` und gibt ihm zwei Adapter mit: `FhirAssets` (`angular/data/src/lib/fhir-assets.ts`) zum Laden der Assets und `connectWithFhirClient` (`fhir/src/lib/fhir-client-connection.ts`) aus `fhir-vitals/fhir` für den Server.
+4. `App` ruft `start()` der Facade auf und übergibt eine Funktion, die `config.json` (`projects/demo-app/public/config.json`) liest. `VitalsSync` liest die Datei beim Start und nicht beim Build, damit sie sich ohne Neubau des Images ändern lässt.
+5. `VitalsSync` lädt `assets/fhir/patient.json`. Die Komponente `PatientCard` (`angular/ui/cards/src/lib/patient-card/patient-card.ts`) zeigt in der Karte „Patient“ Name, Geschlecht, Geburtsdatum und Kennung. Fehlt ein Feld, steht dort „–“.
+6. `VitalsSync` lädt das FHIR-Bundle `assets/fhir/blutdruck-verlauf.json`. `bloodPressureHistory()` (`core/src/lib/blood-pressure.ts`) macht daraus eine Liste von Messpunkten mit Zeitpunkt, systolischem und diastolischem Wert, die älteste zuerst. Der Zustand führt sie unter `history`.
+7. `VitalsSync` liest danach über die übergebene Funktion die Adresse des Servers. Ist `fhirBaseUrl` leer oder `null`, meldet er den Status `not-configured`, und die Komponente `ServerStatus` (`angular/ui/cards/src/lib/server-status/server-status.ts`) zeigt in der Karte „FHIR-Server“ „nicht konfiguriert“. Der Ablauf endet dann hier.
 8. `VitalsSync` erzeugt mit `connectWithFhirClient` eine `FhirClientConnection`. `isReachable()` fragt `metadata` ab. Antwortet der Server nicht, zeigt die Seite „nicht erreichbar“ und bleibt trotzdem vollständig bedienbar. Auch die Kachel zeigt ihre Messungen, denn sie stammen aus den Assets.
 9. `VitalsSync` lädt `assets/fhir/blutdruck.json` und ruft `seed()` auf. `seed()` schreibt erst den Patienten und dann die Observation per PUT unter ihrer festen ID. Die Reihenfolge ist nötig, weil HAPI prüft, ob der Verweis `subject` auf einen vorhandenen Patienten zeigt. Die sieben Messungen des Verlaufs schreibt `seed()` nicht auf den Server.
 10. `VitalsSync` liest die Observation `Observation/blutdruck-01` vom Server zurück. Erst danach zeigt die Seite „verbunden, Patient und Blutdruck gespeichert“ und „Blutdruck vom Server: 104/66 mm[Hg]“. Geht dabei etwas schief, zeigt der Status die Fehlermeldung.
 11. Bei jeder Änderung meldet `VitalsSync` den neuen Zustand an alle, die ihn mit `subscribe()` abonniert haben. Die Facade legt ihn in ein Signal, und die Komponenten `PatientCard` und `ServerStatus` zeigen ihn an. Keine der beiden kennt fhirclient oder HttpClient.
 12. „Erneut verbinden“ ruft über `reconnect()` die Prüfung der Adresse aus Schritt 7 und die Schritte 8 bis 10 noch einmal auf. `config.json` liest es dabei nicht neu. Ist schon das Laden in den Schritten 5 bis 7 gescheitert, versucht es auch dieses noch einmal. Bis ein Lauf zu Ende ist, ist der Knopf gesperrt und behält trotzdem den Fokus, siehe „Karten und Grundgerüst der Demo-App“ in Abschnitt 5. Der neue Status erscheint in der Live-Region. Ein zweiter Aufruf während eines Laufs schließt sich diesem Lauf an, statt einen eigenen zu starten. Ein PUT mit gleichem Inhalt legt weder eine neue Ressource noch eine neue Version an. Nach mehreren Starts gibt es deshalb weiterhin genau eine Observation mit `versionId` 1.
-13. Unter der Überschrift „Dashboard“ steht der Block `@defer (on viewport)`. Zuerst zeigt er „Dashboard wird geladen …“. Sobald dieser Text in den sichtbaren Bereich kommt, lädt der Browser im Build für die Auslieferung den Lazy Chunk `fhir-vitals-angular-ui-dashboard` mit den vorgeschlagenen Bibliotheken gridstack, Chart.js und ng2-charts. Den Code der Karte von Angular Material hat der Browser schon mit den Initial Chunks geladen, weil `PatientCard` und `ServerStatus` ihn sofort brauchen. Danach erscheint `VitalsDashboard` mit der Kachel „Blutdruckverlauf“. Das Diagramm zeigt die Messungen aus Schritt 6, sobald `VitalsSync` sie geladen hat. Dieser Schritt hängt nicht vom FHIR-Server ab.
+13. Unter der Überschrift „Dashboard“ steht der Block `@defer (on viewport)`. Zuerst zeigt er „Dashboard wird geladen …“. Sobald dieser Text in den sichtbaren Bereich kommt, lädt der Browser im Build für die Auslieferung den Lazy Chunk `fhir-vitals-angular-ui-dashboard` mit den vorgeschlagenen Bibliotheken gridstack, Chart.js und ng2-charts. Den Code der Karte von Angular Material hat der Browser schon mit den Initial Chunks geladen, weil `PatientCard` und `ServerStatus` ihn sofort brauchen. Danach erscheint `VitalsDashboard` (`angular/ui/dashboard/src/lib/vitals-dashboard/vitals-dashboard.ts`) mit der Kachel „Blutdruckverlauf“. Das Diagramm zeigt die Messungen aus Schritt 6, sobald `VitalsSync` sie geladen hat. Dieser Schritt hängt nicht vom FHIR-Server ab.
 
 ## 9 Typische Probleme
 
@@ -858,6 +909,13 @@ Unter Windows zeigt `netstat -ano | findstr :8080` in der letzten Spalte die Pro
 `tasklist /fi "PID eq <nummer>"` nennt dazu das Programm.
 Das andere Programm beenden oder den Container mit `docker stop <name>` anhalten.
 `docker stop` gibt danach den Namen des Containers aus.
+Statt das andere Programm zu beenden, lässt sich HAPI auch auf einen anderen Port legen.
+Dafür in `compose.yaml` beim Dienst `fhir` unter `ports` den Eintrag `"127.0.0.1:8080:8080"` durch `"127.0.0.1:8081:8080"` ersetzen.
+In `projects/demo-app/public/config.json` den Wert von `fhirBaseUrl` in `http://localhost:8081/fhir` ändern.
+Danach HAPI wie in Variante C neu starten, mit dem Dev-Container wie in Variante D.
+`docker compose --profile fhir ps` zeigt dann für HAPI `127.0.0.1:8081->8080/tcp`.
+Überall, wo dieses README `localhost:8080` nennt, gilt dann `localhost:8081`.
+Beide Änderungen nicht committen, denn sie gelten nur für den eigenen Rechner.
 
 **HAPI noch nicht bereit.**
 HAPI braucht nach dem Start etwa 40 Sekunden.
@@ -985,9 +1043,9 @@ Die Bibliothek ist absichtlich klein.
 Sie zeigt die Architektur aus Folie 73 im Workshop-Deck an einem einzigen Beispiel, dem Blutdruck:
 
 - **Facade:** `VitalsFacade` ist der einfache Zugang, über den Angular-Komponenten Vitalparameter anzeigen, ohne FHIR zu kennen.
-- **Port:** `ResourceLoader` und `FhirServerConnection` in `fhir-vitals/core` beschreiben, was der Ablauf von außen braucht. Mit einem Netzwerk-Port hat dieser Begriff nichts zu tun.
+- **Port:** `ResourceLoader` und `FhirServerConnection` in `fhir-vitals/core` beschreiben, was der Ablauf von außen braucht. Mit dem Port aus Abschnitt 3, also einer Nummer wie 4200, hat dieser Begriff nichts zu tun.
 - **FHIR-Adapter:** `FhirClientConnection` in `fhir-vitals/fhir` setzt den Port mit fhirclient um. Ein anderer Adapter kann später den FHIR-Zugang des Patientenportals nutzen.
-- **Ablauf:** `VitalsSync` in `fhir-vitals/core` enthält die eigentliche Logik. Er hängt von keinem UI-Framework ab, damit auch eine Oberfläche mit Vue oder einem anderen Framework ihn nutzen kann.
+- **Ablauf:** `VitalsSync` in `fhir-vitals/core` enthält den ganzen Ablauf der Demo, vom Laden der Beispieldaten bis zum Zurücklesen der gespeicherten Messung vom Server. Er hängt von keinem UI-Framework ab, damit auch eine Oberfläche mit Vue oder einem anderen Framework ihn nutzen kann.
 
 Weitere Schritte im Workshop:
 
@@ -1121,8 +1179,10 @@ Regeln für die Nutzung:
 | Entwicklungsserver | der Server, den `npm start` oder `npm run start:app` mit `ng serve` startet. Er liefert die App aus und lädt sie nach Änderungen neu. |
 | FHIR-Ressource | ein Datensatz nach HL7 FHIR mit festem Aufbau, etwa `Patient` oder `Observation` |
 | Profil | eine Vorgabe, welche Felder und Codes eine FHIR-Ressource für einen Zweck haben muss, etwa das Blutdruckprofil |
+| Code (FHIR) | eine feste Kennung aus einem Codesystem wie LOINC oder UCUM, etwa `8480-6` für den systolischen Wert. Mit Programmcode hat er nichts zu tun. |
 | LOINC | ein internationales Codesystem für Messungen und Laborwerte |
 | UCUM | ein Codesystem für Maßeinheiten wie `mm[Hg]` |
+| mm[Hg] | Millimeter Quecksilbersäule, die übliche Einheit für den Blutdruck. `mm[Hg]` ist ihr Code in UCUM. |
 | REST | ein Stil für Schnittstellen über HTTP. Ein FHIR-Client liest Ressourcen mit GET und schreibt sie mit PUT unter `[Basis]/[Typ]/[id]`. |
 | JSON | ein Textformat für strukturierte Daten aus Objekten, Listen und Werten |
 | JSON-Schema | eine Beschreibung, welche Felder und Werte eine JSON-Datei haben darf. Editoren wie VS Code prüfen Dateien damit beim Tippen. |
@@ -1146,6 +1206,20 @@ Regeln für die Nutzung:
 | Umgebungsvariable | ein benannter Wert, den das Betriebssystem oder das Terminal an jedes gestartete Programm weitergibt, etwa `CHROME_BIN` für Karma |
 | Basis-Image | das fertige Image, auf dem ein eigenes Image aufbaut. In `.devcontainer/Dockerfile` nennt die Zeile `FROM` das Basis-Image. |
 | root | der Administrator eines Linux-Systems mit allen Rechten |
+| npm-Skript | ein Eintrag unter `scripts` in `package.json`, etwa `lint`. `npm run lint` startet ihn. Für `npm start` und `npm test` genügt der Name ohne `run`. |
+| npx | startet ein Programm aus den installierten Paketen, etwa mit `npx ng` die Angular CLI aus `node_modules` |
+| Karma | der Testrunner, also das Programm, das die Unit-Tests im Browser startet |
+| Jasmine | die Bibliothek für die Unit-Tests. Sie liefert etwa `describe`, `it` und `expect`. |
+| Template | das HTML einer Komponente mit Platzhaltern für ihre Daten |
+| RxJS | eine Bibliothek für Datenströme. Angular nutzt sie etwa für die Antworten von HttpClient. |
+| fhirclient | eine JavaScript-Bibliothek für den Zugriff auf FHIR-Server, hier im Adapter `FhirClientConnection` |
+| fetch | die eingebaute Funktion des Browsers für HTTP-Anfragen |
+| synthetische Daten | erfundene Daten, die echten Daten nur ähneln. Alle Daten in diesem Repository sind synthetisch. |
+| InjectionToken | ein Schlüssel, unter dem Angular einen Wert ohne eigene Klasse bereitstellt, hier `CONNECT_TO_SERVER` in `projects/fhir-vitals/angular/data/src/lib/vitals-facade.ts` für den Adapter zum Server. Tests setzen dort einen anderen Adapter ein. |
+| PendingTasks | ein Dienst von Angular, bei dem Code laufende Arbeiten anmeldet. `VitalsFacade` meldet dort ihren Ablauf an. Tests warten mit `whenStable()`, bis alle angemeldeten Arbeiten fertig sind. |
+| DestroyRef | meldet, wenn Angular einen Service oder eine Komponente beendet. `VitalsFacade` meldet sich dann bei `VitalsSync` ab. |
+| sourceRoot | der Eintrag in `angular.json`, der den Quellordner eines Projekts nennt. Ohne `--path` legt `ng generate` neue Dateien darunter an. |
+| Bezeichner | der Name einer Klasse, Funktion oder Variablen im Code, etwa `VitalsFacade` |
 | Mermaid | eine Textsprache für Diagramme. GitHub zeigt den Block in Abschnitt 6 als Diagramm. Die Vorschau von Visual Studio Code zeigt ihn mit der Erweiterung Markdown Preview Mermaid Support. |
 | GitHub Actions | ein Dienst von GitHub, der Workflows ausführt, etwa bei jedem Push |
 | Workflow | ein automatischer Ablauf aus Jobs und Schritten, beschrieben in einer YAML-Datei unter `.github/workflows/`. Jede Ausführung heißt Lauf. |
@@ -1195,7 +1269,11 @@ Regeln für die Nutzung:
 
 Stand aller Links: 05.11.2026.
 Die Links zum FHIR-Bundle und zu `$validate` und die vier Gruppen „Karten und Dashboard: vorgeschlagene Bibliotheken“, „Barrierefreiheit“, „npm-Paket und Vue“ und „Alternativen und ihre Lizenzen“ sind vom 06.11.2026.
-Die Gruppe „Dev-Container und Editor“ ist vom 17.11.2026.
+Die Gruppen „Workshop“ und „Dev-Container und Editor“ sind vom 17.11.2026.
+
+**Workshop**
+
+- Vortrag „Technologiestack“, mit Ablaufdatum: https://datashare.tu-dresden.de/s/bdotfGe69FRNRZe
 
 **Angular und Werkzeuge**
 

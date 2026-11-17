@@ -31,10 +31,12 @@ export class VitalsFacade {
   private readonly current = signal<VitalsState>(this.sync.current);
   private readonly pendingTasks = inject(PendingTasks);
 
+  // Read-only, so only VitalsSync can change the state.
   readonly state = this.current.asReadonly();
 
   constructor() {
     const unsubscribe = this.sync.subscribe((state) => this.current.set(state));
+    // Unsubscribes on destroy, so a run that is still in progress, for example at the end of a test, no longer updates a destroyed service.
     inject(DestroyRef).onDestroy(unsubscribe);
   }
 
