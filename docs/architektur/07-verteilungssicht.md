@@ -10,7 +10,7 @@ Docker und VS Code leiten Ports aus den Containern an den eigenen Rechner weiter
 Gepunktete Pfeile funktionieren erst im nächsten Semester.
 
 ```mermaid
-flowchart TB
+flowchart BT
   accTitle: Wo Demo-App und HAPI FHIR laufen
   accDescr: Der Browser auf dem eigenen Rechner lädt die Demo-App unter localhost:4200. Sie kommt entweder von nginx im Container demo-app oder vom Entwicklungsserver im Dev-Container, den VS Code weiterleitet. Der Container demo-app liest config.json als Bind-Mount aus dem Repository. Die FHIR-Anfragen schickt der Browser an localhost:8080. Dort antwortet erst im nächsten Semester HAPI FHIR. GitHub Pages betrifft nur die Betreuung.
   subgraph Host["Eigener Rechner"]

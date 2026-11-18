@@ -7,16 +7,16 @@ Alle Anfragen schickt deshalb der Browser.
 Gepunktete Pfeile funktionieren erst im nächsten Semester.
 
 ```mermaid
-flowchart LR
+flowchart TB
   accTitle: Kontext der Demo-App
   accDescr: Nutzende bedienen die Demo-App im Browser. Der Browser lädt Seite, config.json und Beispieldaten vom Webserver der Demo-App. Seine FHIR-Anfragen schickt er an localhost:8080. Dort antwortet erst im nächsten Semester HAPI FHIR.
   User(["Nutzende"])
-  App["Browser mit Demo-App und fhir-vitals"]
+  App["Browser mit Demo-App<br>und fhir-vitals"]
   Web["Webserver der Demo-App, siehe Kapitel 7"]
   HAPI[("HAPI FHIR, nächstes Semester")]
   User -- "bedienen" --> App
-  App -- "lädt Seite, config.json und Beispieldaten" --> Web
-  App -. "FHIR-Anfragen: GET metadata, PUT, GET" .-> HAPI
+  App -- "lädt Seite, config.json<br>und Beispieldaten" --> Web
+  App -. "FHIR-Anfragen:<br>GET metadata, PUT, GET" .-> HAPI
 ```
 
 Die Anfrage nach `metadata`, der Selbstbeschreibung des Servers, schickt der Browser schon in diesem Semester an `http://localhost:8080`.
