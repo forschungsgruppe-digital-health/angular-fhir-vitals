@@ -42,7 +42,6 @@
         "dbaeumer.vscode-eslint",
         "esbenp.prettier-vscode",
         "editorconfig.editorconfig",
-        "bierner.markdown-mermaid",
         "Yannick-Lagger.vscode-fhir-tools"
       ],
       // These settings need the Prettier extension, which is always installed in the container.

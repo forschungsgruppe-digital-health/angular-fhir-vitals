@@ -4,7 +4,7 @@ Teil der [Architektur von fhir-vitals](README.md).
 
 ## Vorschlag: Bibliotheken für Karten und Dashboard
 
-Die Karten, die Toolbar der Demo-App und das Dashboard-Beispiel aus [Kapitel 5](05-bausteinsicht.md) nutzen Angular Material mit CDK.
+Die Karten und das Dashboard-Beispiel aus [Kapitel 5](05-bausteinsicht.md#karten-und-dashboard-beispiel) und die Toolbar in `app.html` nutzen Angular Material mit CDK.
 Das Dashboard-Beispiel nutzt zusätzlich gridstack und Chart.js mit ng2-charts.
 Die Schrift Roboto aus `@fontsource/roboto` gilt für die ganze Seite.
 Diese Bibliotheken sind ein Vorschlag.

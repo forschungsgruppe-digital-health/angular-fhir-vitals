@@ -5,6 +5,7 @@ Teil der [Architektur von fhir-vitals](README.md).
 | Begriff | Erklärung |
 |---|---|
 | Angular | ein Framework für Webanwendungen, die im Browser laufen |
+| Vue | ein anderes Framework für Webanwendungen im Browser. `fhir-vitals/core` und `fhir-vitals/fhir` lassen sich auch mit Vue nutzen. |
 | Angular CLI | das Kommandozeilenwerkzeug `ng` von Angular. Es legt Projekte und Bausteine an, baut sie und startet Tests. |
 | TypeScript | eine Erweiterung von JavaScript um Typen. Angular-Code ist in TypeScript geschrieben. |
 | Build | übersetzt den TypeScript-Code in JavaScript-Dateien für den Browser und legt sie im Ordner `dist` ab |
@@ -26,6 +27,7 @@ Teil der [Architektur von fhir-vitals](README.md).
 | Adapter | eine Umsetzung eines Ports mit einer bestimmten Technik, etwa `FhirClientConnection` mit fhirclient |
 | Facade | ein einfacher Zugang für die Oberfläche, der die Einzelheiten dahinter verbirgt, hier `VitalsFacade` |
 | Signal | ein Wert, dessen Änderungen Angular verfolgt. Die Seite aktualisiert sich, sobald ein Signal wie `state` der `VitalsFacade` einen neuen Wert bekommt. |
+| Input | eine Eigenschaft einer Komponente, die die einbindende Seite setzt, etwa `history` von `VitalsDashboard` |
 | Promise | ein Platzhalter für ein Ergebnis, das erst später feststeht, etwa die Antwort eines Servers. `await` wartet auf dieses Ergebnis. |
 | zone.js | eine Bibliothek, die Angular Ereignisse wie Klicks oder Serverantworten meldet, damit Angular die Seite aktualisiert. Das Patientenportal nutzt sie. Die Demo-App übernimmt sie deshalb. |
 | Entwicklungsserver | der Server, den `npm start` oder `npm run start:app` mit `ng serve` startet. Er liefert die App aus und lädt sie nach Änderungen neu. |
@@ -82,6 +84,7 @@ Teil der [Architektur von fhir-vitals](README.md).
 | RxJS | eine Bibliothek für Datenströme. Angular nutzt sie etwa für die Antworten von HttpClient. |
 | fhirclient | eine JavaScript-Bibliothek für den Zugriff auf FHIR-Server, hier im Adapter `FhirClientConnection` |
 | fetch | die eingebaute Funktion des Browsers für HTTP-Anfragen |
+| HttpClient | der Dienst von Angular für HTTP-Anfragen, hier im Adapter `FhirAssets` und beim Lesen von `config.json` in `App` |
 | synthetische Daten | erfundene Daten, die echten Daten nur ähneln. Alle Daten in diesem Repository sind synthetisch. |
 | InjectionToken | ein Schlüssel, unter dem Angular einen Wert ohne eigene Klasse bereitstellt, hier `CONNECT_TO_SERVER` in `projects/fhir-vitals/angular/data/src/lib/vitals-facade.ts` für den Adapter zum Server. Tests setzen dort einen anderen Adapter ein. |
 | PendingTasks | ein Dienst von Angular, bei dem Code laufende Arbeiten anmeldet. `VitalsFacade` meldet dort ihren Ablauf an. Tests warten mit `whenStable()`, bis alle angemeldeten Arbeiten fertig sind. |
@@ -89,7 +92,7 @@ Teil der [Architektur von fhir-vitals](README.md).
 | sourceRoot | der Eintrag in `angular.json`, der den Quellordner eines Projekts nennt. Ohne `--path` legt `ng generate` neue Dateien darunter an. |
 | Bezeichner | der Name einer Klasse, Funktion oder Variablen im Code, etwa `VitalsFacade` |
 | arc42 | eine Vorlage für Architekturdokumentation mit zwölf festen Kapiteln. Der Ordner `docs/architektur` folgt ihr. |
-| Mermaid | eine Textsprache für Diagramme. GitHub zeigt den Block in [Kapitel 5](05-bausteinsicht.md#wie-die-teile-zusammenspielen) als Diagramm. Die Vorschau von Visual Studio Code zeigt ihn mit der Erweiterung Markdown Preview Mermaid Support. |
+| Mermaid | eine Textsprache für Diagramme. GitHub zeigt die Mermaid-Blöcke in den Kapiteln 3 bis 7 als Diagramme. Die Markdown-Vorschau von Visual Studio Code zeigt sie mit der eingebauten Erweiterung Mermaid Markdown Features. |
 | GitHub Actions | ein Dienst von GitHub, der Workflows ausführt, etwa bei jedem Push |
 | Workflow | ein automatischer Ablauf aus Jobs und Schritten, beschrieben in einer YAML-Datei unter `.github/workflows/`. Jede Ausführung heißt Lauf. |
 | Job | eine Folge von Schritten in einem Workflow, die GitHub auf einem eigenen Rechner ausführt |
@@ -128,7 +131,6 @@ Teil der [Architektur von fhir-vitals](README.md).
 | Chart.js, ng2-charts | Chart.js zeichnet Diagramme. ng2-charts bindet Chart.js an Angular an. Im Beispiel ein Vorschlag. |
 | optionale peerDependency | eine peerDependency, die das Feld `peerDependenciesMeta` mit `"optional": true` markiert. npm installiert sie nicht von selbst. |
 | Paketdatei | eine Datei `.tgz`, die `npm pack` aus einem Paket erzeugt. Sie lässt sich wie ein Paket aus der npm-Registry installieren. |
-| Modul | eine einzelne JavaScript-Datei mit eigenen Importen und Exporten |
 | esbuild | ein Build-Werkzeug, das JavaScript- und TypeScript-Dateien mit ihren Importen zu einer Datei zusammenfasst |
 | Screenreader | ein Programm, das den Inhalt einer Seite vorliest oder in Braille ausgibt |
 | Canvas | eine Zeichenfläche aus Pixeln im Browser. Im Beispiel zeichnet die vorgeschlagene Bibliothek Chart.js dort das Diagramm. Ein Screenreader kann den Inhalt nicht lesen. |

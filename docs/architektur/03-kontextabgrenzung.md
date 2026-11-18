@@ -2,11 +2,29 @@
 
 Teil der [Architektur von fhir-vitals](README.md).
 
-Die Demo-App läuft vollständig im Browser.
-Alle Anfragen an die Assets und an HAPI schickt deshalb der Browser.
+Die Demo-App läuft vollständig im Browser und hat kein eigenes Backend.
+Alle Anfragen schickt deshalb der Browser.
+Gepunktete Pfeile funktionieren erst im nächsten Semester.
 
-Ein Ursprung ist die Kombination aus Protokoll, Rechnername und Port, etwa `http://localhost:4200`.
-Seite und HAPI haben verschiedene Ursprünge, weil sie auf verschiedenen Ports laufen.
-Der Browser lässt die Seite die Antworten von HAPI nur lesen, wenn HAPI das per CORS (Cross-Origin Resource Sharing) erlaubt.
-Vor einem PUT fragt der Browser HAPI vorher um Erlaubnis.
-HAPI erlaubt in der Voreinstellung des Images alle Ursprünge, auch `http://localhost:4200`.
+```mermaid
+flowchart LR
+  accTitle: Kontext der Demo-App
+  accDescr: Nutzende bedienen die Demo-App im Browser. Der Browser lädt Seite, config.json und Beispieldaten vom Webserver der Demo-App. Seine FHIR-Anfragen schickt er an localhost:8080. Dort antwortet erst im nächsten Semester HAPI FHIR.
+  User(["Nutzende"])
+  App["Browser mit Demo-App und fhir-vitals"]
+  Web["Webserver der Demo-App, siehe Kapitel 7"]
+  HAPI[("HAPI FHIR, nächstes Semester")]
+  User -- "bedienen" --> App
+  App -- "lädt Seite, config.json und Beispieldaten" --> Web
+  App -. "FHIR-Anfragen: GET metadata, PUT, GET" .-> HAPI
+```
+
+Die Anfrage nach `metadata`, der Selbstbeschreibung des Servers, schickt der Browser schon in diesem Semester an `http://localhost:8080`.
+Dort läuft noch kein FHIR-Server.
+Die Karte „FHIR-Server“ zeigt deshalb „nicht erreichbar“, siehe [Kapitel 6](06-laufzeitsicht.md).
+
+> [!NOTE]
+> Nächstes Semester.
+> Seite und HAPI FHIR haben verschiedene Ursprünge, also verschiedene Kombinationen aus Protokoll, Rechnername und Port, etwa `http://localhost:4200` und `http://localhost:8080`.
+> Der Browser lässt die Seite Antworten von HAPI deshalb nur lesen, wenn HAPI das per CORS erlaubt, siehe [Glossar](12-glossar.md).
+> HAPI erlaubt in der Voreinstellung des Images alle Ursprünge.

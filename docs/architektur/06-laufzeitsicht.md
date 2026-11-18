@@ -4,18 +4,50 @@ Teil der [Architektur von fhir-vitals](README.md).
 
 ## Was beim Start passiert
 
-Pfade in Klammern ohne `projects/` am Anfang liegen unter `projects/fhir-vitals/`.
+Der Browser lädt die Demo-App über Port 4200, siehe [Kapitel 7](07-verteilungssicht.md).
+Danach ruft die Komponente `App` die Methode `start()` der Facade `VitalsFacade` auf und übergibt ihr eine Funktion, die `config.json` liest.
+`VitalsSync` ruft diese Funktion später auf, ohne `App` zu kennen.
+Den weiteren Ablauf steuert `VitalsSync` aus `fhir-vitals/core` über die Adapter `FhirAssets` und `FhirClientConnection`, siehe [Kapitel 4](04-loesungsstrategie.md).
 
-1. Der Browser lädt `index.html` (`projects/demo-app/src/index.html`) und das JavaScript der Demo-App vom Entwicklungsserver oder von nginx. Im Build für die Auslieferung sind das die Initial Chunks, noch ohne das Dashboard.
-2. `main.ts` (`projects/demo-app/src/main.ts`) startet Angular mit den Einstellungen aus `app.config.ts` (`projects/demo-app/src/app/app.config.ts`). Dort schaltet `provideZoneChangeDetection()` die Änderungserkennung mit zone.js ein. Die Änderungserkennung prüft nach Ereignissen wie Klicks oder Serverantworten, ob sich die Seite ändern muss. zone.js meldet Angular diese Ereignisse. `provideHttpClient(withFetch())` richtet HTTP-Anfragen mit der Fetch-API des Browsers ein.
-3. Die Komponente `App` (`projects/demo-app/src/app/app.ts`) holt sich die `VitalsFacade` (`angular/data/src/lib/vitals-facade.ts`) aus der Angular-Datenschicht `fhir-vitals/angular/data`. Die Facade erzeugt den Ablauf `VitalsSync` (`core/src/lib/vitals-sync.ts`) aus `fhir-vitals/core` und gibt ihm zwei Adapter mit: `FhirAssets` (`angular/data/src/lib/fhir-assets.ts`) zum Laden der Assets und `connectWithFhirClient` (`fhir/src/lib/fhir-client-connection.ts`) aus `fhir-vitals/fhir` für den Server.
-4. `App` ruft `start()` der Facade auf und übergibt eine Funktion, die `config.json` (`projects/demo-app/public/config.json`) liest. `VitalsSync` liest die Datei beim Start und nicht beim Build, damit sie sich ohne Neubau des Images ändern lässt.
-5. `VitalsSync` lädt `assets/fhir/patient.json`. Die Komponente `PatientCard` (`angular/ui/cards/src/lib/patient-card/patient-card.ts`) zeigt in der Karte „Patient“ Name, Geschlecht, Geburtsdatum und Kennung. Fehlt ein Feld, steht dort „–“.
-6. `VitalsSync` lädt das FHIR-Bundle `assets/fhir/blutdruck-verlauf.json`. `bloodPressureHistory()` (`core/src/lib/blood-pressure.ts`) macht daraus eine Liste von Messpunkten mit Zeitpunkt, systolischem und diastolischem Wert, die älteste zuerst. Der Zustand führt sie unter `history`.
-7. `VitalsSync` liest danach über die übergebene Funktion die Adresse des Servers. Ist `fhirBaseUrl` leer oder `null`, meldet er den Status `not-configured`, und die Komponente `ServerStatus` (`angular/ui/cards/src/lib/server-status/server-status.ts`) zeigt in der Karte „FHIR-Server“ „nicht konfiguriert“. Der Ablauf endet dann hier.
-8. `VitalsSync` erzeugt mit `connectWithFhirClient` eine `FhirClientConnection`. `isReachable()` fragt `metadata` ab. Antwortet der Server nicht, zeigt die Seite „nicht erreichbar“ und bleibt trotzdem vollständig bedienbar. Auch die Kachel zeigt ihre Messungen, denn sie stammen aus den Assets.
-9. `VitalsSync` lädt `assets/fhir/blutdruck.json` und ruft `seed()` auf. `seed()` schreibt erst den Patienten und dann die Observation per PUT unter ihrer festen ID. Die Reihenfolge ist nötig, weil HAPI prüft, ob der Verweis `subject` auf einen vorhandenen Patienten zeigt. Die sieben Messungen des Verlaufs schreibt `seed()` nicht auf den Server.
-10. `VitalsSync` liest die Observation `Observation/blutdruck-01` vom Server zurück. Erst danach zeigt die Seite „verbunden, Patient und Blutdruck gespeichert“ und „Blutdruck vom Server: 104/66 mm[Hg]“. Geht dabei etwas schief, zeigt der Status die Fehlermeldung.
-11. Bei jeder Änderung meldet `VitalsSync` den neuen Zustand an alle, die ihn mit `subscribe()` abonniert haben. Die Facade legt ihn in ein Signal, und die Komponenten `PatientCard` und `ServerStatus` zeigen ihn an. Keine der beiden kennt fhirclient oder HttpClient.
-12. „Erneut verbinden“ ruft über `reconnect()` die Prüfung der Adresse aus Schritt 7 und die Schritte 8 bis 10 noch einmal auf. `config.json` liest es dabei nicht neu. Ist schon das Laden in den Schritten 5 bis 7 gescheitert, versucht es auch dieses noch einmal. Bis ein Lauf zu Ende ist, ist der Knopf gesperrt und behält trotzdem den Fokus, siehe „Karten und Grundgerüst der Demo-App“ in [Kapitel 5](05-bausteinsicht.md). Der neue Status erscheint in der Live-Region. Ein zweiter Aufruf während eines Laufs schließt sich diesem Lauf an, statt einen eigenen zu starten. Ein PUT mit gleichem Inhalt legt weder eine neue Ressource noch eine neue Version an. Nach mehreren Starts gibt es deshalb weiterhin genau eine Observation mit `versionId` 1.
-13. Unter der Überschrift „Dashboard“ steht der Block `@defer (on viewport)`. Zuerst zeigt er „Dashboard wird geladen …“. Sobald dieser Text in den sichtbaren Bereich kommt, lädt der Browser im Build für die Auslieferung den Lazy Chunk `fhir-vitals-angular-ui-dashboard` mit den vorgeschlagenen Bibliotheken gridstack, Chart.js und ng2-charts. Den Code der Karte von Angular Material hat der Browser schon mit den Initial Chunks geladen, weil `PatientCard` und `ServerStatus` ihn sofort brauchen. Danach erscheint `VitalsDashboard` (`angular/ui/dashboard/src/lib/vitals-dashboard/vitals-dashboard.ts`) mit der Kachel „Blutdruckverlauf“. Das Diagramm zeigt die Messungen aus Schritt 6, sobald `VitalsSync` sie geladen hat. Dieser Schritt hängt nicht vom FHIR-Server ab.
+```mermaid
+sequenceDiagram
+  accTitle: Start der Demo-App
+  accDescr: App startet VitalsSync über VitalsFacade und übergibt eine Funktion, die config.json liest. VitalsSync lädt Patient und Verlauf über den Adapter FhirAssets aus den Assets. Danach ruft VitalsSync die Funktion auf, und App liest die Adresse des Servers aus config.json. Ohne Adresse endet der Ablauf mit nicht konfiguriert. Sonst fragt VitalsSync über den Adapter FhirClientConnection den FHIR-Server nach metadata. Antwortet kein Server, endet der Ablauf mit nicht erreichbar.
+  participant App
+  participant Facade as VitalsFacade
+  participant Sync as VitalsSync
+  participant Assets as FhirAssets
+  participant Client as FhirClientConnection
+  App->>Facade: start(Funktion für config.json)
+  Facade->>Sync: start(Funktion)
+  Note over Sync: Status „wird geprüft …“
+  Sync->>Assets: load: GET patient.json
+  Sync->>Assets: load: GET blutdruck-verlauf.json
+  Sync->>App: Funktion aufrufen: Adresse des Servers lesen
+  Note over App: GET config.json mit HttpClient
+  alt fhirBaseUrl fehlt, ist null oder leer
+    Note over Sync: Status „nicht konfiguriert“
+  else Adresse vorhanden
+    Note over Sync: Status „wird verbunden …“
+    Sync->>Client: isReachable(): GET metadata
+    Note over Sync: ohne Server: Status „nicht erreichbar“
+  end
+```
+
+- **Ohne Server.** Patient und Verlauf kommen aus den Assets, also statischen Dateien der Demo-App. Die Seite zeigt sie deshalb auch ohne FHIR-Server.
+- **Zur Laufzeit.** `App` liest `config.json` erst zur Laufzeit und nicht beim Build. So lässt sich die Adresse ohne neuen Build ändern, siehe [D6](../../README.md#42-auf-dem-eigenen-rechner-mit-docker).
+- **Zustand.** Nach jeder Änderung meldet `VitalsSync` den Zustand an alle, die ihn mit `subscribe()` abonniert haben. `VitalsFacade` legt ihn in das Signal `state`, also in einen Wert, dessen Änderungen Angular verfolgt. `App` reicht ihn von dort über Inputs an Karten und Dashboard weiter.
+- **Fehler.** Scheitert eine andere Anfrage als `metadata`, die Selbstbeschreibung des Servers, zeigt die Karte „FHIR-Server“ die Fehlermeldung. Bleibt eine Anfrage an den Server ohne Antwort, steht dort weiter „wird verbunden …“, siehe [README, Abschnitt 5.2](../../README.md#warum-bleibt-der-status-bei-wird-verbunden).
+- **Erneut verbinden.** Einen Klick auf „Erneut verbinden“ meldet `ServerStatus` an `App`, und `App` ruft `reconnect()` der `VitalsFacade` auf. `VitalsSync` wiederholt dann den Ablauf ab der Prüfung der Adresse, ohne `config.json` neu zu lesen. Ist schon das Laden von Patient, Verlauf oder `config.json` gescheitert, wiederholt er auch dieses.
+- **Dashboard.** Unter „Dashboard“ steht zuerst „Dashboard wird geladen …“. Im Build aus [B6](../../README.md#41-im-dev-container) lädt der Browser die vorgeschlagenen Bibliotheken gridstack, Chart.js und ng2-charts erst, wenn dieser Text sichtbar wird. Sie liegen in einem Lazy Chunk, also einer JavaScript-Datei, die der Browser später nachlädt. Die ebenfalls vorgeschlagene Bibliothek Angular Material steckt dagegen in den Initial Chunks, also in den Dateien, die der Browser sofort lädt. Die Karten brauchen sie von Anfang an. Der Container aus [README, Abschnitt 3.2](../../README.md#32-demo-app-starten-und-ansehen) liefert denselben Build aus. Mit `npm start` lädt Angular die Pakete des Dashboards sofort mit, siehe `NG0751` in [README, Abschnitt 5.2](../../README.md#was-bedeutet-ng0751-in-der-konsole-des-browsers). Das Dashboard hängt nicht vom FHIR-Server ab.
+
+> [!NOTE]
+> Nächstes Semester.
+> Antwortet HAPI FHIR, lädt `VitalsSync` die Datei `blutdruck.json`, schreibt Patient und Observation per PUT und liest die Observation zurück.
+> Erst dann zeigt die Karte „FHIR-Server“ „verbunden, Patient und Blutdruck gespeichert“ und „Blutdruck vom Server: 104/66 mm[Hg]“.
+> Den Patienten schreibt `VitalsSync` zuerst, denn HAPI prüft, ob `subject` der Observation auf einen vorhandenen Patienten zeigt.
+> PUT schreibt beide Ressourcen unter ihrer festen ID.
+> Ein neuer Start legt deshalb keine zweite Kopie an.
+> Den Verlauf aus `blutdruck-verlauf.json` schreibt `VitalsSync` nicht auf den Server.
+> Von den Messungen liegt dort nur `blutdruck-01` aus `blutdruck.json`.
+> Diese Messung gleicht der letzten des Verlaufs.

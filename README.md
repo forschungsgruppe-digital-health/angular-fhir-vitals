@@ -268,8 +268,8 @@ Sie besteht aus fünf Einstiegspunkten, also Teilpaketen mit eigenem Importnamen
 | `fhir-vitals/angular/ui/cards` | `angular/ui/cards` | Karten `PatientCard` und `ServerStatus` |
 | `fhir-vitals/angular/ui/dashboard` | `angular/ui/dashboard` | Dashboard-Beispiel mit der Kachel „Blutdruckverlauf“ |
 
-Was in welche Schicht gehört, beschreibt [Architektur, Kapitel 5](docs/architektur/05-bausteinsicht.md).
-Befehl [B4](#41-im-dev-container) `npm run lint` prüft diese Regeln.
+Was in welche Schicht gehört, beschreibt [Architektur, Kapitel 5](docs/architektur/05-bausteinsicht.md#wohin-neuer-code-gehört).
+Befehl [B4](#41-im-dev-container) `npm run lint` prüft die [Regeln zwischen den Schichten](docs/architektur/05-bausteinsicht.md#regeln-zwischen-den-schichten).
 Die Begriffe Port, Adapter und Facade erklärt das [Glossar](docs/architektur/12-glossar.md).
 
 **Mit mehreren Terminals arbeiten**
@@ -286,7 +286,7 @@ Die Begriffe Port, Adapter und Facade erklärt das [Glossar](docs/architektur/12
 Komponenten und Services legt die Angular CLI mit `ng generate` an, siehe B11 bis B14 in [4.1](#41-im-dev-container).
 Ohne `--path` landen Komponenten in der Angular-Datenschicht, siehe [Frage](#warum-liegt-eine-neue-komponente-in-angulardata).
 Danach den neuen Baustein in der Datei `src/public-api.ts` seines Einstiegspunkts exportieren, siehe B15.
-Ein neues Feature unter `angular/ui` beschreibt [Architektur, Kapitel 5](docs/architektur/05-bausteinsicht.md) unter „Ein neues UI-Feature anlegen“.
+Ein neues Feature unter `angular/ui` beschreibt [Architektur, Kapitel 5](docs/architektur/05-bausteinsicht.md#ein-neues-ui-feature-anlegen) unter „Ein neues UI-Feature anlegen“.
 
 **Anregungen für dieses Semester**
 
@@ -294,7 +294,7 @@ Ein neues Feature unter `angular/ui` beschreibt [Architektur, Kapitel 5](docs/ar
 Die vorgeschlagenen Bibliotheken und ihre Alternativen beschreibt [Architektur, Kapitel 9](docs/architektur/09-architekturentscheidungen.md).
 
 - weitere Vitalparameter aus der [Vital-Signs-Übersicht](https://hl7.org/fhir/R4/observation-vitalsigns.html) ergänzen. Dazu kommen Codes und Formatierung nach `core`, eigene Beispieldateien nach `projects/demo-app/public/assets/fhir/` und eine Komponente in ein UI-Feature wie `angular/ui/cards`.
-- eine zweite Oberfläche mit Vue oder einem anderen Framework auf `fhir-vitals/core` und `fhir-vitals/fhir` aufbauen, siehe [Architektur, Kapitel 5](docs/architektur/05-bausteinsicht.md)
+- eine zweite Oberfläche mit Vue oder einem anderen Framework auf `fhir-vitals/core` und `fhir-vitals/fhir` aufbauen, siehe [Architektur, Kapitel 5](docs/architektur/05-bausteinsicht.md#andere-ui-frameworks)
 - `core` und `fhir` in eigene npm-Pakete auslagern, sobald eine andere Oberfläche sie als Paket installieren soll
 
 ### 3.5 Ohne Container (nicht empfohlen)
@@ -410,7 +410,7 @@ Begriffe wie npm-Skript, npx, Einstiegspunkt und Chunk erklärt das [Glossar](do
 | B1 | `npm ci` | Der Befehl installiert alle Pakete genau nach `package-lock.json` und löscht vorher einen vorhandenen Ordner `node_modules`. Er ist nach dem Klonen und nach jeder Änderung an `package-lock.json` nötig. Im Dev-Container läuft er beim ersten Start von selbst. | Im Dev-Container erscheint `added 611 packages, and audited 612 packages in …`. Ohne Container meldete npm unter macOS `added 605 packages, and audited 606 packages in 10s`. Davor stehen Warnungen `npm warn deprecated`. Danach folgt eine Zeile wie `9 moderate severity vulnerabilities`, siehe [Frage](#warum-meldet-npm-ci-warnungen-und-schwachstellen). |
 | B2 | `npm start` | Der Befehl baut die Bibliothek einmal und startet die Demo-App mit dem Entwicklungsserver auf Port 4200. Nach jeder gespeicherten Änderung an der Demo-App baut der Server neu und aktualisiert die Seite im Browser. Änderungen an der Bibliothek übernimmt er nicht, denn er nutzt die gebaute Bibliothek aus `dist/fhir-vitals`. Dafür B7 und B8 nutzen, siehe [3.4](#34-bibliothek-weiterentwickeln-im-dev-container). | Sechs Zeilen `Built fhir-vitals…`, eine für das Paket und eine je Einstiegspunkt. Danach folgt im Dev-Container `Local: http://127.0.0.1:4200/` und ohne Container `Local: http://localhost:4200/`. Die Seite ist in beiden Fällen unter http://localhost:4200 erreichbar. Die Konsole des Browsers meldet `NG0751`, siehe [Frage](#was-bedeutet-ng0751-in-der-konsole-des-browsers). `Strg+C` beendet den Server. |
 | B3 | `npm test` | Der Befehl baut die Bibliothek und testet dann Bibliothek und Demo-App nacheinander. Er ist vor jedem Commit nötig. | Die sechs Zeilen `Built fhir-vitals…`, dann `TOTAL: 52 SUCCESS` für die Bibliothek und `TOTAL: 3 SUCCESS` für die Demo-App. Im zweiten Block stehen vier Warnungen `WARN [web-server]: 404: /base/media/roboto-latin-…`, siehe [Frage](#warum-meldet-npm-test-warnungen-zu-roboto). |
-| B4 | `npm run lint` | Der Befehl prüft den Code mit ESLint. Dazu gehören die Regeln zwischen den Schichten aus [Architektur, Kapitel 5](docs/architektur/05-bausteinsicht.md). Er ist vor jedem Commit nötig. | Nur die beiden Kopfzeilen `> angular-fhir-vitals@0.0.0 lint` und `> eslint .`. Ohne weitere Ausgabe hat ESLint nichts zu beanstanden. |
+| B4 | `npm run lint` | Der Befehl prüft den Code mit ESLint. Dazu gehören die Regeln zwischen den Schichten aus [Architektur, Kapitel 5](docs/architektur/05-bausteinsicht.md#regeln-zwischen-den-schichten). Er ist vor jedem Commit nötig. | Nur die beiden Kopfzeilen `> angular-fhir-vitals@0.0.0 lint` und `> eslint .`. Ohne weitere Ausgabe hat ESLint nichts zu beanstanden. |
 | B5 | `npm run format` | Der Befehl formatiert TypeScript, HTML und CSS einheitlich mit Prettier. Im Dev-Container formatiert VS Code diese Dateien laut seiner Dokumentation schon beim Speichern. | Eine Zeile je Datei. `(unchanged)` heißt, dass die Datei schon passte. |
 | B6 | `npm run build` | Der Befehl baut erst die Bibliothek und dann die Demo-App für die Auslieferung nach `dist/demo-app`. | Sechs Zeilen `Built fhir-vitals…`, dann die Tabelle `Initial chunk files` mit der Zeile `Initial total` und `329.44 kB`, geschätzt `89.83 kB` bei der Übertragung. Unter `Lazy chunk files` steht `fhir-vitals-angular-ui-dashboard` mit `271.24 kB`, geschätzt `76.38 kB`. Eine Warnung zum Budget erscheint nicht. Am Ende folgen `Application bundle generation complete` und `Output location: …/dist/demo-app`. |
 | B7 | `npm run watch:lib` | Der Befehl baut die Bibliothek bei jeder gespeicherten Änderung neu. Er läuft in einem eigenen Terminal zusammen mit B8. | `Compilation complete. Watching for file changes...`. Nach jeder Änderung folgt ein Block mit `Build at: …`. Der Neubau dauerte im Test 0,1 bis 0,2 Sekunden. |
@@ -613,7 +613,7 @@ Jede Antwort nennt Meldung, Ursache und Lösung.
 
 - **Meldung:** Die Karte in der Kachel „Blutdruckverlauf“ und das Diagramm darin sind zu klein.
 - **Ursache:** In `angular.json` fehlt unter `styles` die Datei `gridstack/dist/gridstack.min.css` der vorgeschlagenen Bibliothek gridstack. In einem Build ohne diese Datei war die Kachel am 06.11.2026 bei 1024 Pixeln Fensterbreite zwar 320 Pixel hoch. Die Karte darin war aber nur 204 Pixel hoch und das Diagramm nur 150 Pixel. Mit der Datei füllt die Karte die Kachel bis auf den Rand von 8 Pixeln aus, und das Diagramm ist 250 Pixel hoch.
-- **Lösung:** Die Zeile wieder eintragen, wie in [Architektur, Kapitel 5](docs/architektur/05-bausteinsicht.md) unter „Globale Styles“ beschrieben. Danach den Entwicklungsserver oder den Build neu starten.
+- **Lösung:** Die Zeile wieder eintragen, wie im [README der Bibliothek](projects/fhir-vitals/README.md#globale-styles) unter „Globale Styles“ beschrieben. Danach den Entwicklungsserver oder den Build neu starten.
 
 #### Was bedeutet `NG0751` in der Konsole des Browsers?
 
@@ -632,7 +632,7 @@ Jede Antwort nennt Meldung, Ursache und Lösung.
 #### Warum meldet ESLint einen verbotenen Import?
 
 - **Meldung:** `… import is restricted from being used by a pattern` mit einem Grund wie `Die UI spricht nicht selbst mit Servern`
-- **Ursache:** Ein Import verletzt eine Regel zwischen den Schichten aus [Architektur, Kapitel 5](docs/architektur/05-bausteinsicht.md). Dasselbe gilt für Importe der vorgeschlagenen Pakete gridstack, Chart.js oder ng2-charts außerhalb von `angular/ui/dashboard`.
+- **Ursache:** Ein Import verletzt eine Regel zwischen den Schichten aus [Architektur, Kapitel 5](docs/architektur/05-bausteinsicht.md#regeln-zwischen-den-schichten). Dasselbe gilt für Importe der vorgeschlagenen Pakete gridstack, Chart.js oder ng2-charts außerhalb von `angular/ui/dashboard`.
 - **Lösung:** Den Code in die passende Schicht oder das passende Feature verschieben. Eine Komponente bekommt Daten dann über ein Input, also eine Eigenschaft, die die einbindende Seite setzt. Die Demo-App holt die Daten über die Facade `VitalsFacade`. Danach zeigt B4 `npm run lint` nur noch die beiden Kopfzeilen.
 
 #### Warum liegt eine neue Komponente in `angular/data`?
@@ -734,6 +734,7 @@ Regeln für die Nutzung:
 Stand aller Links: 05.11.2026.
 Die Links zum FHIR-Bundle und zu `$validate` und die vier Gruppen „Karten und Dashboard: vorgeschlagene Bibliotheken“, „Barrierefreiheit“, „npm-Paket und Vue“ und „Alternativen und ihre Lizenzen“ sind vom 06.11.2026.
 Die Gruppen „Dev-Container und Editor“ und „Windows und Linux“ und der Link zu arc42 sind vom 17.11.2026.
+Der Link zu Mermaid ist vom 18.11.2026.
 
 **Angular und Werkzeuge**
 
@@ -823,7 +824,7 @@ Die Gruppen „Dev-Container und Editor“ und „Windows und Linux“ und der L
 - EditorConfig: https://editorconfig.org und https://marketplace.visualstudio.com/items?itemName=EditorConfig.EditorConfig
 - Erweiterung ESLint: https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint
 - Erweiterung Prettier: https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode
-- Erweiterung Markdown Preview Mermaid Support: https://marketplace.visualstudio.com/items?itemName=bierner.markdown-mermaid
+- Mermaid, die Textsprache der Diagramme in `docs/architektur`: https://mermaid.js.org
 - Nutzungsdaten der Angular CLI: https://angular.dev/cli/analytics
 - Karma und `CHROME_BIN`: https://github.com/karma-runner/karma-chrome-launcher
 
